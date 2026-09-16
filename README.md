@@ -26,7 +26,6 @@ El equipo adoptó **GitFlow** como estrategia de branching. Se eligió sobre Tru
 
 ```mermaid
 gitGraph
-gitGraph
     commit id: "chore: inicializar proyecto"
     branch develop
     checkout develop
