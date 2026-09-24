@@ -1,5 +1,5 @@
 # Compilación de Maven / Spring Boot
-/target/
+target/
 
 target/
 node_modules/
@@ -7,7 +7,7 @@ node_modules/
 .env
 
 # Dependencias de Node.js
-/node_modules/
+node_modules/
 
 # Logs
 *.log
