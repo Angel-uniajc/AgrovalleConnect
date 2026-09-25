@@ -10,4 +10,4 @@ public class AgrovalleConnectApplication {
 		SpringApplication.run(AgrovalleConnectApplication.class, args);
 	}
 
-}
+ }
