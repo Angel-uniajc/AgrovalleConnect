@@ -49,9 +49,6 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Agricultor agricultor;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Comprador comprador;
-
     public enum Rol {
         Agricultor,
         Comprador
