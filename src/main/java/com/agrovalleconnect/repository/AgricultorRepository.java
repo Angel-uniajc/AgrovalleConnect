@@ -12,7 +12,7 @@ public interface AgricultorRepository extends JpaRepository<Agricultor, Long> {
 
     boolean existsByDocumento(String documento);
 
-    Optional<Agricultor> findByUsuarioId(Long UsuarioId);
+    Optional<Agricultor> findById(Long id);
     
 }
 
