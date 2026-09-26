@@ -1,243 +1,30 @@
-# Escenarios Alternativos BDD — AgroValle Connect
+# Product Backlog — AgroValle Connect
 
-**Propósito:** complementar los criterios de aceptación existentes (camino feliz) con los escenarios de error que exige la profe: `400 Bad Request`, `401 Unauthorized` y `404 Not Found`, en formato Gherkin (Given-When-Then).
-
-**Convención usada:**
-- `400` → la solicitud llega mal formada o viola una regla de negocio (datos inválidos, duplicados, fuera de rango).
-- `401` → falta el token JWT o es inválido/expirado.
-- `404` → el recurso referenciado (producto, pedido, finca, etc.) no existe.
-
-Solo se incluyen los códigos que aplican realmente a cada historia — no todas las 17 necesitan los tres.
+**Proyecto:** AgroValle Connect  
+**Stack Tecnológico:** Java 17 / Spring Boot, PostgreSQL  
+**Metodología de Estimación:** Planning Poker con Escala Fibonacci (1, 2, 3, 5, 8, 13)  
+**Técnica de Priorización:** MoSCoW (Must Have, Should Have, Could Have, Won't Have)  
 
 ---
 
-## HU-01 — Registro de Agricultores
-
-**Escenario Alternativo 1 — Email o cédula ya registrados (400)**
-- **Given** que el email o la cédula enviados ya existen en la base de datos
-- **When** el usuario envía `POST /api/v1/auth/register`
-- **Then** el sistema responde `400 Bad Request` con un mensaje indicando el campo duplicado, y no crea ningún registro
-
-**Escenario Alternativo 2 — Datos incompletos o inválidos (400)**
-- **Given** que el JSON enviado no incluye `nombre`, `email`, `contraseña` o `cedula`, o la contraseña tiene menos de 8 caracteres
-- **When** el usuario envía `POST /api/v1/auth/register`
-- **Then** el sistema responde `400 Bad Request` detallando el/los campo(s) inválido(s)
-
----
-
-## HU-02 — Publicación de Cosechas
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud no incluye un token JWT válido en el header `Authorization`
-- **When** se envía `POST /api/v1/productos`
-- **Then** el sistema responde `401 Unauthorized` y no publica el producto
-
-**Escenario Alternativo 2 — Fecha de cosecha inválida (400)**
-- **Given** un agricultor autenticado que envía una `fecha_cosecha` anterior a la fecha actual
-- **When** publica el producto
-- **Then** el sistema responde `400 Bad Request` indicando que la fecha no puede ser pasada
-
----
-
-## HU-03 — Visualización de Precios Regionales
-
-**Escenario Alternativo 1 — Categoría sin transacciones registradas (404)**
-- **Given** que no existen transacciones registradas para la categoría solicitada
-- **When** el usuario consulta el precio promedio de esa categoría
-- **Then** el sistema responde `404 Not Found` indicando que no hay datos suficientes para calcular el promedio
-
----
-
-## HU-04 — Filtro de Categorías y Municipios
-
-**Escenario Alternativo 1 — Municipio fuera del Valle del Cauca (400)**
-- **Given** que el parámetro `municipio` no corresponde a un municipio válido del Valle del Cauca
-- **When** se realiza `GET /api/v1/productos?municipio={municipio}&categoria={categoria}`
-- **Then** el sistema responde `400 Bad Request` indicando que el municipio no es válido
-
----
-
-## HU-05 — Contacto Directo / Intención de Compra
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud no incluye un token JWT válido
-- **When** se envía `POST /api/v1/contacto/mensaje`
-- **Then** el sistema responde `401 Unauthorized`
-
-**Escenario Alternativo 2 — Producto inexistente (404)**
-- **Given** un comprador autenticado que envía un `id_producto` que no existe o ya no está activo
-- **When** intenta enviar el mensaje de contacto
-- **Then** el sistema responde `404 Not Found`
-
-**Escenario Alternativo 3 — Mensaje vacío (400)**
-- **Given** un comprador autenticado con un `id_producto` válido
-- **When** envía la solicitud sin contenido en el mensaje
-- **Then** el sistema responde `400 Bad Request`
-
----
-
-## HU-06 — Asignar Ruta de Envío
-
-**Escenario Alternativo 1 — Lote no encontrado o no alistado (404)**
-- **Given** un `id` de lote que no existe, o que existe pero no está en estado "Alistado"
-- **When** el productor intenta confirmar una ruta de envío
-- **Then** el sistema responde `404 Not Found`
-
-**Escenario Alternativo 2 — Fecha/hora de salida inválida (400)**
-- **Given** un lote válido en estado "Alistado"
-- **When** el productor envía una fecha/hora de salida anterior al momento actual
-- **Then** el sistema responde `400 Bad Request`
-
----
-
-## HU-07 — Pago Exitoso con Producto Disponible
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud de pago no incluye un token JWT válido
-- **When** se intenta procesar el pago
-- **Then** el sistema responde `401 Unauthorized`
-
-**Escenario Alternativo 2 — Producto inexistente (404)**
-- **Given** un usuario autenticado que referencia un producto que ya no existe en el catálogo
-- **When** intenta confirmar la compra
-- **Then** el sistema responde `404 Not Found`
-
-**Escenario Alternativo 3 — Datos de pago inválidos (400)**
-- **Given** un usuario autenticado con un producto válido
-- **When** los datos de la pasarela de pago (tarjeta, monto) son inválidos o están incompletos
-- **Then** el sistema responde `400 Bad Request` y no registra la orden
-
----
-
-## HU-08 — Cantidad Solicitada Superior al Inventario
-
-**Escenario Alternativo 1 — Producto inexistente (404)**
-- **Given** un usuario autenticado que intenta comprar un `id_producto` inexistente
-- **When** procesa la compra
-- **Then** el sistema responde `404 Not Found`
-
-*(El escenario de stock insuficiente ya está cubierto como camino principal de esta historia — HU-08 es en sí misma el "escenario alternativo" de HU-07, por eso solo se agrega el 404).*
-
----
-
-## HU-09 — Calificar Producto
-
-**Escenario Alternativo 1 — Pedido no encontrado o no completado (404)**
-- **Given** un `id` de pedido que no existe, o que existe pero no está en estado "Completado/Recibido"
-- **When** el comprador intenta calificar
-- **Then** el sistema responde `404 Not Found`
-
-**Escenario Alternativo 2 — Calificación fuera de rango (400)**
-- **Given** un pedido completado y recibido
-- **When** el comprador envía una calificación fuera del rango 1 a 5
-- **Then** el sistema responde `400 Bad Request`
-
----
-
-## HU-10 — Calificar Transporte
-
-**Escenario Alternativo 1 — Pedido no entregado (404)**
-- **Given** un pedido que no existe o que aún no está marcado como entregado
-- **When** el comprador intenta calificar el transporte
-- **Then** el sistema responde `404 Not Found`
-
-**Escenario Alternativo 2 — Calificación fuera de rango (400)**
-- **Given** un pedido entregado y completado
-- **When** el comprador envía una calificación fuera del rango 1 a 5
-- **Then** el sistema responde `400 Bad Request`
-
----
-
-## HU-11 — Descargar Recibo de Compra
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud no incluye un token JWT válido
-- **When** se intenta descargar el recibo
-- **Then** el sistema responde `401 Unauthorized`
-
-**Escenario Alternativo 2 — Compra no encontrada (404)**
-- **Given** un comerciante autenticado que referencia un `id` de compra que no existe o no le pertenece
-- **When** solicita "Descargar recibo"
-- **Then** el sistema responde `404 Not Found`
-
----
-
-## HU-12 — Realizar Pedido
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud no incluye un token JWT válido
-- **When** se envía `POST /api/v1/pedidos`
-- **Then** el sistema responde `401 Unauthorized`
-
-**Escenario Alternativo 2 — Carrito vacío o producto inexistente (400/404)**
-- **Given** un comprador autenticado con el carrito vacío
-- **When** intenta confirmar el pedido
-- **Then** el sistema responde `400 Bad Request`
-- **Given**, alternativamente, que algún producto del carrito ya no existe en el catálogo
-- **When** intenta confirmar el pedido
-- **Then** el sistema responde `404 Not Found`
-
----
-
-## HU-13 — Consultar Ruta de Envío
-
-**Escenario Alternativo 1 — Código de seguimiento inexistente (404)**
-- **Given** un código de seguimiento que no corresponde a ningún envío registrado
-- **When** el usuario consulta el estado en el Módulo Logística
-- **Then** el sistema responde `404 Not Found`
-
----
-
-## HU-14 — Registro de Fincas por Municipio
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud no incluye un token JWT válido
-- **When** se envía `POST /api/v1/fincas`
-- **Then** el sistema responde `401 Unauthorized`
-
-**Escenario Alternativo 2 — Municipio fuera del Valle del Cauca (400)**
-- **Given** un agricultor autenticado que envía un municipio que no pertenece al Valle del Cauca
-- **When** registra la finca
-- **Then** el sistema responde `400 Bad Request`
-
----
-
-## HU-15 — Confirmación de Alistamiento de Lote
-
-**Escenario Alternativo 1 — Sin autenticación (401)**
-- **Given** que la solicitud no incluye un token JWT válido
-- **When** se envía `PATCH /api/v1/pedidos/{id}/alistamiento`
-- **Then** el sistema responde `401 Unauthorized`
-
-**Escenario Alternativo 2 — Pedido no encontrado o no pagado (404)**
-- **Given** un `id` de pedido que no existe, o que existe pero no está en estado "Pago aprobado"
-- **When** el productor intenta marcarlo como "Alistado"
-- **Then** el sistema responde `404 Not Found`
-
----
-
-## HU-16 — Inicio de Sesión
-
-**Escenario Alternativo 1 — Credenciales incorrectas (401)**
-- **Given** un email registrado con una contraseña incorrecta, o un email que no existe
-- **When** el usuario envía `POST /api/v1/auth/login`
-- **Then** el sistema responde `401 Unauthorized` con un mensaje genérico (sin revelar si falló el email o la contraseña)
-
-**Escenario Alternativo 2 — Datos faltantes (400)**
-- **Given** que el request no incluye `email` o `contraseña`
-- **When** se envía `POST /api/v1/auth/login`
-- **Then** el sistema responde `400 Bad Request`
-
----
-
-## HU-17 — Registro de Comprador
-
-**Escenario Alternativo 1 — Email duplicado (400)**
-- **Given** que el email enviado ya existe en la base de datos
-- **When** el usuario envía `POST /api/v1/auth/register` con `rol=COMPRADOR`
-- **Then** el sistema responde `400 Bad Request`
-
-**Escenario Alternativo 2 — Tipo de comprador inválido (400)**
-- **Given** un JSON con `tipo_comprador` fuera de los valores permitidos (individual, comerciante, restaurante)
-- **When** se envía la solicitud de registro
-- **Then** el sistema responde `400 Bad Request`
+# Product Backlog — AgroValle Connect
+
+| ID | Historia de Usuario | Priorización (MoSCoW) | Estimación (Story Points - Fibonacci) | Criterio de Aceptación |
+| :---: | :--- | :---: | :---: | :--- |
+| **HU-01** | **Registro de Agricultores:** Como Agricultor, quiero registrarme en la plataforma para ofrecer mis productos. | **M** (Must Have) | **5 Points** | **Escenario Principal (201 Created):**<br>**Given** que el usuario ingresa a `/api/v1/auth/register`,<br>**When** envía un JSON con `nombre`, `ubicacion_valle` y `cedula` válida,<br>**Then** responde status `201 Created` y el registro persiste en PostgreSQL.<br><br>**Escenario Alternativo 1 (400 Bad Request):**<br>**Given** datos de registro faltantes o `cedula` inválida,<br>**When** se envía `POST /api/v1/auth/register`,<br>**Then** responde `400 Bad Request` indicando los campos con error. |
+| **HU-02** | **Publicación de Cosechas:** Como Agricultor, quiero publicar mis cosechas para que sean visibles. | **M** (Must Have) | **5 Points** | **Escenario Principal (201 Created):**<br>**Given** un agricultor autenticado con token JWT,<br>**When** publica un producto con `tipo`, `cantidad` y `fecha_cosecha` válida,<br>**Then** valida que la fecha no sea anterior a hoy, responde `201 Created` y retorna ID único.<br><br>**Escenario Alternativo 1 (Fecha inválida - 400):**<br>**Given** un agricultor autenticado,<br>**When** envía `fecha_cosecha` anterior a hoy,<br>**Then** responde `400 Bad Request`.<br><br>**Escenario Alternativo 2 (Sin token - 401):**<br>**Given** usuario no autenticado o token expirado,<br>**When** intenta enviar `POST /api/v1/productos`,<br>**Then** responde `401 Unauthorized`. |
+| **HU-03** | **Visualización de Precios Regionales:** Como Usuario, quiero ver los precios promedio del Valle para negociar mejor. | **S** (Should Have) | **5 Points** | **Escenario Principal (200 OK):**<br>**Given** que existen 50 transacciones de "Café" en las últimas 24 horas,<br>**When** solicito el precio promedio de "Café",<br>**Then** calcula la media aritmética y despliega el valor exacto en COP.<br><br>**Escenario Alternativo 1 (Sin datos suficientes - 200 OK):**<br>**Given** que no existen transacciones recientes de un producto,<br>**When** se solicita el promedio,<br>**Then** responde `200 OK` indicando información insuficiente para promediar. |
+| **HU-04** | **Filtro de Categorías y Municipios:** Como Comprador, quiero filtrar las cosechas por municipio (Dagua, Palmira, Buga) y categoría para localizar recursos rápidamente. | **M** (Must Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** productos registrados bajo municipio "Dagua" y categoría "Frutas",<br>**When** realiza `GET /api/v1/productos?municipio=Dagua&categoria=Frutas`,<br>**Then** responde status `200 OK` con el arreglo JSON de ofertas activas.<br><br>**Escenario Alternativo 1 (Sin coincidencias - 200 OK):**<br>**Given** que no existen ofertas para los filtros aplicados,<br>**When** realiza la petición GET,<br>**Then** responde status `200 OK` con un arreglo JSON vacío `[]`. |
+| **HU-05** | **Contacto Directo / Intención de Compra:** Como Comprador, quiero enviar una solicitud de contacto directo al agricultor para acordar condiciones de compra y logística. | **S** (Should Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** comprador autenticado con token JWT y oferta activa con `id_producto`,<br>**When** envía `POST /api/v1/contacto/mensaje` con `id_producto` y mensaje,<br>**Then** persiste la interacción en PostgreSQL y retorna status `200 OK`.<br><br>**Escenario Alternativo 1 (Producto no encontrado - 404):**<br>**Given** comprador autenticado con token JWT,<br>**When** envía mensaje con un `id_producto` inexistente,<br>**Then** responde `404 Not Found`. |
+| **HU-06** | **Asignar Ruta de Envío:** Como Productor agrícola, quiero programar la ruta de envío de mis lotes alistados para asegurar la trazabilidad y evitar pérdidas postcosecha. | **S** (Should Have) | **5 Points** | **Escenario Principal (200 OK):**<br>**Given** lote con estado "Alistado" y orden confirmada por comprador,<br>**When** selecciona fecha/hora de salida y confirma ruta en Módulo Logística,<br>**Then** actualiza estado a "En camino", genera código de seguimiento y notifica al comprador.<br><br>**Escenario Alternativo 1 (Lote no alistado - 400):**<br>**Given** lote en estado "Pendiente",<br>**When** intenta asignar ruta de envío,<br>**Then** responde `400 Bad Request` exigiendo estado "Alistado". |
+| **HU-07** | **Pago Exitoso con Producto Disponible:** Como Comprador, quiero realizar el pago de mi pedido mediante un método seguro para confirmar mi compra y notificar al agricultor. | **M** (Must Have) | **8 Points** | **Escenario Principal (200 OK):**<br>**Given** usuario autenticado en la plataforma,<br>**When** selecciona producto y pasarela de pagos para confirmar compra,<br>**Then** registra orden con estado "Pago aprobado", descuenta inventario, notifica al agricultor y muestra comprobante.<br><br>**Escenario Alternativo 1 (Pago rechazado - 402/400):**<br>**Given** usuario intentando pagar,<br>**When** la pasarela rechaza la transacción por fondos insuficientes o datos erróneos,<br>**Then** el sistema no descuenta inventario ni crea orden, notificando el fallo. |
+| **HU-08** | **Cantidad Solicitada Superior al Inventario:** Como Comprador, quiero que la plataforma valide el stock antes del pago para evitar compras sin disponibilidad. | **M** (Must Have) | **3 Points** | **Escenario Principal (Validación de Stock - 400):**<br>**Given** usuario autenticado intenta comprar 16 unidades teniendo 10 disponibles,<br>**When** procesa la solicitud de compra,<br>**Then** detiene el pago, no crea la orden de compra ni consulta a la pasarela, respondiendo `400 Bad Request` con el stock disponible.<br><br>**Escenario Alternativo 1 (Producto agotado - 400):**<br>**Given** producto con stock en 0,<br>**When** intenta agregarlo al checkout,<br>**Then** bloquea la solicitud indicando "Producto agotado". |
+| **HU-09** | **Calificar Producto:** Como Comprador, quiero calificar y dejar una reseña al agricultor después de recibir el producto para informar sobre la calidad. | **C** (Could Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** comprador con pedido completado y recibido,<br>**When** selecciona pedido, asigna de 1 a 5 estrellas y escribe comentario,<br>**Then** guarda la valoración y actualiza el promedio visible en el perfil del agricultor.<br><br>**Escenario Alternativo 1 (Pedido no entregado - 400):**<br>**Given** comprador con pedido en estado "En camino",<br>**When** intenta calificar el producto,<br>**Then** responde `400 Bad Request` indicando que solo puede calificar pedidos entregados. |
+| **HU-10** | **Calificar Transporte:** Como Comprador, quiero calificar el servicio de transporte para evaluar cumplimiento de tiempos y conservación de cosecha. | **C** (Could Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** pedido entregado al comprador y marcado como completado,<br>**When** evalúa el transporte con 1 a 5 estrellas y comentario,<br>**Then** guarda la valoración y actualiza el promedio del servicio logístico.<br><br>**Escenario Alternativo 1 (Reseña duplicada - 400):**<br>**Given** pedido previamente calificado,<br>**When** envía segunda calificación,<br>**Then** responde `400 Bad Request`. |
+| **HU-11** | **Descargar Recibo de Compra:** Como Comerciante o Restaurante, quiero descargar el recibo correspondiente a una compra para llevar registro contable. | **S** (Should Have) | **5 Points** | **Escenario Principal (200 OK):**<br>**Given** comerciante con compra registrada en el sistema,<br>**When** selecciona "Descargar recibo" en el historial de pedidos,<br>**Then** genera y descarga un recibo en PDF con el desglose completo de la transacción.<br><br>**Escenario Alternativo 1 (No autorizado - 403/404):**<br>**Given** usuario intentando descargar recibo de compra ajena o inexistente,<br>**When** solicita la descarga,<br>**Then** responde `403 Forbidden` o `404 Not Found`. |
+| **HU-12** | **Realizar Pedido:** Como Comprador, quiero realizar pedidos de los productos disponibles para adquirirlos directamente del productor. | **M** (Must Have) | **5 Points** | **Escenario Principal (201 Created):**<br>**Given** comerciante con productos disponibles en su carrito,<br>**When** selecciona pagar e invoca `POST /api/v1/pedidos`,<br>**Then** genera la orden en estado "Pendiente de pago" y reserva el stock temporalmente.<br><br>**Escenario Alternativo 1 (Carrito vacío - 400):**<br>**Given** comprador con carrito vacío,<br>**When** intenta invocar `POST /api/v1/pedidos`,<br>**Then** responde `400 Bad Request`. |
+| **HU-13** | **Consultar Ruta de Envío:** Como Usuario, quiero consultar la ruta de mi pedido para ver las actualizaciones en tiempo real y coordinar la recepción. | **S** (Should Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** comprador con orden confirmada en estado "En camino" y código de seguimiento,<br>**When** consulta el código en Módulo Logística,<br>**Then** muestra estado actual, origen, destino, ETA y última actualización.<br><br>**Escenario Alternativo 1 (Código inválido - 404):**<br>**Given** un código de seguimiento inexistente,<br>**When** realiza la consulta,<br>**Then** responde `404 Not Found`. |
+| **HU-14** | **Registro de Fincas por Municipio:** Como Agricultor, quiero registrar los datos de mi finca asociándola a un municipio del Valle (Dagua, Palmira, Buga) para publicar cosechas geolocalizadas. | **M** (Must Have) | **5 Points** | **Escenario Principal (201 Created):**<br>**Given** agricultor autenticado con token JWT válido,<br>**When** envía `POST /api/v1/fincas` con datos de la finca,<br>**Then** valida municipio del Valle del Cauca, responde `201 Created` y persiste en PostgreSQL.<br><br>**Escenario Alternativo 1 (Municipio no permitido - 400):**<br>**Given** agricultor autenticado,<br>**When** envía municipio ajeno al Valle del Cauca,<br>**Then** responde `400 Bad Request`. |
+| **HU-15** | **Confirmación de Alistamiento de Lote:** Como Productor agrícola, quiero marcar un lote como "Alistado" para notificar que la mercancía está lista para la asignación del transporte. | **S** (Should Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** productor con orden de compra confirmada/pagada por un comprador,<br>**When** envía `PATCH /api/v1/pedidos/{id}/alistamiento`,<br>**Then** actualiza estado a "Alistado" en PostgreSQL y habilita el módulo de logística.<br><br>**Escenario Alternativo 1 (Orden sin pagar - 400):**<br>**Given** pedido en estado "Pendiente de pago",<br>**When** intenta marcar alistamiento,<br>**Then** responde `400 Bad Request`. |
+| **HU-16** | **Inicio de Sesión:** Como Usuario, quiero iniciar sesión en la plataforma para acceder a mis funcionalidades según mi rol. | **M** (Must Have) | **3 Points** | **Escenario Principal (200 OK):**<br>**Given** un usuario registrado con credenciales válidas,<br>**When** envía `POST /api/v1/auth/login` con `email` y `password`,<br>**Then** el sistema responde status `200 OK` con el token JWT.<br><br>**Escenario Alternativo 1 (401):**<br>**Given** un email registrado con contraseña incorrecta, o un email no existente,<br>**When** el usuario envía `POST /api/v1/auth/login`,<br>**Then** el sistema responde `401 Unauthorized` con un mensaje genérico.<br><br>**Escenario Alternativo 2 (400):**<br>**Given** que el request no incluye `email` o `contraseña`,<br>**When** se envía `POST /api/v1/auth/login`,<br>**Then** responde `400 Bad Request`. |
+| **HU-17** | **Registro de Comprador:** Como Comprador, quiero registrarme en la plataforma para adquirir productos agrícolas de la región. | **M** (Must Have) | **5 Points** | **Escenario Principal (201 Created):**<br>**Given** un comprador no registrado,<br>**When** envía `POST /api/v1/auth/register` con `rol=COMPRADOR` y `tipo_comprador` válido (individual, comerciante, restaurante),<br>**Then** responde status `201 Created` y el registro persiste en PostgreSQL.<br><br>**Escenario Alternativo 1 (400):**<br>**Given** que el email enviado ya existe en la base de datos,<br>**When** envía `POST /api/v1/auth/register` con `rol=COMPRADOR`,<br>**Then** responde `400 Bad Request`.<br><br>**Escenario Alternativo 2 (400):**<br>**Given** un JSON con `tipo_comprador` fuera de los valores permitidos,<br>**When** se envía la solicitud de registro,<br>**Then** responde `400 Bad Request`. |
