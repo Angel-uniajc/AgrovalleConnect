@@ -93,5 +93,5 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 
 ## Documentación relacionada
 
-- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 15 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
+- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
 - [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
