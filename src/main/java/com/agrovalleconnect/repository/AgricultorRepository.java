@@ -10,9 +10,8 @@ import com.agrovalleconnect.model.Agricultor;
 
 public interface AgricultorRepository extends JpaRepository<Agricultor, Long> {
 
-    boolean existsByDocumento(String documento);
+    boolean existsByDocumentoIdentidad(String documentoIdentidad);
 
     Optional<Agricultor> findById(Long id);
-    
 }
 

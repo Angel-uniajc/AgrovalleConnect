@@ -31,20 +31,14 @@ public class Agricultor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String nombre;
-
     @Column(nullable = false, length = 20)
     private String documentoIdentidad;
-
-    @Column(nullable = false, length = 50)
-    private String correo;
 
     @Column (name = "ubicacion_valle",nullable = false, length = 15)
     private String ubicacionValle;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id", nullable = true)
     private Usuario usuario;
 
 }
