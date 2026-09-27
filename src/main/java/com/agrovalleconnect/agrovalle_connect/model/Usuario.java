@@ -31,10 +31,20 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column (name = "password_hash",nullable = false)
+    @Column (
+        name = "nombre",
+        nullable = false, 
+        length = 50)
+    private String nombre;
+
+    @Column (
+        name = "password_hash",
+        nullable = false)
     private String passwordHash;
 
-    @Column (nullable = false, length = 50)
+    @Column (
+        nullable = false, 
+        length = 50)
     private String correo;
 
     @Enumerated (EnumType.STRING)
@@ -44,13 +54,14 @@ public class Usuario {
     @Column (name = "fecha_registro", nullable = false)
     private LocalDateTime fechaRegistro = LocalDateTime.now();
 
-    
-
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(
+        mappedBy = "usuario", 
+        cascade = CascadeType.ALL, 
+        orphanRemoval = true) // Relación bidireccional con Agricultor
     private Agricultor agricultor;
 
     public enum Rol {
-        Agricultor,
-        Comprador
+        AGRICULTOR,
+        COMPRADOR
     }
 }

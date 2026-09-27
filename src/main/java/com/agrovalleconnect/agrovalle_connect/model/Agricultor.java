@@ -1,9 +1,5 @@
 package com.agrovalleconnect.agrovalle_connect.model;
 
-import java.time.LocalDateTime;
-
-import com.agrovalleconnect.agrovalle_connect.model.Usuario;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -33,13 +29,19 @@ public class Agricultor {
     private Long id;
 
     @Column(nullable = false, length = 20)
-    private String documentoIdentidad;
+    private String cedula;
 
-    @Column (name = "ubicacion_valle",nullable = false, length = 15)
+    @Column (
+        name = "ubicacion_valle",
+        nullable = false, 
+        length = 15)
     private String ubicacionValle;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = true)
+    @OneToOne(fetch = FetchType.LAZY) // Relación unidireccional con Usuario
+    @JoinColumn(
+        name = "usuario_id", 
+        nullable = false, 
+        unique = true) // Relación unidireccional con Usuario
     private Usuario usuario;
 
 }
