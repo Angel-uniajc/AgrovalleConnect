@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    boolean existsByCorreo(String correo); // verificar la existencia de un usuario con el mismo correo
+    boolean existsByCorreo(String correo); 
     
-    Optional<Usuario> findByCorreo(String correo); // buscar un usuario por correo
+    Optional<Usuario> findByCorreo(String correo); 
 
-    boolean existsByCorreoAndIdNot(String correo, Long id); // verificar la existencia de un usuario con el mismo correo pero diferente ID
+    boolean existsByCorreoAndIdNot(String correo, Long id); 
 }
