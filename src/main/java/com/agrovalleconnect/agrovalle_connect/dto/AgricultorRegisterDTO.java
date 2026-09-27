@@ -3,6 +3,13 @@ package com.agrovalleconnect.agrovalle_connect.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@NoArgsConstructor
+@Setter
+@Getter
 
 public class AgricultorRegisterDTO {
 
@@ -26,5 +33,4 @@ public class AgricultorRegisterDTO {
     @NotBlank(message = "La ubicación no puede estar vacía")
     @Size(max = 15, message = "La ubicación no puede superar 15 caracteres")
     private String ubicacionValle;
-
 }
