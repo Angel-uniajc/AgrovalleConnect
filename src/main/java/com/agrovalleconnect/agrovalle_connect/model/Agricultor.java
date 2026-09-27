@@ -1,8 +1,9 @@
-package com.agrovalleconnect.model;
+package com.agrovalleconnect.agrovalle_connect.model;
 
 import java.time.LocalDateTime;
 
-import com.agrovalleconnect.model.Usuario;
+import com.agrovalleconnect.agrovalle_connect.model.Usuario;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

@@ -1,4 +1,4 @@
-package com.agrovalleconnect.model;
+package com.agrovalleconnect.agrovalle_connect.model;
 
 import java.time.LocalDateTime;
 

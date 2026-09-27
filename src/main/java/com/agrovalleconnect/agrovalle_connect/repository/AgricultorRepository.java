@@ -1,10 +1,10 @@
-package com.agrovalleconnect.repository;
+package com.agrovalleconnect.agrovalle_connect.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.agrovalleconnect.model.Agricultor;
+import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 
 
 
