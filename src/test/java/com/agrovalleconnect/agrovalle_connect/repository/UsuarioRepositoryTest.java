@@ -121,4 +121,30 @@ private Agricultor sembrarUsuarioConAgricultor() {
         assertThatThrownBy(() -> usuarioRepository.saveAndFlush(usuario))
             .isInstanceOf(DataIntegrityViolationException.class);
     }
+
+    @Test
+    void guardarUsuarioConCorreoDuplicado_esRechazado() {
+        // GIVEN: un usuario ya guardado en la BD
+        Usuario primero = Usuario.builder()
+            .nombre("Pedro")
+            .correo("pedro@mail.com")
+            .passwordHash("hash_de_prueba")
+            .rol(Usuario.Rol.AGRICULTOR)
+            .fechaRegistro(LocalDateTime.now())
+            .build();
+        usuarioRepository.saveAndFlush(primero);
+
+        // Un segundo usuario, distinto en todo MENOS en el correo
+        Usuario segundo = Usuario.builder()
+            .nombre("Juan")
+            .correo("pedro@mail.com")
+            .passwordHash("otro_hash")
+            .rol(Usuario.Rol.COMPRADOR)
+            .fechaRegistro(LocalDateTime.now())
+            .build();
+
+        // WHEN / THEN: guardar el segundo debe explotar
+        assertThatThrownBy(() -> usuarioRepository.saveAndFlush(segundo))
+            .isInstanceOf(DataIntegrityViolationException.class);
+    }
 }
