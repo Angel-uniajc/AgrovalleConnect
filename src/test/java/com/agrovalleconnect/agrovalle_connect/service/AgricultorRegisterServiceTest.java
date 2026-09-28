@@ -46,51 +46,61 @@ class AgricultorRegisterServiceTest {
     }
 
     @Test
+    void registrar_correoDuplicado_lanzaExcepcionYNoGuardaNada() {
+        when(usuarioRepository.existsByCorreo("pedro@mail.com")).thenReturn(true);
+
+        assertThatThrownBy(() -> servicio.registrar(dtoValido()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("El correo ya está registrado");
+
+        verify(usuarioRepository, never()).save(any());
+        verify(agricultorRepository, never()).save(any());
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void registrar_cedulaDuplicada_lanzaExcepcionYNoGuardaNada() {
+        when(agricultorRepository.existsByCedula("1234567890")).thenReturn(true);
+
+        assertThatThrownBy(() -> servicio.registrar(dtoValido()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("La cédula ya está registrada");
+
+        verify(usuarioRepository, never()).save(any());
+        verify(agricultorRepository, never()).save(any());
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
     void registrar_hasheaLaContrasena() {
         when(passwordEncoder.encode("Secreta123")).thenReturn("HASH_FALSO");
-        // SUPUESTO: el Service guarda con usuarioRepository.save(...)
-        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        servicio.registrar(dtoValido());   // SUPUESTO: nombre del método
+        servicio.registrar(dtoValido());
 
         ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
         verify(usuarioRepository).save(captor.capture());
+
         assertThat(captor.getValue().getPasswordHash()).isEqualTo("HASH_FALSO");
         assertThat(captor.getValue().getPasswordHash()).isNotEqualTo("Secreta123");
     }
 
     @Test
-    void registrar_correoDuplicado_lanzaExcepcionYNoGuarda() {
-        // SUPUESTO: existsByCorreo
-        when(usuarioRepository.existsByCorreo("pedro@mail.com")).thenReturn(true);
-
-        assertThatThrownBy(() -> servicio.registrar(dtoValido()))
-            .isInstanceOf(RuntimeException.class);   // ajusta a la excepción real
-
-        verify(usuarioRepository, never()).save(any());
-        verify(agricultorRepository, never()).save(any());
-    }
-
-    @Test
-    void registrar_cedulaDuplicada_lanzaExcepcionYNoGuarda() {
-        // SUPUESTO: existsByCedula
-        when(agricultorRepository.existsByCedula("1234567890")).thenReturn(true);
-
-        assertThatThrownBy(() -> servicio.registrar(dtoValido()))
-            .isInstanceOf(RuntimeException.class);
-
-        verify(usuarioRepository, never()).save(any());
-        verify(agricultorRepository, never()).save(any());
-    }
-
-    @Test
-    void registrar_datosValidos_guardaUsuarioYAgricultor() {
+    void registrar_datosValidos_guardaUsuarioYAgricultorEnlazados() {
         when(passwordEncoder.encode(any())).thenReturn("HASH_FALSO");
-        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(agricultorRepository.save(any(Agricultor.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        servicio.registrar(dtoValido());
+        Agricultor resultado = servicio.registrar(dtoValido());
 
-        verify(usuarioRepository).save(any(Usuario.class));
-        verify(agricultorRepository).save(any(Agricultor.class));
+        ArgumentCaptor<Usuario> captorUsuario = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captorUsuario.capture());
+        Usuario usuarioGuardado = captorUsuario.getValue();
+
+        assertThat(usuarioGuardado.getNombre()).isEqualTo("Pedro");
+        assertThat(usuarioGuardado.getCorreo()).isEqualTo("pedro@mail.com");
+        assertThat(usuarioGuardado.getRol()).isEqualTo(Usuario.Rol.AGRICULTOR);
+
+        assertThat(resultado.getCedula()).isEqualTo("1234567890");
+        assertThat(resultado.getUbicacionValle()).isEqualTo("Dagua");
+        assertThat(resultado.getUsuario()).isSameAs(usuarioGuardado);
     }
 }
