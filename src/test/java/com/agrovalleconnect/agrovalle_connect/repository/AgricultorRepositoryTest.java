@@ -31,7 +31,6 @@ public class AgricultorRepositoryTest {
         agricultor.setCedula("123456789");
         agricultor.setUbicacionValle("Valle Central");
         agricultor.setUsuario(usuario);
-        entityManager.persistAndFlush(agricultor);
 
         // WHEN: guardamos y forzamos la lectura desde la base de datos
         Agricultor guardado =  agricultorRepository.save(agricultor);
