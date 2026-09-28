@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
@@ -104,8 +107,18 @@ private Agricultor sembrarUsuarioConAgricultor() {
     entityManager.flush();
     entityManager.clear();
     return agricultor;
-}
+    }
 
-        
+    @Test 
+    void guardarUsuarioSinNombre_esRechazado(){
+        //Given
+        Usuario usuario = new Usuario();
+        usuario.setCorreo("pedro@mail.com");
+        usuario.setPasswordHash("hash_de_prueba");
+        usuario.setRol(Usuario.Rol.AGRICULTOR);
     
+        //When / then al guardar y escribir en la BD, debe explotar
+        assertThatThrownBy(() -> usuarioRepository.saveAndFlush(usuario))
+            .isInstanceOf(DataIntegrityViolationException.class);
+    }
 }
