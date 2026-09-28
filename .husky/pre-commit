@@ -1,1 +1,1 @@
-./mvnw checkstyle:check
+./mvnw checkstyle:check && ./mvnw test
