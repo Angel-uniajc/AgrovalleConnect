@@ -7,7 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.agrovalleconnect.agrovalle_connect.dto.AgricultorRegisterDTO;
+import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
@@ -35,15 +35,15 @@ class AgricultorRegisterServiceTest {
     @InjectMocks
     private AgricultorRegisterService servicio;
 
-    private AgricultorRegisterDTO dtoValido() {
-        AgricultorRegisterDTO dto = new AgricultorRegisterDTO();
-        dto.setNombre("Pedro");
-        dto.setCorreo("pedro@mail.com");
-        dto.setPassword("Secreta123");
-        dto.setUbicacionValle("Dagua");
-        dto.setCedula("1234567890");
-        return dto;
-    }
+private RegistroAgricultorRequest dtoValido() {
+    return new RegistroAgricultorRequest(
+                "Pedro Gómez",
+                "Cali",
+                "12345678",
+                "pedro@mail.com",
+                "LagordaTaborda@123")
+    ;
+}
 
     @Test
     void registrar_correoDuplicado_lanzaExcepcionYNoGuardaNada() {
@@ -60,7 +60,7 @@ class AgricultorRegisterServiceTest {
 
     @Test
     void registrar_cedulaDuplicada_lanzaExcepcionYNoGuardaNada() {
-        when(agricultorRepository.existsByCedula("1234567890")).thenReturn(true);
+        when(agricultorRepository.existsByCedula("12345678")).thenReturn(true);
 
         assertThatThrownBy(() -> servicio.registrar(dtoValido()))
             .isInstanceOf(IllegalArgumentException.class)
@@ -73,7 +73,7 @@ class AgricultorRegisterServiceTest {
 
     @Test
     void registrar_hasheaLaContrasena() {
-        when(passwordEncoder.encode("Secreta123")).thenReturn("HASH_FALSO");
+        when(passwordEncoder.encode("LagordaTaborda@123")).thenReturn("HASH_FALSO");
 
         servicio.registrar(dtoValido());
 
@@ -95,12 +95,12 @@ class AgricultorRegisterServiceTest {
         verify(usuarioRepository).save(captorUsuario.capture());
         Usuario usuarioGuardado = captorUsuario.getValue();
 
-        assertThat(usuarioGuardado.getNombre()).isEqualTo("Pedro");
+        assertThat(usuarioGuardado.getNombre()).isEqualTo("Pedro Gómez");
         assertThat(usuarioGuardado.getCorreo()).isEqualTo("pedro@mail.com");
         assertThat(usuarioGuardado.getRol()).isEqualTo(Usuario.Rol.AGRICULTOR);
 
-        assertThat(resultado.getCedula()).isEqualTo("1234567890");
-        assertThat(resultado.getUbicacionValle()).isEqualTo("Dagua");
+        assertThat(resultado.getCedula()).isEqualTo("12345678");
+        assertThat(resultado.getUbicacionValle()).isEqualTo("Cali");
         assertThat(resultado.getUsuario()).isSameAs(usuarioGuardado);
     }
 }
