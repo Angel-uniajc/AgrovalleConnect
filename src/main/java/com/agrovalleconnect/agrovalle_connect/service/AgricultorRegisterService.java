@@ -1,6 +1,6 @@
 package com.agrovalleconnect.agrovalle_connect.service;
 
-import com.agrovalleconnect.agrovalle_connect.dto.AgricultorRegisterDTO;
+import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
@@ -23,26 +23,26 @@ public class AgricultorRegisterService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Agricultor registrar(AgricultorRegisterDTO dto) {
-        if (usuarioRepository.existsByCorreo(dto.getCorreo())) {
+    public Agricultor registrar(RegistroAgricultorRequest dto) {
+        if (usuarioRepository.existsByCorreo(dto.correo())) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
-        if (agricultorRepository.existsByCedula(dto.getCedula())) {
+        if (agricultorRepository.existsByCedula(dto.cedula())) {
             throw new IllegalArgumentException("La cédula ya está registrada");
         }
 
         Usuario usuario = Usuario.builder()
-                .nombre(dto.getNombre())
-                .correo(dto.getCorreo())
-                .passwordHash(passwordEncoder.encode(dto.getPassword()))
+                .nombre(dto.nombre())
+                .correo(dto.correo())
+                .passwordHash(passwordEncoder.encode(dto.password()))
                 .rol(Usuario.Rol.AGRICULTOR)
                 .fechaRegistro(LocalDateTime.now())
                 .build();
         usuarioRepository.save(usuario);
 
         Agricultor agricultor = Agricultor.builder()
-                .cedula(dto.getCedula())
-                .ubicacionValle(dto.getUbicacionValle())
+                .cedula(dto.cedula())
+                .ubicacionValle(dto.ubicacionValle())
                 .usuario(usuario)
                 .build();
 
