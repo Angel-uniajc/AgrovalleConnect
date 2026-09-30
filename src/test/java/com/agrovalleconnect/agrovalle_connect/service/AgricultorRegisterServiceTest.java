@@ -79,9 +79,10 @@ private RegistroAgricultorRequest dtoValido() {
 
         ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
         verify(usuarioRepository).save(captor.capture());
+        verify(passwordEncoder).encode("LagordaTaborda@123");
 
         assertThat(captor.getValue().getPasswordHash()).isEqualTo("HASH_FALSO");
-        assertThat(captor.getValue().getPasswordHash()).isNotEqualTo("Secreta123");
+        assertThat(captor.getValue().getPasswordHash()).isNotEqualTo(dtoValido().password());
     }
 
     @Test
