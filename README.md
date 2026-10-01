@@ -1,7 +1,6 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.x-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-60%25-yellow)
 
 # AgroValle Connect
 
@@ -23,6 +22,8 @@ Plataforma web que conecta directamente a los productores agrícolas del Valle d
 ## Estrategia de Control de Versiones: GitFlow
 
 El equipo adoptó **GitFlow** como estrategia de branching. Se eligió sobre Trunk-Based Development porque el proyecto contempla entregas versionadas por sprint (incrementos funcionales evaluados en cortes académicos), y GitFlow permite mantener una rama `develop` estable para integración continua del equipo mientras se preparan `release/` específicos, sin exponer `main` a código en progreso. Esto reduce los tiempos de espera al aislar el trabajo individual en `feature/` de corta duración por Historia de Usuario, y previene conflictos de fusión extensos al integrar seguido contra `develop` en lugar de acumular cambios.
+
+### Sprint 0 — Configuración inicial
 
 ```mermaid
 gitGraph
@@ -60,6 +61,96 @@ gitGraph
     merge develop tag: "PR#6"
 ```
 
+### Sprint 1 — Registro de agricultores e inicio de sesión (HU-01 y HU-16)
+
+Una rama `feature/` por tarea, integrada a `develop` mediante Pull Request revisado por un compañero.
+
+```mermaid
+gitGraph
+    commit id: "estado inicial (Sprint 0)"
+    branch develop
+    checkout develop
+
+    branch feature/workflow-configuracion
+    checkout feature/workflow-configuracion
+    commit id: "chore: GitHub Actions pipeline"
+    checkout develop
+    merge feature/workflow-configuracion tag: "PR#51"
+
+    branch docs/BACKLOG-README
+    checkout docs/BACKLOG-README
+    commit id: "docs: actualizar BACKLOG y README"
+    commit id: "docs: ajuste por cambio estructural"
+    checkout develop
+    merge docs/BACKLOG-README tag: "PR#52"
+
+    branch feature/T01-HU01
+    checkout feature/T01-HU01
+    commit id: "chore: entidad Usuario + Lombok"
+    commit id: "chore: entidad Agricultor"
+    commit id: "chore: repositorios JPA"
+    commit id: "fix: correccion de entidades"
+    commit id: "refactor: reorganizar estructura"
+    commit id: "fix: limpiar comentarios"
+    checkout develop
+    merge feature/T01-HU01 tag: "PR#53"
+
+    branch feature/T02-HU01
+    checkout feature/T02-HU01
+    commit id: "chore: creacion DTO"
+    commit id: "chore: getters y setters"
+    checkout develop
+    merge feature/T02-HU01 tag: "T02-HU01"
+
+    branch feature/T03-HU01-registro-agricultor
+    checkout feature/T03-HU01-registro-agricultor
+    commit id: "chore: dependencia spring-security"
+    commit id: "feat: PasswordEncoder BCrypt"
+    commit id: "feat: service de registro"
+    checkout develop
+    merge feature/T03-HU01-registro-agricultor tag: "PR#55"
+
+    branch feature/pruebas-registro
+    checkout feature/pruebas-registro
+    commit id: "fix: Lombok en Maven"
+    commit id: "test: entidades y relaciones"
+    commit id: "test: validacion del DTO"
+    commit id: "test: servicio de registro"
+    commit id: "fix: redundancia en pruebas"
+    checkout develop
+    merge feature/pruebas-registro tag: "PR#67"
+
+    branch feature/T04-HU01
+    checkout feature/T04-HU01
+    commit id: "chore: DTO request"
+    commit id: "chore: DTO response"
+    commit id: "chore: RestController"
+    commit id: "fix: test y controller"
+    commit id: "chore: eliminar test duplicado"
+    checkout develop
+    merge feature/T04-HU01 tag: "PR#68"
+
+    branch feature/T05-HU01-pruebas-registro
+    checkout feature/T05-HU01-pruebas-registro
+    commit id: "fix(auth): acceso publico y 409"
+    commit id: "chore: dependencia de cifrado"
+    commit id: "test(auth): integracion MockMvc"
+    checkout develop
+    merge feature/T05-HU01-pruebas-registro tag: "PR#69"
+
+    branch feature/T01-HU16-security-config
+    checkout feature/T01-HU16-security-config
+    commit id: "feat: dependencia security-test"
+    commit id: "feat(security): SecurityFilterChain"
+    commit id: "test: SecurityConfig"
+    checkout develop
+    merge feature/T01-HU16-security-config tag: "PR#70"
+
+    %% Al cerrar el sprint, descomentar para fusionar a main:
+    %% checkout main
+    %% merge develop tag: "Release Sprint 1"
+```
+
 ## Stack Tecnológico
 
 - **Lenguaje:** Java 17
@@ -68,7 +159,7 @@ gitGraph
 - **Base de datos:** PostgreSQL
 - **Calidad de código:** Checkstyle (Google Java Style)
 - **Automatización de commits:** Husky (pre-commit hooks)
-- **Pruebas:** JUnit 5, cobertura mínima 60% (JaCoCo)
+- **Pruebas:** JUnit 5 + MockMvc (medición de cobertura con JaCoCo planificada)
 
 ## Cómo levantar el proyecto localmente
 
@@ -93,5 +184,9 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 
 ## Documentación relacionada
 
-- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 15 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
+- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
 - [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
+- [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
+- [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
+- [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
+- [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
