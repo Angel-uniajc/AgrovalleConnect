@@ -22,12 +22,12 @@ El equipo trabajó el Sprint 1 con una capacidad de 10 Story Points y se comprom
 
 ---
 
-## 3. 🔴 STOP — Lo que el equipo debe dejar de hacer
+## 3.  STOP — Lo que el equipo debe dejar de hacer
 
 | # | Práctica a eliminar | Impacto | Causa probable |
 | :---: | :--- | :---: | :--- |
-| 1 | Dejar las historias complejas para el final del sprint: la primera tarea de HU-16 se fusionó recién el 30/09. | **Alto** | Planificación del orden de trabajo *(confirmar)* |
-| 2 | Concentrar las tareas técnicas en una sola persona (37 de 51 commits). | **Medio** | Reparto desigual de tareas *(confirmar)* |
+| 1 | Dejar las historias complejas para el final del sprint: la primera tarea de HU-16 se fusionó recién el 30/09. | **Alto** | Planificación del orden de trabajo  |
+| 2 | Concentrar las tareas técnicas en una sola persona (37 de 51 commits). | **Medio** | Reparto desigual de tareas  |
 | 3 | Hacer commits o fusiones directas desde la web de GitHub sin Conventional Commits ni PR (`T02-HU01`, `Delete ...`). | **Bajo** | Atajos para corregir rápido |
 | 4 | Reorganizar el proyecto a mitad del trabajo por errores de estructura de paquetes y de Lombok. | **Medio** | Curva de aprendizaje en Spring Boot y Maven |
 | 5 | Dejar el Kanban y la bitácora sin actualizar el mismo día del avance. | **Medio** | "" |
