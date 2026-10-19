@@ -5,7 +5,6 @@ import com.agrovalleconnect.agrovalle_connect.dto.LoginResponse;
 import com.agrovalleconnect.agrovalle_connect.exception.CredencialesInvalidasException;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
-// ADAPTAR: confirma los paquetes de estas dos con Alt + Enter
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
 import com.agrovalleconnect.agrovalle_connect.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;

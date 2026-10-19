@@ -56,7 +56,6 @@ public class Usuario {
     private LocalDateTime fechaRegistro = LocalDateTime.now();
 
     @OneToOne(
-
         mappedBy = "usuario", 
         cascade = CascadeType.ALL, 
         orphanRemoval = true) // Relación bidireccional con Agricultor
