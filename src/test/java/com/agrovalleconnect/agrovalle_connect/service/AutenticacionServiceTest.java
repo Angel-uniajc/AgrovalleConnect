@@ -9,13 +9,13 @@ import static org.mockito.Mockito.when;
 import com.agrovalleconnect.agrovalle_connect.dto.LoginRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.LoginResponse;
 import com.agrovalleconnect.agrovalle_connect.exception.CredencialesInvalidasException;
-
-import java.util.Optional;
-
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
+import com.agrovalleconnect.agrovalle_connect.model.Usuario.Rol;
+
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
 import com.agrovalleconnect.agrovalle_connect.security.JwtUtil;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,13 +40,12 @@ class AutenticacionServiceTest {
 
     @Test
     void loginValidoDevuelveToken() {
-        // Preparar (Arrange): maniquíes con sus "etiquetas"
         Usuario usuario = mock(Usuario.class);
         Agricultor agricultor = mock(Agricultor.class);
 
         when(usuario.getCorreo()).thenReturn("ana@correo.com");
         when(usuario.getPasswordHash()).thenReturn("hash-guardado");
-        when(usuario.getRol()).thenReturn(Usuario.Rol.AGRICULTOR);
+        when(usuario.getRol()).thenReturn(Rol.AGRICULTOR);
         when(usuario.getAgricultor()).thenReturn(agricultor);
         when(agricultor.getId()).thenReturn(7L);
 
@@ -54,12 +53,32 @@ class AutenticacionServiceTest {
         when(passwordEncoder.matches("Clave123", "hash-guardado")).thenReturn(true);
         when(jwtUtil.generarToken("ana@correo.com", "AGRICULTOR", 7L)).thenReturn("token-abc");
 
-        // Actuar (Act)
         LoginResponse respuesta = autenticacionService.login(
                 new LoginRequest("ana@correo.com", "Clave123"));
 
-        // Verificar (Assert)
         assertEquals("token-abc", respuesta.token());
+        assertEquals("Bearer", respuesta.tipo());
+    }
+
+    @Test
+    void loginValidoSinAgricultorGeneraTokenConPerfilIdNulo() {
+        Usuario comprador = mock(Usuario.class);
+        // getAgricultor() no se programa: un mock devuelve null por defecto,
+        // igual que un comprador sin agricultor asociado.
+
+        when(comprador.getCorreo()).thenReturn("sofia@correo.com");
+        when(comprador.getPasswordHash()).thenReturn("hash-guardado");
+        when(comprador.getRol()).thenReturn(Rol.COMPRADOR);
+
+        when(usuarioRepository.findByCorreo("sofia@correo.com")).thenReturn(Optional.of(comprador));
+        when(passwordEncoder.matches("Clave123", "hash-guardado")).thenReturn(true);
+        when(jwtUtil.generarToken("sofia@correo.com", "COMPRADOR", null))
+                .thenReturn("token-comprador");
+
+        LoginResponse respuesta = autenticacionService.login(
+                new LoginRequest("sofia@correo.com", "Clave123"));
+
+        assertEquals("token-comprador", respuesta.token());
         assertEquals("Bearer", respuesta.tipo());
     }
 
