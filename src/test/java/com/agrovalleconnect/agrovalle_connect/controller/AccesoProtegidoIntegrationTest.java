@@ -15,9 +15,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * HU-16 / T05: acceso a un endpoint protegido con y sin token (filtro JWT).
- */
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class AccesoProtegidoIntegrationTest {
@@ -89,7 +87,7 @@ class AccesoProtegidoIntegrationTest {
     void accesoProtegido_conTokenValido_pasaLaSeguridad() throws Exception {
         String token = obtenerToken();
 
-        // la ruta no existe: un 404 prueba que la seguridad SI dejo pasar
+
         mockMvc.perform(get(RUTA_PROTEGIDA).header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
     }

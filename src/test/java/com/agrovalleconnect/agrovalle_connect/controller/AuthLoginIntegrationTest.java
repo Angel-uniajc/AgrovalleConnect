@@ -24,9 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-/**
- * Escenarios BDD de HU-16 (POST /api/v1/auth/login) — T04-HU16.
- */
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class AuthLoginIntegrationTest {
