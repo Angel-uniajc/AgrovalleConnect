@@ -12,4 +12,9 @@ public class ManejadorErrores {
     public ResponseEntity<String> datoDuplicado(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<String> credencialesInvalidas(CredencialesInvalidasException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
 }

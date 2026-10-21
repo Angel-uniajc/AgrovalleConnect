@@ -1,9 +1,12 @@
 package com.agrovalleconnect.agrovalle_connect.controller;
 
+import com.agrovalleconnect.agrovalle_connect.dto.LoginRequest;
+import com.agrovalleconnect.agrovalle_connect.dto.LoginResponse;
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorResponse;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.service.AgricultorRegisterService;
+import com.agrovalleconnect.agrovalle_connect.service.AutenticacionService;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,23 +20,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-
   private final AgricultorRegisterService agricultorService;
 
-  public AuthController(AgricultorRegisterService agricultorService) {
+  private final AutenticacionService autenticacionService;
+
+  public AuthController(AgricultorRegisterService agricultorService,
+                        AutenticacionService autenticacionService) {
     this.agricultorService = agricultorService;
+    this.autenticacionService = autenticacionService;
   }
 
   @PostMapping("/register")
   public ResponseEntity<RegistroAgricultorResponse> registrar(
-      @Valid @RequestBody RegistroAgricultorRequest request) {
+          @Valid @RequestBody RegistroAgricultorRequest request) {
 
-        Agricultor agricultor = agricultorService.registrar(request);
+    Agricultor agricultor = agricultorService.registrar(request);
 
     RegistroAgricultorResponse respuesta = new RegistroAgricultorResponse(
-        agricultor.getUsuario().getNombre(),
-      "Agricultor registrado exitosamente");
+            agricultor.getUsuario().getNombre(),
+            "Agricultor registrado exitosamente");
 
     return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    return ResponseEntity.ok(autenticacionService.login(request));
   }
 }
