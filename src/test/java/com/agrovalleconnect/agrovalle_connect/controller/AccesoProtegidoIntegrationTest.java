@@ -1,6 +1,5 @@
 package com.agrovalleconnect.agrovalle_connect.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,11 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
+/**
+ * HU-16 / T05: acceso a un endpoint protegido con y sin token (filtro JWT).
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
-class AuthLoginIntegrationTest {
+class AccesoProtegidoIntegrationTest {
 
     private static final String URL_REGISTRO = "/api/v1/auth/register";
 
@@ -41,7 +42,7 @@ class AuthLoginIntegrationTest {
     private AgricultorRepository agricultorRepository;
 
     @BeforeEach
-    void prepararEscenario() throws Exception {
+    void prepararUsuarioRegistrado() throws Exception {
         agricultorRepository.deleteAll();
         usuarioRepository.deleteAll();
 
@@ -61,65 +62,21 @@ class AuthLoginIntegrationTest {
                 .andExpect(status().isCreated());
     }
 
-    private ResultActions enviarLogin(String cuerpo) throws Exception {
-        return mockMvc.perform(post(URL_LOGIN)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(cuerpo));
-    }
-
-    private String jsonLogin(String email, String password) {
-        return """
+    private String obtenerToken() throws Exception {
+        String login = """
                 {
                   "email": "%s",
                   "password": "%s"
                 }
-                """.formatted(email, password);
-    }
+                """.formatted(EMAIL, PASSWORD);
 
-    private String obtenerToken() throws Exception {
-        String respuesta = enviarLogin(jsonLogin(EMAIL, PASSWORD))
+        String respuesta = mockMvc.perform(post(URL_LOGIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(login))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
+
         return JsonPath.read(respuesta, "$.token");
-    }
-
-    @Test
-    void login_conCredencialesValidas_retorna200YToken() throws Exception {
-        String respuesta = enviarLogin(jsonLogin(EMAIL, PASSWORD))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        String token = JsonPath.read(respuesta, "$.token");
-        assertThat(token).isNotBlank();
-        assertThat(token.split("\\.")).hasSize(3);
-    }
-
-    @Test
-    void login_conPasswordIncorrecta_retorna401() throws Exception {
-        enviarLogin(jsonLogin(EMAIL, "ClaveEquivocada@999"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void login_conEmailInexistente_retorna401() throws Exception {
-        String cuerpoPasswordMala = enviarLogin(jsonLogin(EMAIL, "ClaveEquivocada@999"))
-                .andExpect(status().isUnauthorized())
-                .andReturn().getResponse().getContentAsString();
-
-        String cuerpoEmailMalo = enviarLogin(jsonLogin("nadie@mail.com", PASSWORD))
-                .andExpect(status().isUnauthorized())
-                .andReturn().getResponse().getContentAsString();
-
-        assertThat(cuerpoEmailMalo).isEqualTo(cuerpoPasswordMala);
-    }
-
-    @Test
-    void login_conCamposFaltantes_retorna400() throws Exception {
-        enviarLogin("{\"email\": \"" + EMAIL + "\"}")
-                .andExpect(status().isBadRequest());
-
-        enviarLogin("{\"password\": \"" + PASSWORD + "\"}")
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -132,8 +89,14 @@ class AuthLoginIntegrationTest {
     void accesoProtegido_conTokenValido_pasaLaSeguridad() throws Exception {
         String token = obtenerToken();
 
-        // la ruta no existe: un 404 prueba que el guardia SI dejo pasar
+        // la ruta no existe: un 404 prueba que la seguridad SI dejo pasar
         mockMvc.perform(get(RUTA_PROTEGIDA).header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void accesoProtegido_conTokenInvalido_retorna401() throws Exception {
+        mockMvc.perform(get(RUTA_PROTEGIDA).header("Authorization", "Bearer esto.no.es.un.token"))
+                .andExpect(status().isUnauthorized());
     }
 }
