@@ -184,7 +184,7 @@ Esta propuesta no está incluida en el repositorio.
 ```dockerfile
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
-COPY ../../../../../Downloads .
+COPY . .
 RUN ./mvnw -B clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
