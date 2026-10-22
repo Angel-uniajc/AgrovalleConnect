@@ -93,7 +93,7 @@ flowchart TD
     end
 
     subgraph CICD ["Pipeline CI/CD (Propuesto)"]
-        CI>["Pipeline CI\n[./mvnw clean verify]"]
+        CI["Pipeline CI\n[./mvnw clean verify]"]
         IMG{{"Imagen Docker"}}
         REG[("Registro de Imágenes")]
     end
