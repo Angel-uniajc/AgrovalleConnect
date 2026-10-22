@@ -190,3 +190,4 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
+- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01 y HU-16 hacia sus pruebas JUnit 5.
