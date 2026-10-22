@@ -1,31 +1,31 @@
-# Diagramas de secuencia (HU-01 y HU-16) - AgroValle Connect
+# docs(T05-DIS): diagramas de secuencia de HU-01 y HU-16
 
 Documento de diseño asociado a la tarea **T05-DIS (#78)**, parte del Sprint de Diseño (#73).
 
 ## 1. Contexto y objetivo
 
-Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela dos historias de usuario:
+Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela dos historias de usuario y el uso del token JWT en un endpoint protegido:
 
 | Historia | Descripción | Sección |
 |---|---|---|
 | HU-01 | Registro de un agricultor | 3 |
-| HU-16 | Inicio de sesión (login) con generación de token JWT | 4 |
+| HU-16 | Inicio de sesión (login) con generación de token JWT | 4 |\n| Uso de JWT | Autenticación en un endpoint protegido | 5 |
 
-Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama-despliegue.md`.
+Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama_de_despliegue.md`.
 
-Para distinguir lo implementado de lo diseñado, el documento marca cada elemento de HU-16 como **Implementado** (PR #87 y PR #88) o **Pendiente** (cubierto por otro issue).
+El diseño de HU-16 refleja las piezas integradas en los PR #87 y #88.
 
 ## 2. Participantes
 
 | Participante | Capa | Rol en los diagramas | Historia |
 |---|---|---|---|
 | Cliente | Externo | Aplicación web o móvil que consume la API REST | HU-01, HU-16 |
-| `AuthController` | Presentación / REST | Recibe la petición HTTP, dispara la validación de los datos y construye la respuesta | HU-01, HU-16 |
+| `AuthController` | Presentación / REST | Recibe la petición HTTP, dispara la validación de los datos y construye la respuesta | HU-01, HU-16 |\n| `JwtAuthenticationFilter` | Presentación / REST | Extrae y valida el token de la cabecera `Authorization` antes de permitir el acceso a endpoints protegidos | Uso de JWT |
 | `ManejadorErrores` | Presentación / REST | Traduce las excepciones a respuestas HTTP en un único punto | HU-01, HU-16 |
 | `AgricultorRegisterService` | Servicio / Dominio | Reglas de negocio del registro y control de la transacción | HU-01 |
 | `AutenticacionService` | Servicio / Dominio | Verifica las credenciales y emite el token | HU-16 |
 | `PasswordEncoder` | Servicio / Dominio | Genera el hash BCrypt (`encode`) y lo compara (`matches`); patrón Strategy | HU-01, HU-16 |
-| `JwtUtil` | Servicio / Dominio | Genera el token JWT firmado con HS256 | HU-16 |
+| `JwtUtil` | Servicio / Dominio | Genera y valida el token JWT firmado con HS256 | HU-16, uso de JWT |
 | `UsuarioRepository` y `AgricultorRepository` | Repositorio / Acceso a datos | Consultan y persisten mediante Spring Data JPA | HU-01, HU-16 |
 | PostgreSQL | Persistencia | Almacena las tablas `usuario` y `agricultor` | HU-01, HU-16 |
 
@@ -115,7 +115,7 @@ sequenceDiagram
 | Elemento | Detalle |
 |---|---|
 | Actor | Usuario registrado que desea iniciar sesión |
-| Endpoint | `POST /api/v1/auth/login` (pendiente de implementar) |
+| Endpoint | `POST /api/v1/auth/login` |
 | Entrada | `LoginRequest`: `email` y `password`, ambos obligatorios; `email` con formato válido. Sin reglas de fortaleza de contraseña, que aplican solo al registro |
 | Resultado exitoso | `LoginResponse` con el `token` y `tipo = "Bearer"` |
 | Resultados de error | `400 Bad Request` si el request no cumple las validaciones; `401 Unauthorized` si las credenciales no son válidas |
@@ -128,10 +128,10 @@ Estado de cada pieza:
 | `JwtUtil` (generación y validación de token HS256) | Implementado, PR #87 |
 | `LoginRequest`, `LoginResponse` y `CredencialesInvalidasException` | Implementado, PR #88 |
 | `AutenticacionService.login(...)` con sus pruebas unitarias | Implementado, PR #88 |
-| Endpoint `POST /api/v1/auth/login` en `AuthController` | Pendiente, otro issue |
-| Mapeo de `CredencialesInvalidasException` a `401` en `ManejadorErrores` | Pendiente, otro issue |
+| Endpoint `POST /api/v1/auth/login` en `AuthController` | Integrado tras la fusión de T04 (#91) y T05 (#92) |
+| Mapeo de `CredencialesInvalidasException` a `401` en `ManejadorErrores` | Integrado tras la fusión de T04 (#91) y T05 (#92) |
 
-El diagrama modela el flujo completo de la historia, incluyendo las piezas pendientes, que aparecen marcadas.
+El diagrama modela el flujo completo de la historia, incluyendo la respuesta `401 Unauthorized` para credenciales inválidas.
 
 ### 4.2 Diagrama
 
@@ -139,7 +139,7 @@ El diagrama modela el flujo completo de la historia, incluyendo las piezas pendi
 sequenceDiagram
     autonumber
     actor Cliente
-    participant C as AuthController (pendiente)
+    participant C as AuthController
     participant E as ManejadorErrores
     participant A as AutenticacionService
     participant UR as UsuarioRepository
@@ -159,13 +159,13 @@ sequenceDiagram
         UR-->>A: usuario (o sin resultado)
         alt El correo no existe
             A-->>E: CredencialesInvalidasException (Credenciales inválidas)
-            E-->>Cliente: 401 Unauthorized (mapeo pendiente)
+            E-->>Cliente: 401 Unauthorized
         else El correo existe
             A->>PE: matches(password, passwordHash)
             PE-->>A: boolean
             alt La contraseña no coincide
                 A-->>E: CredencialesInvalidasException (Credenciales inválidas)
-                E-->>Cliente: 401 Unauthorized (mapeo pendiente)
+                E-->>Cliente: 401 Unauthorized
             else Credenciales válidas
                 Note over A: perfilId = id del Agricultor asociado
                 A->>J: generarToken(correo, rol, perfilId)
@@ -202,7 +202,48 @@ En ambos casos de error nunca se genera el token.
 
 El mensaje genérico evita que la respuesta revele si el correo existe. Queda una diferencia sutil: cuando el correo no existe no se ejecuta `matches`, y como BCrypt es costoso a propósito, la respuesta tarda menos que cuando el correo existe con una contraseña incorrecta. Un atacante podría medir esa diferencia de tiempo para enumerar correos. Una mitigación posible, fuera del alcance de esta tarea, es comparar contra un hash ficticio cuando el usuario no existe, para igualar los tiempos.
 
-## 5. Relación con la arquitectura y los patrones
+## 5. Uso del token JWT en un endpoint protegido
+
+### 5.1 Descripción
+
+El cliente envía el token recibido durante el login en la cabecera `Authorization: Bearer <token>` al acceder a un endpoint protegido. `JwtAuthenticationFilter` comprueba la presencia y validez del token antes de permitir que la petición continúe.
+
+### 5.2 Diagrama
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente
+    participant F as JwtAuthenticationFilter
+    participant J as JwtUtil
+    participant R as Endpoint protegido
+
+    Cliente->>F: Petición HTTP con Authorization (opcional)
+    alt No hay token
+        F-->>Cliente: 401 Unauthorized
+    else Hay token
+        F->>J: Validar token
+        alt Token inválido o expirado
+            J-->>F: Token no válido
+            F-->>Cliente: 401 Unauthorized
+        else Token válido
+            J-->>F: Token válido y datos de autenticación
+            F->>F: Establecer autenticación en el contexto de seguridad
+            F->>R: Continuar cadena de filtros
+            R-->>Cliente: Respuesta del endpoint
+        end
+    end
+```
+
+### 5.3 Flujos
+
+| Camino | Qué ocurre | Respuesta |
+|---|---|---|
+| Sin token | El filtro rechaza la petición porque no hay credenciales de autenticación | `401 Unauthorized` |
+| Token inválido o expirado | La validación falla y el filtro impide el acceso al endpoint | `401 Unauthorized` |
+| Token válido | El filtro establece la autenticación y deja continuar la petición al endpoint protegido | La respuesta definida por el endpoint |
+
+## 6. Relación con la arquitectura y los patrones
 
 | Elemento del diagrama | Patrón o decisión |
 |---|---|
@@ -215,7 +256,7 @@ El mensaje genérico evita que la respuesta revele si el correo existe. Queda un
 | `ManejadorErrores` | Manejo centralizado de errores: un solo lugar traduce excepciones a códigos HTTP |
 | `CredencialesInvalidasException` | Excepción propia por tipo de error, en lugar de reutilizar una genérica |
 
-## 6. Decisiones de diseño
+## 7. Decisiones de diseño
 
 - **Validar primero, consultar después:** los datos mal formados se rechazan en la capa de presentación sin tocar la base de datos.
 - **Unicidad verificada antes del hash (HU-01):** BCrypt es costoso a propósito, así que solo se ejecuta cuando el registro tiene posibilidad de completarse.
@@ -224,9 +265,9 @@ El mensaje genérico evita que la respuesta revele si el correo existe. Queda un
 - **Excepción propia en el login (HU-16):** `IllegalArgumentException` ya se traduce a `409 Conflict`, y un login fallido debe responder `401`. Con `CredencialesInvalidasException`, cada tipo de error tiene su propio código HTTP.
 - **Errores en un único punto:** los controllers no construyen respuestas de error; lanzan excepciones y `ManejadorErrores` define el código HTTP.
 - **Respuestas mínimas:** el registro devuelve solo `nombre` y `mensaje`, y el login solo el token y su tipo; nunca el hash ni el `id`.
-- **Clave de firma del token:** la clave HS256 que usa `JwtUtil` es un secreto; debe inyectarse por variable de entorno, como el resto de la configuración sensible descrita en `diagrama-despliegue.md`, y no guardarse en el repositorio.
+- **Clave de firma del token:** la clave HS256 que usa `JwtUtil` es un secreto; debe inyectarse por variable de entorno, como el resto de la configuración sensible descrita en `diagrama_de_despliegue.md`, y no guardarse en el repositorio.
 
-## 7. Relación con atributos de calidad (ISO 25010)
+## 8. Relación con atributos de calidad (ISO 25010)
 
 | Atributo | Cómo lo respalda el diseño |
 |---|---|

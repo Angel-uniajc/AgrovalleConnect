@@ -93,7 +93,7 @@ flowchart TD
     end
 
     subgraph CICD ["Pipeline CI/CD (Propuesto)"]
-        CI>["Pipeline CI\n[./mvnw clean verify]"]
+        CI["Pipeline CI\n[./mvnw clean verify]"]
         IMG{{"Imagen Docker"}}
         REG[("Registro de Imágenes")]
     end
@@ -184,7 +184,7 @@ Esta propuesta no está incluida en el repositorio.
 ```dockerfile
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
-COPY . .
+COPY ../../../../../Downloads .
 RUN ./mvnw -B clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
