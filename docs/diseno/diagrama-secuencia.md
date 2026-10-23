@@ -23,7 +23,7 @@ El diseño de HU-16 refleja las piezas integradas en los PR #87, #88, #91 y #92.
 | Cliente | Externo | Aplicación web o móvil que consume la API REST | HU-01, HU-16 | 
 | `AuthController` | Presentación / REST | Recibe la petición HTTP, dispara la validación de los datos y construye la respuesta | HU-01, HU-16 | 
 | `JwtAuthenticationFilter` | Presentación / REST | Extrae y valida el token de la cabecera `Authorization` (si existe) para guardar el usuario en el contexto de seguridad, y luego continúa la cadena de filtros | Uso de JWT | 
-| `SecurityConfig` | Presentación / REST | Define las reglas de acceso (rutas públicas vs protegidas) y rechaza peticiones sin autenticación (401) | Uso de JWT |
+| `SecurityConfig` | Presentación / REST | Representa la cadena de filtros de Spring Security: define las reglas de acceso (rutas públicas vs protegidas) y rechaza peticiones sin autenticación (401) | Uso de JWT |
 | `ManejadorErrores` | Presentación / REST | Traduce las excepciones a respuestas HTTP en un único punto | HU-01, HU-16 | 
 | `AgricultorRegisterService` | Servicio / Dominio | Reglas de negocio del registro y control de la transacción | HU-01 | 
 | `AutenticacionService` | Servicio / Dominio | Verifica las credenciales y emite el token | HU-16 | 
@@ -70,27 +70,32 @@ sequenceDiagram
         UR->>DB: SELECT por correo
         DB-->>UR: resultado
         UR-->>S: boolean
-        S->>AR: existsByCedula(cedula)
-        AR->>DB: SELECT por cédula
-        DB-->>AR: resultado
-        AR-->>S: boolean
-        alt Correo o cédula ya registrados
+        alt Correo ya registrado
             Note over S: Rollback, no se persiste nada
             S-->>E: IllegalArgumentException (dato duplicado)
             E-->>Cliente: 409 Conflict
-        else Datos únicos
-            S->>PE: encode(password)
-            PE-->>S: passwordHash
-            S->>UR: save(usuario)
-            UR->>DB: INSERT en usuario
-            S->>AR: save(agricultor)
-            AR->>DB: INSERT en agricultor
-            Note over S: Commit
-            S-->>C: agricultor registrado
-            C-->>Cliente: 201 Created (RegistroAgricultorResponse)
+        else Correo único
+            S->>AR: existsByCedula(cedula)
+            AR->>DB: SELECT por cédula
+            DB-->>AR: resultado
+            AR-->>S: boolean
+            alt Cédula ya registrada
+                Note over S: Rollback, no se persiste nada
+                S-->>E: IllegalArgumentException (dato duplicado)
+                E-->>Cliente: 409 Conflict
+            else Cédula única
+                S->>PE: encode(password)
+                PE-->>S: passwordHash
+                S->>UR: save(usuario)
+                UR->>DB: INSERT en usuario
+                S->>AR: save(agricultor)
+                AR->>DB: INSERT en agricultor
+                Note over S: Commit
+                S-->>C: agricultor registrado
+                C-->>Cliente: 201 Created (RegistroAgricultorResponse)
+            end
         end
     end
-
 ```
 
 ### 3.3 Explicación del flujo
@@ -101,13 +106,15 @@ sequenceDiagram
 
 2. El controller delega en `AgricultorRegisterService.registrar(...)`. Spring abre la transacción antes de ejecutar el método, porque `@Transactional` funciona mediante un proxy.
 
-3. El servicio verifica que el correo y la cédula no existan. Estas consultas van **antes** de generar el hash para no gastar el costo de BCrypt en un registro que será rechazado.
+3. El servicio verifica primero que el correo no exista. Si ya está registrado, lanza la excepción de inmediato para abortar la transacción sin hacer consultas adicionales. 
 
-4. Si ambos datos son únicos, se genera el hash de la contraseña, se guarda el `Usuario` y después el `Agricultor`, que referencia al usuario por `usuario_id`. El orden importa: `Agricultor` es el lado dueño de la relación `@OneToOne`, así que el usuario debe existir primero.
+4. Si el correo es único, verifica que la cédula no exista. Estas consultas van **antes** de generar el hash para no gastar el costo de BCrypt en un registro que será rechazado.
 
-5. Como las entidades usan `GenerationType.IDENTITY`, cada `INSERT` se ejecuta en el momento del `save` para obtener el `id`.
+5. Si ambos datos son únicos, se genera el hash de la contraseña, se guarda el `Usuario` y después el `Agricultor`, que referencia al usuario por `usuario_id`. El orden importa: `Agricultor` es el lado dueño de la relación `@OneToOne`, así que el usuario debe existir primero.
 
-6. Al terminar el método, la transacción se confirma y el controller responde `201 Created`.
+6. Como las entidades usan `GenerationType.IDENTITY`, cada `INSERT` se ejecuta en el momento del `save` para obtener el `id`.
+
+7. Al terminar el método, la transacción se confirma y el controller responde `201 Created`.
 
 **Flujos alternos:**
 
@@ -176,7 +183,7 @@ sequenceDiagram
                 A-->>E: CredencialesInvalidasException (Credenciales inválidas)
                 E-->>Cliente: 401 Unauthorized
             else Credenciales válidas
-                Note over A: perfilId = id del Agricultor asociado
+                Note over A: perfilId = id del Agricultor asociado (puede ser null)
                 A->>J: generarToken(correo, rol, perfilId)
                 J-->>A: token JWT firmado con HS256
                 A-->>C: LoginResponse (token, tipo Bearer)
@@ -184,7 +191,6 @@ sequenceDiagram
             end
         end
     end
-
 ```
 
 ### 4.3 Explicación del flujo
@@ -221,7 +227,7 @@ El mensaje genérico evita que la respuesta revele si el correo existe. Queda un
 
 ### 5.1 Descripción
 
-El cliente envía el token recibido durante el login en la cabecera `Authorization: Bearer <token>` al acceder a un endpoint. `JwtAuthenticationFilter` comprueba la presencia y validez del token para establecer el contexto de seguridad. El filtro siempre permite que la petición continúe; es `SecurityConfig` quien finalmente autoriza el acceso al endpoint protegido o lo rechaza con `401 Unauthorized`.
+El cliente envía el token recibido durante el login en la cabecera `Authorization: Bearer <token>` al acceder a un endpoint. `JwtAuthenticationFilter` comprueba la presencia y validez del token para establecer el contexto de seguridad. El filtro siempre permite que la petición continúe; es `SecurityConfig` (que representa la cadena de filtros de Spring Security) quien finalmente autoriza el acceso al endpoint protegido o lo rechaza con `401 Unauthorized`.
 
 ### 5.2 Diagrama
 
@@ -289,7 +295,7 @@ sequenceDiagram
 
 * **Errores en un único punto:** los controllers no construyen respuestas de error; lanzan excepciones y `ManejadorErrores` define el código HTTP.
 
-* **Respuestas mínimas:** el registro devuelve solo `nombre` y `mensaje`, y el login solo el token y su tipo; nunca el hash ni el `id`.
+* **Respuestas mínimas:** el registro devuelve solo `nombre` y `mensaje`, y el login solo el token y su tipo. El cuerpo de la respuesta no incluye el hash ni el id; el token sí lleva `perfil_id` (el cual puede ser nulo para compradores).
 
 * **Clave de firma del token:** la clave HS256 que usa `JwtUtil` es un secreto; debe inyectarse por variable de entorno, como el resto de la configuración sensible descrita en `diagrama_de_despliegue.md`, y no guardarse en el repositorio.
 
