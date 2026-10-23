@@ -28,3 +28,4 @@ public class Municipio {
     @Column(nullable = false, unique = true, length = 80)
     private String nombre;
 }
+

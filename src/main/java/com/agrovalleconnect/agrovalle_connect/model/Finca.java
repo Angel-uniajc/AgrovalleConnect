@@ -46,3 +46,4 @@ public class Finca {
     @JoinColumn(name = "municipio_id", nullable = false)
     private Municipio municipio;
 }
+
