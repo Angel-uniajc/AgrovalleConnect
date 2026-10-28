@@ -6,6 +6,17 @@
 
 Habilitar el registro de fincas por municipio (HU-14) y la publicación de cosechas (HU-02) para agricultores autenticados. El registro de agricultores (HU-01) y el login con JWT (HU-16) constituyen la base del flujo.
 
+### Sprint Goal
+
+> Permitir que un agricultor autenticado registre una finca en un municipio del Valle del Cauca y publique sus cosechas asociadas a una finca propia y una categoría válida, con fecha de cosecha no anterior a hoy, cantidad y precio positivos, persistencia en PostgreSQL y respuestas REST verificadas mediante pruebas automatizadas.
+
+| Criterio de cumplimiento | Historia |
+|---|---|
+| Registrar una finca con municipio permitido, asociada al agricultor del JWT, y responder `201 Created`. | HU-14 |
+| Publicar una cosecha en una finca propia y una categoría existente, con datos válidos, y responder `201 Created` con su ID. | HU-02 |
+| Rechazar datos inválidos, usuarios sin autenticación y publicaciones en fincas ajenas, sin guardar registros. | HU-14 / HU-02 |
+| Publicar el evento de cosecha mediante Observer y mantener trazabilidad BDD → JUnit de los escenarios de ambas historias. | HU-02 / HU-14 |
+
 Este documento incorpora la trazabilidad de HU-14 correspondiente a T05-HU14 (#101). La matriz de HU-02 se completará con sus pruebas reales en T06-HU02 (#107).
 
 ## 2. Desglose y dependencias de HU-14
@@ -53,3 +64,18 @@ En Windows se usa `mvnw.cmd` en lugar de `./mvnw`. Se requiere JDK 25.
 ## 5. Calidad y cierre
 
 T05-HU14 aporta evidencia del atributo de fiabilidad de ISO/IEC 25010: valida el camino exitoso, los rechazos de entrada y los límites de acceso. Para cerrar la tarea se requiere CI en verde y revisión por un compañero, conforme a [Definition of Done](dod.md).
+
+## 6. Desglose técnico y dependencias de HU-02
+
+El desglose corresponde a las tareas #102–#107 del Kanban. Las estimaciones se expresan en horas y los atributos de calidad siguen ISO/IEC 25010.
+
+| Tarea | Entrega y validación | Componente / tecnología | Atributo de calidad | Dependencia | Horas |
+|---|---|---|---|---|---|
+| T01-HU02 (#102) | Entidades `Categoria` y `Producto`, repositorios y catálogo inicial de Frutas, Hortalizas, Granos y Tubérculos solo si la tabla está vacía. Columnas según `schema.sql` y prueba de persistencia de producto asociado a finca y categoría. | JPA / Spring Data / PostgreSQL | Mantenibilidad | T01-HU14 | 4 |
+| T02-HU02 (#103) | DTOs `PublicarCosechaRequest` y `PublicarCosechaResponse`: tipo obligatorio, cantidad y precio positivos, fecha de hoy o futura e IDs de finca/categoría obligatorios. Pruebas de request válido, fecha de ayer/hoy, cantidad cero, precio negativo y campos nulos. | Jakarta Bean Validation / DTO | Adecuación funcional | Ninguna; puede avanzar en paralelo | 2 |
+| T03-HU02 (#104) | `CosechaService.publicar(correoAgricultor, request)` con TDD (Red → Green → Refactor): validar finca existente, propiedad y categoría; guardar producto `ACTIVO` y devolver su ID. Excepciones y pruebas Mockito para los caminos válido y de error, sin guardar en los rechazos. | Spring Service / JUnit 5 / Mockito | Adecuación funcional y seguridad | T01-HU02, T02-HU02 y T03-HU14 | 6 |
+| T04-HU02 (#105) | Patrón Observer: `CosechaPublicadaEvent` con productoId, tipo, fincaId y municipio, publicación con `ApplicationEventPublisher` tras guardar y listener con `@EventListener` que registra el evento. Probar el contenido del evento y que no se emita si falla la publicación; documentar el patrón en `arquitectura-mvc-gof.md`. | Spring Application Events | Mantenibilidad | T03-HU02 | 3 |
+| T05-HU02 (#106) | `ProductoController` con POST `/api/v1/productos`, `@Valid`, correo del usuario autenticado y respuesta `201` con ID. Restringir a `ROLE_AGRICULTOR` y mapear finca inexistente → `404`, finca ajena → `403` y categoría inválida → `400`. Checkstyle y CI en verde. | Spring Web REST / Spring Security | Compatibilidad | T03-HU02 | 4 |
+| T06-HU02 (#107) | Pruebas MockMvc de publicación válida (`201` + ID), fecha pasada (`400`), cantidad inválida (`400`), categoría inexistente (`400`), ausencia de token (`401`), finca ajena (`403`) y finca inexistente (`404`). Incorporar los nombres reales a la matriz BDD y verificar los siete escenarios en CI. | JUnit 5 / MockMvc / H2 | Fiabilidad | T05-HU02 | 4 |
+
+La integración funcional sigue el recorrido agricultor autenticado → finca propia (HU-14) → cosecha publicada (HU-02). T04-HU02 agrega el evento sobre el servicio de T03-HU02 y T06-HU02 verifica el endpoint expuesto por T05-HU02.
