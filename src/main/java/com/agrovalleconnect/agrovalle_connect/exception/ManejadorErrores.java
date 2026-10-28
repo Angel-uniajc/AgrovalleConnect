@@ -24,6 +24,11 @@ public class ManejadorErrores {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 
+    @ExceptionHandler(MunicipioNoPermitidoException.class)
+    public ResponseEntity<String> municipioNoPermitido(MunicipioNoPermitidoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
     /**
      * Datos de entrada que no cumplen las validaciones del DTO (@Valid) -> 400.
      * Devuelve cada campo con su mensaje, por ejemplo {"email": "must not be blank"}.
