@@ -25,12 +25,8 @@ public class FincaService {
 
     @Transactional
     public RegistroFincaResponse registrar(String correoAgricultor, RegistroFincaRequest request) {
-        Agricultor agricultor = agricultorRepository.findByUsuarioCorreo(correoAgricultor)
-                .orElseThrow(() -> new IllegalStateException(
-                        "No existe un agricultor asociado al correo " + correoAgricultor));
-
-        Municipio municipio = municipioRepository.findByNombreIgnoreCase(request.municipio())
-                .orElseThrow(() -> new MunicipioNoPermitidoException(request.municipio()));
+        Agricultor agricultor = buscarAgricultor(correoAgricultor);
+        Municipio municipio = buscarMunicipio(request.municipio());
 
         Finca finca = Finca.builder()
                 .nombre(request.nombre())
@@ -40,13 +36,26 @@ public class FincaService {
                 .municipio(municipio)
                 .build();
 
-        Finca guardada = fincaRepository.save(finca);
+        return aRespuesta(fincaRepository.save(finca));
+    }
 
+    private Agricultor buscarAgricultor(String correo) {
+        return agricultorRepository.findByUsuarioCorreo(correo)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No existe un agricultor asociado al correo " + correo));
+    }
+
+    private Municipio buscarMunicipio(String nombre) {
+        return municipioRepository.findByNombreIgnoreCase(nombre)
+                .orElseThrow(() -> new MunicipioNoPermitidoException(nombre));
+    }
+
+    private RegistroFincaResponse aRespuesta(Finca finca) {
         return new RegistroFincaResponse(
-                guardada.getId(),
-                guardada.getNombre(),
-                guardada.getMunicipio().getNombre(),
-                guardada.getVereda(),
-                guardada.getAreaHectareas());
+                finca.getId(),
+                finca.getNombre(),
+                finca.getMunicipio().getNombre(),
+                finca.getVereda(),
+                finca.getAreaHectareas());
     }
 }
