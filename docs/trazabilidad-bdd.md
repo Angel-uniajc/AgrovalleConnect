@@ -1,7 +1,7 @@
 # Trazabilidad BDD → JUnit 5 — AgroValle Connect
 
 Cada escenario Given/When/Then del backlog se verifica con al menos una prueba automatizada.
-Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con las pruebas reales.
+Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con las pruebas reales. La matriz de HU-14 está en [la planificación del Sprint 2](sprint-2-planning.md#3-matriz-de-trazabilidad-bdd--junit-5--hu-14).
 
 ## HU-01 — Registro de Agricultores
 
@@ -28,5 +28,7 @@ Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con 
 | Endpoint protegido con token inválido (adicional) | `401` | `AccesoProtegidoIntegrationTest#accesoProtegido_conTokenInvalido_retorna401` |
 
 ## Cómo verificar
+
+HU-14 se verifica con `FincaControllerIntegrationTest`: registro válido, municipio no permitido, campos inválidos, ausencia de token y rol comprador; además cubre token inválido y municipio en minúsculas con campos opcionales ausentes. Los Given/When/Then y los nombres exactos están en la matriz del Sprint 2.
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.

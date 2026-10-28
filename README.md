@@ -187,7 +187,8 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
 - [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
 - [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
+- [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
 - [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
-- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01 y HU-16 hacia sus pruebas JUnit 5.
+- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01, HU-16 y HU-14 hacia sus pruebas JUnit 5.
