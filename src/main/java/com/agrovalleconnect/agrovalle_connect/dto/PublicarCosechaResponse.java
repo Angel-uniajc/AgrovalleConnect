@@ -1,4 +1,6 @@
 package com.agrovalleconnect.agrovalle_connect.dto;
 
-public class PublicarCosechaResponse {
+public record PublicarCosechaResponse(
+        Long id
+) {
 }
