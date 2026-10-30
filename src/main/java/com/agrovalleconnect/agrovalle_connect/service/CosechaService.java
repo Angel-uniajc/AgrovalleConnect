@@ -13,6 +13,7 @@ import com.agrovalleconnect.agrovalle_connect.repository.CategoriaRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.FincaRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CosechaService {
@@ -31,6 +32,7 @@ public class CosechaService {
         this.categoriaRepository = categoriaRepository;
     }
 
+    @Transactional
     public PublicarCosechaResponse publicar(String correoAgricultor, PublicarCosechaRequest request) {
         Finca finca = obtenerFincaDelAgricultor(request.fincaId(), correoAgricultor);
         Categoria categoria = obtenerCategoria(request.categoriaId());
