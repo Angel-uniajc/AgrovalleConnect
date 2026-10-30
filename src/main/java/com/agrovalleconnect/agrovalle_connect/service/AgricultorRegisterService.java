@@ -1,6 +1,8 @@
 package com.agrovalleconnect.agrovalle_connect.service;
 
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
+import com.agrovalleconnect.agrovalle_connect.exception.CedulaDuplicadaException;
+import com.agrovalleconnect.agrovalle_connect.exception.CorreoDuplicadoException;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
@@ -25,10 +27,10 @@ public class AgricultorRegisterService {
     @Transactional
     public Agricultor registrar(RegistroAgricultorRequest dto) {
         if (usuarioRepository.existsByCorreo(dto.correo())) {
-            throw new IllegalArgumentException("El correo ya está registrado");
+            throw new CorreoDuplicadoException();
         }
         if (agricultorRepository.existsByCedula(dto.cedula())) {
-            throw new IllegalArgumentException("La cédula ya está registrada");
+            throw new CedulaDuplicadaException();
         }
 
         Usuario usuario = Usuario.builder()
