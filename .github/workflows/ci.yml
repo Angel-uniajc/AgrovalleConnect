@@ -22,5 +22,5 @@ jobs:
       - name: Dar permisos al Maven Wrapper
         run: chmod +x mvnw
 
-      - name: Ejecutar Maven Verify
-        run: ./mvnw verify
+      - name: Verificar estilo, pruebas y cobertura mínima del 60 %
+        run: ./mvnw -B clean verify
