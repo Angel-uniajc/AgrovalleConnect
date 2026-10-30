@@ -8,6 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
+import com.agrovalleconnect.agrovalle_connect.exception.CedulaDuplicadaException;
+import com.agrovalleconnect.agrovalle_connect.exception.CorreoDuplicadoException;
+import com.agrovalleconnect.agrovalle_connect.mapper.AgricultorMapper;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
@@ -17,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -31,6 +35,9 @@ class AgricultorRegisterServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Spy
+    private AgricultorMapper agricultorMapper = new AgricultorMapper();
 
     @InjectMocks
     private AgricultorRegisterService servicio;
@@ -50,12 +57,13 @@ private RegistroAgricultorRequest dtoValido() {
         when(usuarioRepository.existsByCorreo("pedro@mail.com")).thenReturn(true);
 
         assertThatThrownBy(() -> servicio.registrar(dtoValido()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("El correo ya está registrado");
+                .isInstanceOf(CorreoDuplicadoException.class)
+                .hasMessage("El correo ya está registrado");
 
         verify(usuarioRepository, never()).save(any());
         verify(agricultorRepository, never()).save(any());
         verify(passwordEncoder, never()).encode(any());
+
     }
 
     @Test
@@ -63,8 +71,8 @@ private RegistroAgricultorRequest dtoValido() {
         when(agricultorRepository.existsByCedula("12345678")).thenReturn(true);
 
         assertThatThrownBy(() -> servicio.registrar(dtoValido()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("La cédula ya está registrada");
+                .isInstanceOf(CedulaDuplicadaException.class)
+                .hasMessage("La cédula ya está registrada");
 
         verify(usuarioRepository, never()).save(any());
         verify(agricultorRepository, never()).save(any());

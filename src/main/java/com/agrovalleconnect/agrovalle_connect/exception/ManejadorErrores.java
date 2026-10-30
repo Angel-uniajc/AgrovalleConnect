@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ManejadorErrores {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> datoDuplicado(IllegalArgumentException ex) {
+    @ExceptionHandler(RecursoDuplicadoException.class)
+    public ResponseEntity<String> recursoDuplicado(RecursoDuplicadoException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
