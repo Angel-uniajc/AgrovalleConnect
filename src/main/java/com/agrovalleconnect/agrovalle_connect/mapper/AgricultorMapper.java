@@ -1,13 +1,14 @@
 package com.agrovalleconnect.agrovalle_connect.mapper;
 
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
+import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorResponse;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
 
 /**
- * Convierte el formulario de registro (DTO) en las entidades que se guardan en BD.
+ * Convierte los DTO de registro en entidades y las entidades en la respuesta del registro.
  */
 @Component
 public class AgricultorMapper {
@@ -28,5 +29,11 @@ public class AgricultorMapper {
                 .ubicacionValle(dto.ubicacionValle())
                 .usuario(usuario)
                 .build();
+    }
+
+    public RegistroAgricultorResponse aRespuesta(Agricultor agricultor) {
+        return new RegistroAgricultorResponse(
+                agricultor.getUsuario().getNombre(),
+                "Agricultor registrado exitosamente");
     }
 }

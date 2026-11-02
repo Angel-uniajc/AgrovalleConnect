@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
+import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorResponse;
 import com.agrovalleconnect.agrovalle_connect.exception.CedulaDuplicadaException;
 import com.agrovalleconnect.agrovalle_connect.exception.CorreoDuplicadoException;
 import com.agrovalleconnect.agrovalle_connect.mapper.AgricultorMapper;
@@ -96,20 +97,26 @@ private RegistroAgricultorRequest dtoValido() {
     @Test
     void registrar_datosValidos_guardaUsuarioYAgricultorEnlazados() {
         when(passwordEncoder.encode(any())).thenReturn("HASH_FALSO");
-        when(agricultorRepository.save(any(Agricultor.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Agricultor resultado = servicio.registrar(dtoValido());
+        RegistroAgricultorResponse resultado = servicio.registrar(dtoValido());
 
         ArgumentCaptor<Usuario> captorUsuario = ArgumentCaptor.forClass(Usuario.class);
         verify(usuarioRepository).save(captorUsuario.capture());
         Usuario usuarioGuardado = captorUsuario.getValue();
 
+        ArgumentCaptor<Agricultor> captorAgricultor = ArgumentCaptor.forClass(Agricultor.class);
+        verify(agricultorRepository).save(captorAgricultor.capture());
+        Agricultor agricultorGuardado = captorAgricultor.getValue();
+
         assertThat(usuarioGuardado.getNombre()).isEqualTo("Pedro Gómez");
         assertThat(usuarioGuardado.getCorreo()).isEqualTo("pedro@mail.com");
         assertThat(usuarioGuardado.getRol()).isEqualTo(Usuario.Rol.AGRICULTOR);
 
-        assertThat(resultado.getCedula()).isEqualTo("12345678");
-        assertThat(resultado.getUbicacionValle()).isEqualTo("Cali");
-        assertThat(resultado.getUsuario()).isSameAs(usuarioGuardado);
+        assertThat(agricultorGuardado.getCedula()).isEqualTo("12345678");
+        assertThat(agricultorGuardado.getUbicacionValle()).isEqualTo("Cali");
+        assertThat(agricultorGuardado.getUsuario()).isSameAs(usuarioGuardado);
+
+        assertThat(resultado.nombre()).isEqualTo("Pedro Gómez");
+        assertThat(resultado.mensaje()).isEqualTo("Agricultor registrado exitosamente");
     }
 }
