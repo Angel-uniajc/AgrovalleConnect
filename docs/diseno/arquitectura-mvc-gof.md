@@ -229,6 +229,7 @@ Los patrones provienen de distintos catálogos: algunos son GoF (Gang of Four) y
 | **Strategy** | GoF (comportamiento) | `PasswordEncoder` (interfaz) y `BCryptPasswordEncoder` (estrategia concreta) | El algoritmo de hash se puede cambiar modificando solo el bean de `SecurityConfig` |
 | **Proxy** | GoF (estructural) | `@Transactional` en `AgricultorRegisterService` | Spring envuelve el servicio en un proxy (AOP) que abre, confirma o revierte la transacción |
 | **Facade** | GoF (estructural) | `AgricultorRegisterService.registrar(...)` | Un único punto de entrada que oculta la coordinación de dos repositorios, el hash y la transacción |
+| **Observer** | GoF (comportamiento) | `CosechaService`, `CosechaPublicadaEvent` y `CosechaPublicadaListener` | El servicio publica un evento de Spring tras guardar el producto; los observadores reaccionan sin que el servicio conozca sus implementaciones |
 
 Nota: en **Singleton**, la instancia única la gestiona el contenedor de Spring y no una implementación manual con constructor privado.
 
@@ -237,7 +238,32 @@ Nota: en **Singleton**, la instancia única la gestiona el contenedor de Spring 
 | Patrón | Propuesta de uso |
 |---|---|
 | **Factory Method** | Crear usuarios según el `Rol` (`AGRICULTOR`, `COMPRADOR`) cuando se agregue el registro de compradores |
-| **Observer** | Publicar eventos (por ejemplo, "usuario registrado") con `ApplicationEventPublisher` para notificaciones sin acoplar el servicio |
+
+### 5.2 Observer en la publicación de cosechas (T04-HU02)
+
+`CosechaService.publicar(...)` conserva las validaciones de finca, propietario y categoría de T03-HU02. Después de que `ProductoRepository.save(...)` devuelve el producto guardado, llama a `ApplicationEventPublisher.publishEvent(...)` con un `CosechaPublicadaEvent` del paquete `event`.
+
+El evento es un `record` inmutable con `productoId`, `tipo`, `fincaId` y `municipio` (nombre del catálogo). Transporta valores simples, sin entidades JPA ni relaciones de carga diferida. `CosechaPublicadaListener`, en el paquete `listener`, es un componente de Spring cuyo método `@EventListener` registra esos datos en el log.
+
+```mermaid
+sequenceDiagram
+    participant S as CosechaService
+    participant R as ProductoRepository
+    participant P as ApplicationEventPublisher
+    participant L as CosechaPublicadaListener
+    S->>R: save(producto)
+    R-->>S: producto guardado con ID
+    S->>P: publishEvent(CosechaPublicadaEvent)
+    P->>L: registrarPublicacion(evento)
+    L->>L: registrar en el log
+    S-->>S: construir PublicarCosechaResponse
+```
+
+Si falla una validación o el guardado lanza una excepción, el servicio termina antes de emitir el evento. Con la configuración actual de Spring, la entrega al listener es síncrona y ocurre dentro de la transacción del servicio, antes de su commit. El log registra la ejecución de esa etapa; una excepción posterior todavía puede revertir la transacción.
+
+Para futuras notificaciones a compradores, se pueden añadir observadores del mismo evento sin modificar `CosechaService`. Los efectos externos que dependan de una transacción confirmada deberán usar un listener transaccional con fase `AFTER_COMMIT`.
+
+`CosechaServiceTest` comprueba el orden guardar → emitir, el contenido del evento y su ausencia ante finca inexistente, finca ajena, categoría inválida o fallo de guardado. `CosechaPublicadaIntegrationTest` verifica con Spring y H2 el producto persistido, la emisión del evento y la ejecución del listener de log.
 
 ## 6. Relación con atributos de calidad (ISO 25010)
 
