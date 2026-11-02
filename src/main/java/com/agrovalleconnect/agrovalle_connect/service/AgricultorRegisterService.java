@@ -1,6 +1,7 @@
 package com.agrovalleconnect.agrovalle_connect.service;
 
 import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorRequest;
+import com.agrovalleconnect.agrovalle_connect.dto.RegistroAgricultorResponse;
 import com.agrovalleconnect.agrovalle_connect.exception.CedulaDuplicadaException;
 import com.agrovalleconnect.agrovalle_connect.exception.CorreoDuplicadoException;
 import com.agrovalleconnect.agrovalle_connect.mapper.AgricultorMapper;
@@ -27,7 +28,7 @@ public class AgricultorRegisterService {
     private final AgricultorMapper agricultorMapper;
 
     @Transactional
-    public Agricultor registrar(RegistroAgricultorRequest dto) {
+    public RegistroAgricultorResponse registrar(RegistroAgricultorRequest dto) {
         if (usuarioRepository.existsByCorreo(dto.correo())) {
             throw new CorreoDuplicadoException();
         }
@@ -39,7 +40,8 @@ public class AgricultorRegisterService {
         usuarioRepository.save(usuario);
 
         Agricultor agricultor = agricultorMapper.aAgricultor(dto, usuario);
-        return agricultorRepository.save(agricultor);
+        agricultorRepository.save(agricultor);
+        return agricultorMapper.aRespuesta(agricultor);
     }
 }
 
