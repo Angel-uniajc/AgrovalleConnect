@@ -19,25 +19,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-  private final AgricultorRegisterService agricultorService;
+    private final AgricultorRegisterService agricultorService;
 
-  private final AutenticacionService autenticacionService;
+    private final AutenticacionService autenticacionService;
 
-  public AuthController(AgricultorRegisterService agricultorService,
-                        AutenticacionService autenticacionService) {
-    this.agricultorService = agricultorService;
-    this.autenticacionService = autenticacionService;
-  }
+    public AuthController(AgricultorRegisterService agricultorService,
+                          AutenticacionService autenticacionService) {
+        this.agricultorService = agricultorService;
+        this.autenticacionService = autenticacionService;
+    }
 
-  @PostMapping("/register")
-  public ResponseEntity<RegistroAgricultorResponse> registrar(
-          @Valid @RequestBody RegistroAgricultorRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(agricultorService.registrar(request));
-  }
+    @PostMapping("/register")
+    public ResponseEntity<RegistroAgricultorResponse> registrar(
+            @Valid @RequestBody RegistroAgricultorRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(agricultorService.registrar(request));
+    }
 
-  @PostMapping("/login")
-  public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-    return ResponseEntity.ok(autenticacionService.login(request));
-  }
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(autenticacionService.login(request));
+    }
 }
-
