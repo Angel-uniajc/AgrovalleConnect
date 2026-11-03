@@ -20,7 +20,7 @@ Al ser una API REST, la **Vista (View)** es el cliente externo (aplicación web 
 | # | Capa | Responsabilidad | Paquetes / componentes |
 |---|---|---|---|
 | 1 | Presentación / REST | Recibir peticiones HTTP, validar los DTO de entrada, devolver respuestas y traducir errores a códigos HTTP | `controller` (`AuthController`), `dto` (`RegistroAgricultorRequest`, `RegistroAgricultorResponse`), `exception` (`ManejadorErrores`) |
-| 2 | Servicio / Dominio | Reglas de negocio, validaciones de unicidad, hash de contraseña, control transaccional y entidades del dominio | `service` (`AgricultorRegisterService`), `model` (`Usuario`, `Agricultor`) |
+| 2 | Servicio / Dominio | Reglas de negocio, validaciones de unicidad, hash de contraseña, control transaccional, entidades y comunicación por eventos | `service` (`AgricultorRegisterService`, `CosechaService`), `model` (`Usuario`, `Agricultor`), `event` (`CosechaPublicadaEvent`), `listener` (`CosechaPublicadaListener`) |
 | 3 | Repositorio / Acceso a datos | Consultas y persistencia mediante Spring Data JPA | `repository` (`UsuarioRepository`, `AgricultorRepository`) |
 | 4 | Persistencia | Almacenamiento relacional | PostgreSQL |
 
@@ -34,7 +34,7 @@ Las entidades de `model` pertenecen al **Dominio**: el repositorio las usa para 
 flowchart TD
     V["Vista<br/>(cliente web / móvil)"]
     P["Capa 1: Presentación / REST<br/>(controller, dto, exception)"]
-    S["Capa 2: Servicio / Dominio<br/>(service, model)"]
+    S["Capa 2: Servicio / Dominio<br/>(service, model, event, listener)"]
     R["Capa 3: Repositorio / Acceso a datos<br/>(repository)"]
     DB[("Capa 4: Persistencia<br/>PostgreSQL")]
 
@@ -64,8 +64,12 @@ src/main/java/com/agrovalleconnect/agrovalle_connect/
 ├── dto/
 │   ├── RegistroAgricultorRequest.java
 │   └── RegistroAgricultorResponse.java
+├── event/
+│   └── CosechaPublicadaEvent.java
 ├── exception/
 │   └── ManejadorErrores.java
+├── listener/
+│   └── CosechaPublicadaListener.java
 ├── model/
 │   ├── Agricultor.java
 │   └── Usuario.java
@@ -73,7 +77,8 @@ src/main/java/com/agrovalleconnect/agrovalle_connect/
 │   ├── AgricultorRepository.java
 │   └── UsuarioRepository.java
 └── service/
-    └── AgricultorRegisterService.java
+    ├── AgricultorRegisterService.java
+    └── CosechaService.java
 ```
 
 ## 3. Diagrama de clases
@@ -238,6 +243,7 @@ Nota: en **Singleton**, la instancia única la gestiona el contenedor de Spring 
 | Patrón | Propuesta de uso |
 |---|---|
 | **Factory Method** | Crear usuarios según el `Rol` (`AGRICULTOR`, `COMPRADOR`) cuando se agregue el registro de compradores |
+| **Observer para usuario registrado** | Propuesta de un evento de registro de usuarios para futuras notificaciones; es un flujo distinto de `CosechaPublicadaEvent`, ya implementado para HU-02 en la sección 5.2 |
 
 ### 5.2 Observer en la publicación de cosechas (T04-HU02)
 
@@ -261,9 +267,11 @@ sequenceDiagram
 
 Si falla una validación o el guardado lanza una excepción, el servicio termina antes de emitir el evento. Con la configuración actual de Spring, la entrega al listener es síncrona y ocurre dentro de la transacción del servicio, antes de su commit. El log registra la ejecución de esa etapa; una excepción posterior todavía puede revertir la transacción.
 
-Para futuras notificaciones a compradores, se pueden añadir observadores del mismo evento sin modificar `CosechaService`. Los efectos externos que dependan de una transacción confirmada deberán usar un listener transaccional con fase `AFTER_COMMIT`.
+Si un listener síncrono lanza una excepción no controlada, esta se propaga a `CosechaService` y provoca el rollback de la publicación completa conforme a las reglas de `@Transactional`. Por ello, un fallo de un observador puede impedir que se guarde la cosecha; los listeners síncronos deben reservarse para operaciones que puedan participar en esa transacción.
 
-`CosechaServiceTest` comprueba el orden guardar → emitir, el contenido del evento y su ausencia ante finca inexistente, finca ajena, categoría inválida o fallo de guardado. `CosechaPublicadaIntegrationTest` verifica con Spring y H2 el producto persistido, la emisión del evento y la ejecución del listener de log.
+Para futuras notificaciones a compradores, se pueden añadir observadores del mismo evento sin modificar `CosechaService`. Los efectos externos, como correos y notificaciones, deberán ejecutarse después de confirmar la transacción mediante `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`, para evitar enviar avisos de cosechas cuyo registro se revierta.
+
+`CosechaServiceTest` comprueba el orden guardar → emitir, el contenido del evento y su ausencia ante finca inexistente, finca ajena, categoría inválida o fallo de guardado. `CosechaPublicadaIntegrationTest` crea sus propios datos de municipio y categoría, sin depender de los catálogos sembrados al arrancar, y verifica con Spring y H2 el producto persistido, la emisión del evento y la ejecución del listener de log.
 
 ## 6. Relación con atributos de calidad (ISO 25010)
 

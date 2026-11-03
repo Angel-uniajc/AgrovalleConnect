@@ -50,14 +50,12 @@ class CosechaPublicadaIntegrationTest {
                 .rol(Usuario.Rol.AGRICULTOR).fechaRegistro(LocalDateTime.now()).build();
         entityManager.persist(usuario);
         Agricultor agricultor = Agricultor.builder().cedula("8877665544")
-                .ubicacionValle("Palmira").usuario(usuario).build();
+                .ubicacionValle("Candelaria").usuario(usuario).build();
         entityManager.persist(agricultor);
-        Municipio municipio = entityManager.createQuery(
-                "select m from Municipio m where m.nombre = :nombre", Municipio.class)
-                .setParameter("nombre", "Palmira").getSingleResult();
-        Categoria categoria = entityManager.createQuery(
-                "select c from Categoria c where c.nombre = :nombre", Categoria.class)
-                .setParameter("nombre", "Frutas").getSingleResult();
+        Municipio municipio = Municipio.builder().nombre("Candelaria").build();
+        entityManager.persist(municipio);
+        Categoria categoria = Categoria.builder().nombre("Categoría de eventos").build();
+        entityManager.persist(categoria);
         Finca finca = Finca.builder().nombre("Finca de eventos")
                 .agricultor(agricultor).municipio(municipio).build();
         entityManager.persist(finca);
@@ -73,8 +71,8 @@ class CosechaPublicadaIntegrationTest {
         assertThat(producto.getEstado()).isEqualTo(Producto.Estado.ACTIVO);
         assertThat(producto.getFinca().getId()).isEqualTo(fincaId);
         assertThat(eventos.stream(CosechaPublicadaEvent.class)).containsExactly(
-                new CosechaPublicadaEvent(respuesta.id(), "Mango", fincaId, "Palmira"));
+                new CosechaPublicadaEvent(respuesta.id(), "Mango", fincaId, "Candelaria"));
         assertThat(salida.getOut()).contains("Cosecha publicada: productoId=" + respuesta.id(),
-                "tipo=Mango", "fincaId=" + fincaId, "municipio=Palmira");
+                "tipo=Mango", "fincaId=" + fincaId, "municipio=Candelaria");
     }
 }
