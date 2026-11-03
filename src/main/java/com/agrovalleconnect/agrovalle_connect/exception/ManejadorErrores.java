@@ -30,6 +30,30 @@ public class ManejadorErrores {
     }
 
     /**
+     * HU-02: la finca indicada no existe -> 404.
+     */
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    public ResponseEntity<String> recursoNoEncontrado(RecursoNoEncontradoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    /**
+     * HU-02: la finca no pertenece al agricultor autenticado -> 403.
+     */
+    @ExceptionHandler(AccesoDenegadoException.class)
+    public ResponseEntity<String> accesoDenegado(AccesoDenegadoException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    /**
+     * HU-02: la categoría indicada no existe -> 400.
+     */
+    @ExceptionHandler(CategoriaInvalidaException.class)
+    public ResponseEntity<String> categoriaInvalida(CategoriaInvalidaException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
      * Datos de entrada que no cumplen las validaciones del DTO (@Valid) -> 400.
      * Devuelve cada campo con su mensaje, por ejemplo {"email": "must not be blank"}.
      */
