@@ -82,7 +82,7 @@ La integración funcional sigue el recorrido agricultor autenticado → finca pr
 
 ## 7. Matriz de trazabilidad BDD → JUnit 5 — HU-02
 
-Todas las pruebas pertenecen a `ProductoControllerIntegrationTest`, en `src/test/java/com/agrovalleconnect/agrovalle_connect/controller/`. Cada prueba registra dos agricultores mediante HU-01, los autentica mediante HU-16, registra una finca para cada uno mediante HU-14 y crea su propia categoría.
+Todas las pruebas pertenecen a `ProductoControllerIntegrationTest`, en `src/test/java/com/agrovalleconnect/agrovalle_connect/controller/`. Cada prueba crea su propio municipio y su propia categoría, registra dos agricultores mediante HU-01, los autentica mediante HU-16 y registra una finca para cada uno mediante HU-14, sin depender de los catálogos sembrados al arrancar.
 
 | Escenario | Given | When | Then | Método real |
 |---|---|---|---|---|
@@ -91,6 +91,7 @@ Todas las pruebas pertenecen a `ProductoControllerIntegrationTest`, en `src/test
 | Cantidad inválida | Agricultor autenticado | Envía `cantidad` igual a cero | `400` con mensaje en `cantidad`, sin crear productos | `publicarCosecha_conCantidadInvalida_retorna400` |
 | Categoría inexistente | Agricultor autenticado con finca propia | Envía un `categoria_id` que no existe | `400`, sin crear productos | `publicarCosecha_conCategoriaInexistente_retorna400` |
 | Sin token | Usuario no autenticado | Intenta publicar una cosecha | `401`, sin crear productos | `publicarCosecha_sinToken_retorna401` |
+| Rol no autorizado (adicional) | Usuario COMPRADOR autenticado mediante el login real | Intenta publicar una cosecha | `403`, sin crear productos | `publicarCosecha_conRolComprador_retorna403` |
 | Finca ajena | Agricultor autenticado y una finca de otro agricultor | Intenta publicar en esa finca | `403` con el mensaje de `AccesoDenegadoException`, sin crear productos | `publicarCosecha_enFincaAjena_retorna403` |
 | Finca inexistente | Agricultor autenticado | Envía un `finca_id` que no existe | `404` con el mensaje de `RecursoNoEncontradoException`, sin crear productos | `publicarCosecha_conFincaInexistente_retorna404` |
 
