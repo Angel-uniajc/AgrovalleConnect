@@ -2,12 +2,14 @@ package com.agrovalleconnect.agrovalle_connect.service;
 
 import com.agrovalleconnect.agrovalle_connect.dto.PublicarCosechaRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.PublicarCosechaResponse;
+import com.agrovalleconnect.agrovalle_connect.event.CosechaPublicadaEvent;
 import com.agrovalleconnect.agrovalle_connect.exception.AccesoDenegadoException;
 import com.agrovalleconnect.agrovalle_connect.exception.CategoriaInvalidaException;
 import com.agrovalleconnect.agrovalle_connect.exception.RecursoNoEncontradoException;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Categoria;
 import com.agrovalleconnect.agrovalle_connect.model.Finca;
+import com.agrovalleconnect.agrovalle_connect.model.Municipio;
 import com.agrovalleconnect.agrovalle_connect.model.Producto;
 import com.agrovalleconnect.agrovalle_connect.model.Producto.Estado;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
@@ -20,7 +22,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,8 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +54,9 @@ class CosechaServiceTest {
 
     @Mock
     private CategoriaRepository categoriaRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private CosechaService cosechaService;
@@ -64,12 +74,17 @@ class CosechaServiceTest {
         PublicarCosechaResponse response = cosechaService.publicar(CORREO, request(1L, 2L));
 
         ArgumentCaptor<Producto> captor = ArgumentCaptor.forClass(Producto.class);
-        verify(productoRepository).save(captor.capture());
+        ArgumentCaptor<CosechaPublicadaEvent> eventoCaptor = ArgumentCaptor.forClass(CosechaPublicadaEvent.class);
+        InOrder orden = inOrder(productoRepository, eventPublisher);
+        orden.verify(productoRepository).save(captor.capture());
+        orden.verify(eventPublisher).publishEvent(eventoCaptor.capture());
+        verifyNoMoreInteractions(eventPublisher);
 
         assertEquals(Estado.ACTIVO, captor.getValue().getEstado());
         assertEquals("Café pergamino", captor.getValue().getTipo());
         assertEquals(0, new BigDecimal("25").compareTo(captor.getValue().getCantidadDisponible()));
         assertEquals(10L, response.id());
+        assertEquals(new CosechaPublicadaEvent(10L, "Café pergamino", 1L, "Palmira"), eventoCaptor.getValue());
     }
 
     @Test
@@ -80,7 +95,7 @@ class CosechaServiceTest {
                 () -> cosechaService.publicar(CORREO, request(99L, 2L)));
 
         verify(productoRepository, never()).save(any());
-        verifyNoInteractions(categoriaRepository);
+        verifyNoInteractions(categoriaRepository, eventPublisher);
     }
 
     @Test
@@ -91,7 +106,7 @@ class CosechaServiceTest {
                 () -> cosechaService.publicar(CORREO, request(1L, 2L)));
 
         verify(productoRepository, never()).save(any());
-        verifyNoInteractions(categoriaRepository);
+        verifyNoInteractions(categoriaRepository, eventPublisher);
     }
 
     @Test
@@ -103,12 +118,27 @@ class CosechaServiceTest {
                 () -> cosechaService.publicar(CORREO, request(1L, 2L)));
 
         verify(productoRepository, never()).save(any());
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    void publicar_siFallaElGuardado_noPublicaEvento() {
+        when(fincaRepository.findById(1L)).thenReturn(Optional.of(fincaDe(CORREO)));
+        when(categoriaRepository.findById(2L)).thenReturn(Optional.of(new Categoria()));
+        when(productoRepository.save(any(Producto.class)))
+                .thenThrow(new DataIntegrityViolationException("No se pudo guardar el producto"));
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> cosechaService.publicar(CORREO, request(1L, 2L)));
+
+        verifyNoInteractions(eventPublisher);
     }
 
     private Finca fincaDe(String correo) {
         Usuario usuario = Usuario.builder().correo(correo).build();
         Agricultor agricultor = Agricultor.builder().usuario(usuario).build();
-        return Finca.builder().id(1L).agricultor(agricultor).build();
+        Municipio municipio = Municipio.builder().id(3L).nombre("Palmira").build();
+        return Finca.builder().id(1L).agricultor(agricultor).municipio(municipio).build();
     }
 
     private PublicarCosechaRequest request(Long fincaId, Long categoriaId) {

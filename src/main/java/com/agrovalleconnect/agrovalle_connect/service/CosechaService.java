@@ -2,6 +2,7 @@ package com.agrovalleconnect.agrovalle_connect.service;
 
 import com.agrovalleconnect.agrovalle_connect.dto.PublicarCosechaRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.PublicarCosechaResponse;
+import com.agrovalleconnect.agrovalle_connect.event.CosechaPublicadaEvent;
 import com.agrovalleconnect.agrovalle_connect.exception.AccesoDenegadoException;
 import com.agrovalleconnect.agrovalle_connect.exception.CategoriaInvalidaException;
 import com.agrovalleconnect.agrovalle_connect.exception.RecursoNoEncontradoException;
@@ -12,6 +13,7 @@ import com.agrovalleconnect.agrovalle_connect.model.Producto.Estado;
 import com.agrovalleconnect.agrovalle_connect.repository.CategoriaRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.FincaRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.ProductoRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +26,16 @@ public class CosechaService {
 
     private final CategoriaRepository categoriaRepository;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public CosechaService(ProductoRepository productoRepository,
                           FincaRepository fincaRepository,
-                          CategoriaRepository categoriaRepository) {
+                          CategoriaRepository categoriaRepository,
+                          ApplicationEventPublisher eventPublisher) {
         this.productoRepository = productoRepository;
         this.fincaRepository = fincaRepository;
         this.categoriaRepository = categoriaRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -48,6 +54,8 @@ public class CosechaService {
                 .build();
 
         Producto guardado = productoRepository.save(producto);
+        eventPublisher.publishEvent(new CosechaPublicadaEvent(
+                guardado.getId(), guardado.getTipo(), finca.getId(), finca.getMunicipio().getNombre()));
         return new PublicarCosechaResponse(guardado.getId());
     }
 
