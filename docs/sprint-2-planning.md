@@ -17,7 +17,7 @@ Habilitar el registro de fincas por municipio (HU-14) y la publicación de cosec
 | Rechazar datos inválidos, usuarios sin autenticación y publicaciones en fincas ajenas, sin guardar registros. | HU-14 / HU-02 |
 | Publicar el evento de cosecha mediante Observer y mantener trazabilidad BDD → JUnit de los escenarios de ambas historias. | HU-02 / HU-14 |
 
-Este documento incorpora la trazabilidad de HU-14 correspondiente a T05-HU14 (#101). La matriz de HU-02 se completará con sus pruebas reales en T06-HU02 (#107).
+Este documento incorpora la trazabilidad de HU-14 correspondiente a T05-HU14 (#101) y la de HU-02 correspondiente a T06-HU02 (#107).
 
 ## 2. Desglose y dependencias de HU-14
 
@@ -79,3 +79,20 @@ El desglose corresponde a las tareas #102–#107 del Kanban. Las estimaciones se
 | T06-HU02 (#107) | Pruebas MockMvc de publicación válida (`201` + ID), fecha pasada (`400`), cantidad inválida (`400`), categoría inexistente (`400`), ausencia de token (`401`), finca ajena (`403`) y finca inexistente (`404`). Incorporar los nombres reales a la matriz BDD y verificar los siete escenarios en CI. | JUnit 5 / MockMvc / H2 | Fiabilidad | T05-HU02 | 4 |
 
 La integración funcional sigue el recorrido agricultor autenticado → finca propia (HU-14) → cosecha publicada (HU-02). T04-HU02 agrega el evento sobre el servicio de T03-HU02 y T06-HU02 verifica el endpoint expuesto por T05-HU02.
+
+## 7. Matriz de trazabilidad BDD → JUnit 5 — HU-02
+
+Todas las pruebas pertenecen a `ProductoControllerIntegrationTest`, en `src/test/java/com/agrovalleconnect/agrovalle_connect/controller/`. Cada prueba crea su propio municipio y su propia categoría, registra dos agricultores mediante HU-01, los autentica mediante HU-16 y registra una finca para cada uno mediante HU-14, sin depender de los catálogos sembrados al arrancar.
+
+| Escenario | Given | When | Then | Método real |
+|---|---|---|---|---|
+| Publicación válida | Agricultor autenticado con una finca propia y una categoría existente | Envía datos válidos a POST `/api/v1/productos` | `201` con `id`; el producto queda guardado `ACTIVO`, con los datos enviados, la finca y la categoría | `publicarCosecha_conDatosValidos_retorna201YId` |
+| Fecha inválida | Agricultor autenticado | Envía `fecha_cosecha` anterior a hoy | `400` con mensaje en `fechaCosecha`, sin crear productos | `publicarCosecha_conFechaPasada_retorna400` |
+| Cantidad inválida | Agricultor autenticado | Envía `cantidad` igual a cero | `400` con mensaje en `cantidad`, sin crear productos | `publicarCosecha_conCantidadInvalida_retorna400` |
+| Categoría inexistente | Agricultor autenticado con finca propia | Envía un `categoria_id` que no existe | `400`, sin crear productos | `publicarCosecha_conCategoriaInexistente_retorna400` |
+| Sin token | Usuario no autenticado | Intenta publicar una cosecha | `401`, sin crear productos | `publicarCosecha_sinToken_retorna401` |
+| Rol no autorizado (adicional) | Usuario COMPRADOR autenticado mediante el login real | Intenta publicar una cosecha | `403`, sin crear productos | `publicarCosecha_conRolComprador_retorna403` |
+| Finca ajena | Agricultor autenticado y una finca de otro agricultor | Intenta publicar en esa finca | `403` con el mensaje de `AccesoDenegadoException`, sin crear productos | `publicarCosecha_enFincaAjena_retorna403` |
+| Finca inexistente | Agricultor autenticado | Envía un `finca_id` que no existe | `404` con el mensaje de `RecursoNoEncontradoException`, sin crear productos | `publicarCosecha_conFincaInexistente_retorna404` |
+
+El contrato JSON usa *snake_case* (`finca_id`, `categoria_id`, `precio_unitario`, `fecha_cosecha`). Los errores de validación de `ManejadorErrores` usan el nombre Java del campo (`fechaCosecha`, `cantidad`). Las pruebas se ejecutan con el mismo aislamiento de la sección 4: transacción revertida al terminar cada prueba y base H2.
