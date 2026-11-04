@@ -1,0 +1,11 @@
+Verificacion local complementaria del Sprint 2 — 2026-11-04
+Linea base funcional: b1090a05439ad5152087f47dfb1967b1671d585e
+Entorno: Java 25, Spring Boot 4.1.1, H2
+Comando: mvnw.cmd -B clean verify
+[INFO] Tests run: 113, Failures: 0, Errors: 0, Skipped: 0
+[INFO] All coverage checks have been met.
+[INFO] BUILD SUCCESS
+JaCoCo INSTRUCTION: covered=934 missed=11 total=945 cobertura=98.84%
+JaCoCo BRANCH: covered=18 missed=2 total=20 cobertura=90.00%
+Regla automatica configurada: BUNDLE / INSTRUCTION / COVEREDRATIO / 0.60
+Esta ejecucion corresponde al incremento local y no a main.

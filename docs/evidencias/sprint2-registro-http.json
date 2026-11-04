@@ -1,0 +1,90 @@
+[
+  {
+    "archivo": "sprint2-01-login",
+    "fecha": "2026-11-04T16:39:10-05:00",
+    "metodo": "POST",
+    "url": "http://127.0.0.1:18082/api/v1/auth/login",
+    "autenticada": false,
+    "peticion": {
+      "email": "demo-sprint2@example.com",
+      "password": "[oculta]"
+    },
+    "estado": 200,
+    "respuesta": {
+      "token": "[JWT recibido; valor oculto]",
+      "tipo": "Bearer"
+    }
+  },
+  {
+    "archivo": "sprint2-02-finca-201",
+    "fecha": "2026-11-04T16:39:10-05:00",
+    "metodo": "POST",
+    "url": "http://127.0.0.1:18082/api/v1/fincas",
+    "autenticada": true,
+    "peticion": {
+      "nombre": "Finca demo Sprint 2",
+      "municipio": "Palmira"
+    },
+    "estado": 201,
+    "respuesta": {
+      "id": 1,
+      "nombre": "Finca demo Sprint 2",
+      "municipio": "Palmira",
+      "vereda": null,
+      "area_hectareas": null
+    }
+  },
+  {
+    "archivo": "sprint2-03-cosecha-201",
+    "fecha": "2026-11-04T16:39:10-05:00",
+    "metodo": "POST",
+    "url": "http://127.0.0.1:18082/api/v1/productos",
+    "autenticada": true,
+    "peticion": {
+      "finca_id": 1,
+      "categoria_id": 1,
+      "tipo": "Tomate demo",
+      "cantidad": 100,
+      "precio_unitario": 2500,
+      "fecha_cosecha": "2026-11-04"
+    },
+    "estado": 201,
+    "respuesta": {
+      "id": 1
+    }
+  },
+  {
+    "archivo": "sprint2-04-sin-token-401",
+    "fecha": "2026-11-04T16:39:10-05:00",
+    "metodo": "POST",
+    "url": "http://127.0.0.1:18082/api/v1/productos",
+    "autenticada": false,
+    "peticion": {
+      "finca_id": 1,
+      "categoria_id": 1,
+      "tipo": "Tomate demo",
+      "cantidad": 100,
+      "precio_unitario": 2500,
+      "fecha_cosecha": "2026-11-04"
+    },
+    "estado": 401,
+    "respuesta": ""
+  },
+  {
+    "archivo": "sprint2-05-finca-ajena-403",
+    "fecha": "2026-11-04T16:39:10-05:00",
+    "metodo": "POST",
+    "url": "http://127.0.0.1:18082/api/v1/productos",
+    "autenticada": true,
+    "peticion": {
+      "finca_id": 2,
+      "categoria_id": 1,
+      "tipo": "Tomate demo",
+      "cantidad": 100,
+      "precio_unitario": 2500,
+      "fecha_cosecha": "2026-11-04"
+    },
+    "estado": 403,
+    "respuesta": "La finca no pertenece al agricultor autenticado"
+  }
+]

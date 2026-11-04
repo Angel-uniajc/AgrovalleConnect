@@ -118,4 +118,29 @@ class AuthControllerIntegrationTest {
         assertThat(usuarioRepository.count()).isZero();
         assertThat(agricultorRepository.count()).isZero();
     }
+    @Test
+    void registrarAgricultor_conCamposVacios_retorna400() throws Exception {
+        String cuerpo = """
+                {
+                  "nombre": "",
+                  "ubicacion_valle": "Cali",
+                  "cedula": "",
+                  "correo": "pedro@mail.com",
+                  "password": "%s"
+                }
+                """.formatted(PASSWORD);
+
+        enviar(cuerpo).andExpect(status().isBadRequest());
+
+        assertThat(usuarioRepository.count()).isZero();
+        assertThat(agricultorRepository.count()).isZero();
+    }
+
+    @Test
+    void registrarAgricultor_conCedulaInvalida_retorna400() throws Exception {
+        enviar(json("12ab56", "pedro@mail.com")).andExpect(status().isBadRequest());
+
+        assertThat(usuarioRepository.count()).isZero();
+        assertThat(agricultorRepository.count()).isZero();
+    }
 }
