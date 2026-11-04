@@ -1,6 +1,6 @@
 # Sprint 2 Review · AgroValle Connect
 
-**Corte técnico:** 3 de noviembre de 2026. Esta revisión documental se basa en las integraciones en GitHub. La fecha y los asistentes de la sesión, así como el feedback recibido, quedan por registrar con el equipo.
+**Corte técnico:** 3 de noviembre de 2026. Esta revisión documental se basa en las integraciones en GitHub. El representante confirmó la participación de todos los integrantes. La fecha de la sesión y el feedback recibido quedan por registrar con el equipo.
 
 El objetivo fue habilitar el registro de fincas y la publicación de cosechas para agricultores autenticados. El recorrido se apoya en el registro HU-01 y el inicio de sesión HU-16.
 
@@ -36,4 +36,4 @@ El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se i
 
 Para la entrega institucional se requiere consolidar el incremento en `main`, comprobar las reglas de protección y adjuntar capturas de CI y cobertura de su último commit. El equipo debe contrastar el umbral configurado de instrucciones con la exigencia adicional de ramas de la guía del segundo corte.
 
-**Registro de la sesión pendiente:** el equipo debe anotar la fecha, los asistentes, los escenarios que efectivamente mostró, el feedback textual o resumido y los cambios de backlog derivados de ese feedback.
+**Registro de la sesión pendiente:** el equipo debe anotar la fecha, los escenarios que efectivamente mostró, el feedback textual o resumido y los cambios de backlog derivados de ese feedback.
