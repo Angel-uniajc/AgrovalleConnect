@@ -6,6 +6,12 @@ El objetivo fue habilitar el registro de fincas y la publicación de cosechas pa
 
 La revisión corresponde a la tarea [DOC #134](https://github.com/Angel-uniajc/AgrovalleConnect/issues/134). La línea base funcional es `develop` en `b1090a05439ad5152087f47dfb1967b1671d585e`, que incorpora el PR #132. El incremento funcional se encuentra integrado en esa rama.
 
+## Fechas verificadas de la documentación
+
+Las horas corresponden a Colombia (UTC−5). La tarea #134 se creó el 3 de noviembre de 2026 a las 21:43 y se agregó al tablero a las 21:43. Su historial registra otro cambio de estado a las 21:44. El PR #138 con esta revisión se abrió el mismo día a las 21:48. La fecha de elaboración documental es, por tanto, el 3 de noviembre de 2026. La fecha de la demostración se registrará con la confirmación del equipo.
+
+El cierre funcional de HU-02 quedó registrado el 3 de noviembre a las 03:21, después del merge del PR #132. Esta secuencia permite distinguir el cierre de la funcionalidad y la elaboración posterior de la revisión.
+
 | Entrega | Recorrido verificable | Evidencia |
 |---|---|---|
 | HU-14 · Registro de fincas | Un agricultor autenticado registra una finca en un municipio permitido. La API devuelve `201` y asocia la finca con el agricultor del token. La suite cubre entradas inválidas y restricciones de acceso. | [Endpoint #120](https://github.com/Angel-uniajc/AgrovalleConnect/pull/120), [integración #121](https://github.com/Angel-uniajc/AgrovalleConnect/pull/121) |
