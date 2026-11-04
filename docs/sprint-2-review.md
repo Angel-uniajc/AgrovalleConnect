@@ -1,6 +1,6 @@
 # Sprint 2 Review · AgroValle Connect
 
-**Corte técnico:** 3 de noviembre de 2026. Esta revisión documental se basa en las integraciones en GitHub. El representante confirmó la participación de todos los integrantes. La fecha de la sesión y el feedback recibido quedan por registrar con el equipo.
+**Fecha de la sesión y corte técnico:** 3 de noviembre de 2026. El representante confirmó la fecha y la participación de todos los integrantes. Esta revisión documental se basa en las integraciones en GitHub. El feedback recibido queda por registrar con el equipo.
 
 El objetivo fue habilitar el registro de fincas y la publicación de cosechas para agricultores autenticados. El recorrido se apoya en el registro HU-01 y el inicio de sesión HU-16.
 
@@ -8,7 +8,7 @@ La revisión corresponde a la tarea [DOC #134](https://github.com/Angel-uniajc/A
 
 ## Fechas verificadas de la documentación
 
-Las horas corresponden a Colombia (UTC−5). La tarea #134 se creó el 3 de noviembre de 2026 a las 21:43 y se agregó al tablero a las 21:43. Su historial registra otro cambio de estado a las 21:44. El PR #138 con esta revisión se abrió el mismo día a las 21:48. La fecha de elaboración documental es, por tanto, el 3 de noviembre de 2026. La fecha de la demostración se registrará con la confirmación del equipo.
+Las horas corresponden a Colombia (UTC−5). La tarea #134 se creó el 3 de noviembre de 2026 a las 21:43 y se agregó al tablero a las 21:43. Su historial registra otro cambio de estado a las 21:44. El PR #138 con esta revisión se abrió el mismo día a las 21:48. La elaboración documental y la sesión de revisión corresponden al 3 de noviembre de 2026. La fecha de la sesión fue confirmada por el representante.
 
 El cierre funcional de HU-02 quedó registrado el 3 de noviembre a las 03:21, después del merge del PR #132. Esta secuencia permite distinguir el cierre de la funcionalidad y la elaboración posterior de la revisión.
 
@@ -42,4 +42,4 @@ El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se i
 
 Para la entrega institucional se requiere consolidar el incremento en `main`, comprobar las reglas de protección y adjuntar capturas de CI y cobertura de su último commit. El equipo debe contrastar el umbral configurado de instrucciones con la exigencia adicional de ramas de la guía del segundo corte.
 
-**Registro de la sesión pendiente:** el equipo debe anotar la fecha, los escenarios que efectivamente mostró, el feedback textual o resumido y los cambios de backlog derivados de ese feedback.
+**Registro de la sesión pendiente:** el equipo debe anotar los escenarios que efectivamente mostró, el feedback textual o resumido y los cambios de backlog derivados de ese feedback.
