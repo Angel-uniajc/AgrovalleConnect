@@ -21,7 +21,7 @@ Para distinguir lo que ya existe de lo que es una decisión de diseño, el docum
 |---|---|---|---|---|
 | Dispositivo del usuario | Dispositivo | Navegador web o app móvil | Aplicación cliente (fuera de alcance) | Externo |
 | Nodo de entrada | Nodo de ejecución | Proxy inverso (Nginx o el del proveedor de despliegue) | Certificado TLS y configuración del proxy | Propuesto |
-| Servidor de aplicación | Contenedor Docker | JRE 25 con Tomcat embebido de Spring Boot | `agrovalle-connect-0.0.1-SNAPSHOT.jar` | JAR actual, contenedor propuesto |
+| Servidor de aplicación | Contenedor Docker | JRE 25 con Tomcat embebido de Spring Boot | `agrovalle-connect-0.2.0.jar` | JAR actual, contenedor propuesto |
 | Servidor de base de datos | Nodo de datos | PostgreSQL | Tablas implementadas: `usuario`, `agricultor`, `municipio` y `finca` | PostgreSQL actual, servidor propuesto |
 
 ## 3. Diagrama de despliegue (producción)
@@ -39,7 +39,7 @@ flowchart LR
 
         subgraph DOCKER ["Servidor de aplicación (Contenedor Docker)"]
             JRE[["JRE 25"]]
-            JAR("agrovalle-connect-0.0.1-SNAPSHOT.jar\n[Spring Boot + Tomcat :8080]")
+            JAR("agrovalle-connect-0.2.0.jar\n[Spring Boot + Tomcat :8080]")
             JRE -.->|ejecuta| JAR
         end
 
@@ -199,7 +199,7 @@ RUN chmod +x mvnw && ./mvnw -B clean package -DskipTests
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 RUN groupadd --system agrovalle && useradd --system --gid agrovalle agrovalle
-COPY --from=build /app/target/agrovalle-connect-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/agrovalle-connect-0.2.0.jar app.jar
 USER agrovalle
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
