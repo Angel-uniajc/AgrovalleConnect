@@ -6,11 +6,7 @@ El objetivo fue habilitar el registro de fincas y la publicación de cosechas pa
 
 La revisión corresponde a la tarea [DOC #134](https://github.com/Angel-uniajc/AgrovalleConnect/issues/134). La línea base funcional es `develop` en `b1090a05439ad5152087f47dfb1967b1671d585e`, que incorpora el PR #132. El incremento funcional se encuentra integrado en esa rama.
 
-## Fechas verificadas de la documentación
-
-Las horas corresponden a Colombia (UTC−5). La tarea #134 se creó el 3 de noviembre de 2026 a las 21:43 y se agregó al tablero a las 21:43. Su historial registra otro cambio de estado a las 21:44. El PR #138 con esta revisión se abrió el mismo día a las 21:48. La elaboración documental y la sesión de revisión corresponden al 3 de noviembre de 2026. La fecha de la sesión fue confirmada por el representante.
-
-El cierre funcional de HU-02 quedó registrado el 3 de noviembre a las 03:21, después del merge del PR #132. Esta secuencia permite distinguir el cierre de la funcionalidad y la elaboración posterior de la revisión.
+HU-02 se cerró el 3 de noviembre de 2026 a las 03:21, hora de Colombia, después del merge del PR #132. La sesión se registra con la fecha y participación confirmadas por el representante. Las evidencias técnicas complementarias se obtuvieron el 4 de noviembre de 2026.
 
 | Entrega | Recorrido verificable | Evidencia |
 |---|---|---|
@@ -26,7 +22,21 @@ El cierre funcional de HU-02 quedó registrado el 3 de noviembre a las 03:21, de
 4. Los intentos de publicar en una finca ajena o con rol COMPRADOR reciben `403`. La suite comprueba que los rechazos conservan el número de productos.
 5. La [matriz de planificación y trazabilidad](sprint-2-planning.md) relaciona estos resultados con los métodos JUnit. El [PR #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) conserva la evidencia de revisión e integración.
 
-La primera verificación local del PR #132 ejecutó 112 pruebas sin fallos con Java 25 y H2. En esa versión se observaron 98,84 % de instrucciones y 90 % de ramas. Después de esa revisión, el autor incorporó el caso COMPRADOR. Las cifras locales corresponden a la versión anterior a esa mejora. La evidencia institucional corresponde al commit final de `main` y se debe adjuntar después de su integración.
+La verificación complementaria del 4 de noviembre ejecutó `clean verify` con Java 25 y H2 sobre la línea base funcional indicada, incluido el caso COMPRADOR. Terminó con 113 pruebas, cero fallos, cero errores y cero omisiones. Checkstyle y la regla de cobertura configurada terminaron satisfactoriamente. El [extracto de verificación](evidencias/sprint2-verificacion.txt) conserva el resultado y las métricas del reporte JaCoCo.
+
+## Evidencias de ejecución HTTP
+
+La aplicación se ejecutó con Spring Boot en `127.0.0.1:18082`, Java 25 y una base H2 temporal. Un cliente HTTP registró las respuestas reales del 4 de noviembre. Las imágenes son representaciones del registro HTTP, con contraseñas y JWT ocultos. El [registro JSON](evidencias/sprint2-registro-http.json) conserva las peticiones y respuestas sanitizadas.
+
+| Comprobación | Resultado observado | Evidencia |
+|---|---|---|
+| Login real | `200` con token JWT y tipo `Bearer`. | [Login](evidencias/sprint2-01-login.png) |
+| Registro de finca con token | `201` con ID de finca. | [Finca creada](evidencias/sprint2-02-finca-201.png) |
+| Publicación en finca propia | `201` con ID de producto. | [Cosecha publicada](evidencias/sprint2-03-cosecha-201.png) |
+| Publicación sin token | `401`. | [Rechazo sin autenticación](evidencias/sprint2-04-sin-token-401.png) |
+| Publicación en finca ajena | `403` con mensaje de propiedad. | [Rechazo por finca ajena](evidencias/sprint2-05-finca-ajena-403.png) |
+
+La publicación válida también produjo el registro del listener con producto `1`, finca `1`, tipo `Tomate demo` y municipio `Palmira`.
 
 ## Resultados técnicos y límites de la evidencia
 
@@ -38,9 +48,18 @@ El Observer se ejecuta de forma síncrona dentro de la transacción. Una excepci
 
 ## Seguimiento del cierre
 
-El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se integraron el 3 de noviembre. La [bitácora](bitacora-daily-scrum.md) permite complementar esta secuencia con los impedimentos que el equipo confirme. La disponibilidad limitada queda como explicación pendiente de validación.
+El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se integraron el 3 de noviembre. La revisión conserva esta secuencia como evidencia de integración. La [bitácora](bitacora-daily-scrum.md) reúne el seguimiento de las jornadas.
 
-Para la entrega institucional se requiere consolidar el incremento en `main`, comprobar las reglas de protección y adjuntar capturas de CI y cobertura de su último commit. El equipo debe contrastar el umbral configurado de instrucciones con la exigencia adicional de ramas de la guía del segundo corte.
+### Cobertura medida y estado de la rama de entrega
+
+| Métrica local de la línea base del Sprint 2 | Cubiertas | Total | Cobertura |
+|---|---|---|---|
+| Instrucciones | 934 | 945 | 98,84 % |
+| Ramas | 18 | 20 | 90,00 % |
+
+Ambas mediciones superan el 60 %. El `jacoco:check` de esta línea base exige `INSTRUCTION / COVEREDRATIO / 0.60`. La medición de ramas está presente en el reporte, mientras la regla obligatoria `BRANCH` aún está ausente de `pom.xml`.
+
+En la consulta del 4 de noviembre, `main` apunta a `92748f5b503e00e9f5eab37489f94a082ce219fd`, anterior al incremento, y GitHub Actions carece de ejecuciones para esa rama. Por ello, esta review aporta evidencia local del Sprint 2. La evidencia institucional del commit final de `main` y la exigencia automática de cobertura de ramas constituyen condiciones de cierre de la entrega.
 
 ## Feedback técnico y respuesta del incremento
 
