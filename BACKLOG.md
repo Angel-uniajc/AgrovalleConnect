@@ -1,7 +1,7 @@
 # Product Backlog — AgroValle Connect
 
 **Proyecto:** AgroValle Connect  
-**Stack Tecnológico:** Java 17 / Spring Boot, PostgreSQL  
+**Stack Tecnológico:** Java 25 / Spring Boot, PostgreSQL  
 **Metodología de Estimación:** Planning Poker con Escala Fibonacci (1, 2, 3, 5, 8, 13)  
 **Técnica de Priorización:** MoSCoW (Must Have, Should Have, Could Have, Won't Have)  
 

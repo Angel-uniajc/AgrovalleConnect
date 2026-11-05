@@ -1,5 +1,5 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Java](https://img.shields.io/badge/Java-17-orange)
+![Java](https://img.shields.io/badge/Java-25-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.x-brightgreen)
 
 # AgroValle Connect
@@ -8,7 +8,7 @@ Plataforma web que conecta directamente a los productores agrícolas del Valle d
 
 ## Declaración de Visión del Producto
 
-> Para **productores agrícolas del Valle del Cauca**, que **necesitan vender directamente a comerciantes y restaurantes sin intermediarios**, **AgroValle Connect** es **una plataforma web desarrollada en Java 17 / Spring Boot**, que **conecta la oferta agrícola con la demanda comercial urbana a precio justo y en tiempo real**. A diferencia de **los intermediarios tradicionales y las cadenas de comercialización largas**, nuestro producto **garantiza trazabilidad logística, transparencia de precios y contratos de API abiertos entre productores y compradores**.
+> Para **productores agrícolas del Valle del Cauca**, que **necesitan vender directamente a comerciantes y restaurantes sin intermediarios**, **AgroValle Connect** es **una plataforma web desarrollada en Java 25 / Spring Boot**, que **conecta la oferta agrícola con la demanda comercial urbana a precio justo y en tiempo real**. A diferencia de **los intermediarios tradicionales y las cadenas de comercialización largas**, nuestro producto **garantiza trazabilidad logística, transparencia de precios y contratos de API abiertos entre productores y compradores**.
 
 ## Integrantes del equipo
 
@@ -153,13 +153,13 @@ gitGraph
 
 ## Stack Tecnológico
 
-- **Lenguaje:** Java 17
+- **Lenguaje:** Java 25
 - **Framework:** Spring Boot
 - **Gestor de dependencias:** Maven
 - **Base de datos:** PostgreSQL
 - **Calidad de código:** Checkstyle (Google Java Style)
 - **Automatización de commits:** Husky (pre-commit hooks)
-- **Pruebas:** JUnit 5 + MockMvc (medición de cobertura con JaCoCo planificada)
+- **Pruebas:** JUnit 5 + MockMvc (cobertura mínima del 60 % verificada con JaCoCo)
 
 ## Cómo levantar el proyecto localmente
 
