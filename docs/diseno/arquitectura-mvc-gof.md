@@ -4,7 +4,7 @@ Documento de diseño asociado a la tarea **T03-DIS (#76)**, parte del Sprint de 
 
 ## 1. Contexto y objetivo
 
-AgroValle Connect es una aplicación backend construida con **Java 17, Spring Boot, JPA y PostgreSQL**, que expone una API REST versionada (`/api/v1`). Este documento describe cómo se organiza el sistema en cuatro capas siguiendo el patrón MVC, qué responsabilidad tiene cada una y qué patrones de diseño se aplican en el código.
+AgroValle Connect es una aplicación backend construida con **Java 25, Spring Boot, JPA y PostgreSQL**, que expone una API REST versionada (`/api/v1`). Este documento describe cómo se organiza el sistema en cuatro capas siguiendo el patrón MVC, qué responsabilidad tiene cada una y qué patrones de diseño se aplican en el código.
 
 Objetivos del diseño:
 
@@ -229,7 +229,7 @@ Los patrones provienen de distintos catálogos: algunos son GoF (Gang of Four) y
 | **DTO** | Arquitectura empresarial (PoEAA) | `RegistroAgricultorRequest` y `RegistroAgricultorResponse` | Son `record` de Java (inmutables) que aíslan las entidades de la API: solo viaja lo necesario y el modelo interno puede cambiar sin romper el contrato |
 | **IoC / inyección por constructor** | Principio de diseño (Spring) | `AuthController` y `AgricultorRegisterService` | El contenedor de Spring crea y entrega las dependencias; las clases no se instancian entre sí, lo que facilita las pruebas |
 | **Builder** | GoF (creacional) | `@Builder` de Lombok en `Usuario` y `Agricultor`, usado en `registrar` | Construcción legible de entidades con muchos atributos, sin constructores largos |
-| **Mapper** | Arquitectura empresarial (PoEAA) | Conversión de `RegistroAgricultorRequest` a `Usuario` y `Agricultor` dentro de `registrar` | Centraliza el paso de DTO a entidad en el servicio, no en el controlador |
+| **Mapper** | Arquitectura empresarial (PoEAA) | `AgricultorMapper` convierte `RegistroAgricultorRequest` en `Usuario` y `Agricultor` | Separa el paso de DTO a entidad del servicio y del controlador |
 | **Singleton** | GoF (creacional) | Beans de Spring (`@Service`, `@RestController`, `@Configuration`) | El contenedor crea una única instancia por bean (alcance singleton por defecto) |
 | **Strategy** | GoF (comportamiento) | `PasswordEncoder` (interfaz) y `BCryptPasswordEncoder` (estrategia concreta) | El algoritmo de hash se puede cambiar modificando solo el bean de `SecurityConfig` |
 | **Proxy** | GoF (estructural) | `@Transactional` en `AgricultorRegisterService` | Spring envuelve el servicio en un proxy (AOP) que abre, confirma o revierte la transacción |
@@ -272,6 +272,18 @@ Si un listener síncrono lanza una excepción no controlada, esta se propaga a `
 Para futuras notificaciones a compradores, se pueden añadir observadores del mismo evento sin modificar `CosechaService`. Los efectos externos, como correos y notificaciones, deberán ejecutarse después de confirmar la transacción mediante `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`, para evitar enviar avisos de cosechas cuyo registro se revierta.
 
 `CosechaServiceTest` comprueba el orden guardar → emitir, el contenido del evento y su ausencia ante finca inexistente, finca ajena, categoría inválida o fallo de guardado. `CosechaPublicadaIntegrationTest` crea sus propios datos de municipio y categoría, sin depender de los catálogos sembrados al arrancar, y verifica con Spring y H2 el producto persistido, la emisión del evento y la ejecución del listener de log.
+
+### 5.3 Principios SOLID
+
+| Principio | Aplicación en el código | Evidencia |
+|---|---|---|
+| **S: responsabilidad única** | `AgricultorMapper` construye `Usuario` y `Agricultor`. `AgricultorRegisterService` orquesta validaciones y guardado. `AuthController` atiende HTTP, delega en servicios y no conoce entidades. | PR #128 y #129 |
+| **O: abierto/cerrado** | `ManejadorErrores` responde 409 para `RecursoDuplicadoException`. Un duplicado nuevo se agrega como subclase, sin modificar el manejador. Un observador nuevo se agrega sin modificar `CosechaService`. | PR #128 y #130 |
+| **L: sustitución de Liskov** | `CorreoDuplicadoException` y `CedulaDuplicadaException` sustituyen a su clase base. El manejador las atiende por igual y conserva el contrato: 409 con el mensaje de la excepción. | `rechazaCorreoDuplicado` y `rechazaCedulaDuplicada` |
+| **I: segregación de interfaces** | `CosechaService` depende de `ApplicationEventPublisher`, que solo publica eventos, y no del contexto completo de Spring. Los DTO separan la entrada y la salida de cada caso de uso. | `CosechaService` y paquete `dto` |
+| **D: inversión de dependencias** | `AgricultorRegisterService` depende de la interfaz `PasswordEncoder` y `SecurityConfig` define la implementación BCrypt. Los servicios reciben por constructor las interfaces de repositorio, lo que permite aislarlos con Mockito. | `SecurityConfig` y pruebas de servicio |
+
+---
 
 ## 6. Relación con atributos de calidad (ISO 25010)
 
