@@ -27,6 +27,19 @@ Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con 
 | Endpoint protegido con token válido (adicional) | Pasa la seguridad | `AccesoProtegidoIntegrationTest#accesoProtegido_conTokenValido_pasaLaSeguridad` |
 | Endpoint protegido con token inválido (adicional) | `401` | `AccesoProtegidoIntegrationTest#accesoProtegido_conTokenInvalido_retorna401` |
 
+## HU-17 — Registro de Comprador
+
+Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md). Las pruebas se escribirán en las tareas de implementación de HU-17.
+
+| Escenario BDD | Resultado esperado | Prueba real |
+| :--- | :---: | :--- |
+| Registro válido de comprador | `201 Created`, persiste, sin password ni hash en la respuesta | pendiente (implementación HU-17) |
+| Correo duplicado | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
+| `tipo_comprador` inválido | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
+| Documento duplicado | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
+| Campos faltantes, documento o rol inválidos | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
+| Compatibilidad HU-01 (JSON sin `rol`) | `201 Created` como AGRICULTOR | pendiente (implementación HU-17) |
+
 ## Cómo verificar
 
 HU-14 se verifica con `FincaControllerIntegrationTest`: registro válido, municipio no permitido, campos inválidos, ausencia de token y rol comprador; además cubre token inválido y municipio en minúsculas con campos opcionales ausentes. Los Given/When/Then y los nombres exactos están en la matriz del Sprint 2.
