@@ -24,7 +24,7 @@ El diseño de HU-16 refleja las piezas integradas en los PR #87, #88, #91 y #92.
 | Cliente | Externo | Aplicación web o móvil que consume la API REST | HU-01, HU-16, HU-14 | 
 | `AuthController` | Presentación / REST | Recibe la petición HTTP, dispara la validación de los datos y construye la respuesta | HU-01, HU-16 | 
 | `JwtAuthenticationFilter` | Presentación / REST | Extrae y valida el token de la cabecera `Authorization` (si existe) para guardar el usuario en el contexto de seguridad, y luego continúa la cadena de filtros | Uso de JWT, HU-14 | 
-| `SecurityConfig` | Presentación / REST | Representa la cadena de filtros de Spring Security: define las reglas de acceso (rutas públicas vs protegidas) y rechaza peticiones sin autenticación (401) | Uso de JWT |
+| `SecurityConfig` | Presentación / REST | Representa la cadena de filtros de Spring Security: define las reglas de acceso (rutas públicas vs protegidas) y rechaza peticiones sin autenticación (401) o sin el rol requerido (403) | Uso de JWT, HU-14 |
 | `ManejadorErrores` | Presentación / REST | Traduce las excepciones a respuestas HTTP en un único punto | HU-01, HU-16, HU-14 | 
 | `FincaController` | Presentación / REST | Recibe `POST /api/v1/fincas`, valida el `RegistroFincaRequest` y responde `201 Created` | HU-14 | 
 | `FincaService` | Servicio / Dominio | Busca al agricultor autenticado y el municipio, arma la `Finca` y la guarda dentro de una transacción | HU-14 | 
@@ -292,6 +292,7 @@ sequenceDiagram
     autonumber
     actor Cliente
     participant F as JwtAuthenticationFilter
+    participant SC as SecurityConfig (cadena de Spring Security)
     participant C as FincaController
     participant E as ManejadorErrores
     participant S as FincaService
@@ -302,18 +303,21 @@ sequenceDiagram
 
     Cliente->>F: POST /api/v1/fincas (Authorization Bearer token, RegistroFincaRequest)
     F->>F: Leer la cabecera Authorization y, si el token es válido, guardar correo y ROLE_rol en el SecurityContext
+    F->>SC: Continuar la cadena de filtros
     alt Sin token o token inválido
-        Note over F: Nadie quedó autenticado, SecurityConfig responde con HttpStatusEntryPoint
-        F-->>Cliente: 401 Unauthorized
+        Note over SC: Nadie quedó autenticado
+        SC-->>Cliente: 401 Unauthorized (HttpStatusEntryPoint)
     else Token válido con rol COMPRADOR
-        Note over F: SecurityConfig exige hasRole AGRICULTOR para POST /api/v1/fincas
-        F-->>Cliente: 403 Forbidden
+        Note over SC: POST /api/v1/fincas exige hasRole AGRICULTOR
+        SC-->>Cliente: 403 Forbidden
     else Token válido con rol AGRICULTOR
-        F->>C: registrar(request, authentication)
+        SC->>C: Petición autorizada (POST /api/v1/fincas)
+        Note over C: Spring MVC valida RegistroFincaRequest (@Valid) antes de ejecutar registrar()
         alt Request inválido (@Valid)
-            C-->>E: MethodArgumentNotValidException
+            C-->>E: MethodArgumentNotValidException (registrar() no se ejecuta)
             E-->>Cliente: 400 Bad Request (campo y mensaje)
         else Request válido
+            C->>C: registrar(request, authentication)
             C->>S: registrar(authentication.getName(), request)
             Note over S: Inicia la transacción (@Transactional)
             S->>AR: findByUsuarioCorreo(correoAgricultor)
@@ -351,13 +355,13 @@ sequenceDiagram
 
 2. `JwtAuthenticationFilter` lee la cabecera `Authorization`, valida el token y guarda en el `SecurityContext` el correo del usuario y su rol (`ROLE_AGRICULTOR`). Luego `SecurityConfig` comprueba la regla `POST /api/v1/fincas` → `hasRole("AGRICULTOR")` y deja pasar la petición.
 
-3. Spring valida el `RegistroFincaRequest` (`@Valid`) antes de ejecutar `FincaController.registrar(...)`.
+3. Spring MVC valida el `RegistroFincaRequest` (`@Valid`) antes de ejecutar `FincaController.registrar(...)`. Si la validación falla, el método nunca se ejecuta.
 
 4. El controller no recibe el id del agricultor en el cuerpo: lo toma del token con `authentication.getName()` (el correo) y delega en `FincaService.registrar(correo, request)`. Así un agricultor no puede registrar fincas a nombre de otro.
 
 5. Spring abre la transacción (`@Transactional`). El servicio busca al agricultor con `agricultorRepository.findByUsuarioCorreo(correo)`.
 
-6. Busca el municipio con `municipioRepository.findByNombreIgnoreCase(...)`. Como ignora mayúsculas, `"tuluá"` y `"Tuluá"` encuentran el mismo registro. Solo existen en la tabla los municipios permitidos que carga `CargadorMunicipios`.
+6. Busca el municipio con `municipioRepository.findByNombreIgnoreCase(...)`. Como ignora mayúsculas, `"palmira"` y `"Palmira"` encuentran el mismo registro. Solo existen en la tabla los municipios permitidos que carga `CargadorMunicipios` (Dagua, Palmira y Buga).
 
 7. Con ambos datos, arma la entidad con `Finca.builder()` y la guarda con `fincaRepository.save(finca)`. Como `Finca` usa `GenerationType.IDENTITY`, el `INSERT` se ejecuta en ese momento para obtener el `id`.
 
@@ -415,4 +419,4 @@ Los rechazos `401` y `403` los produce Spring Security, no `ManejadorErrores`, p
 | ----- | ----- | 
 | Adecuación funcional | Cada historia tiene definidos su flujo exitoso y sus caminos de error, con el código HTTP correspondiente | 
 | Seguridad | Contraseñas almacenadas solo como hash BCrypt, mensaje genérico en el login, token firmado y respuestas que no exponen datos sensibles | 
-| Mantenibilidad | Responsabilidades separadas por capa y errores traducidos en un único punto. Con el diagrama de HU-14, cada historia del Sprint 2 queda documentada con los nombres reales del código, lo que facilita analizar el impacto de un cambio (analizabilidad) | 
+| Mantenibilidad | Responsabilidades separadas por capa y errores traducidos en un único punto. El diagrama de HU-14 documenta el registro de fincas con los nombres reales del código, lo que facilita analizar el impacto de un cambio (analizabilidad) | 
