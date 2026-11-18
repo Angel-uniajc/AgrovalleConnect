@@ -66,7 +66,7 @@ No se devuelven entidades JPA, correo, documento, contraseña, hash ni datos del
 |---|---|---|
 | `id_producto` nulo, cero o negativo | 400 | Mapa campo → mensaje, como en el resto de la API |
 | `mensaje` nulo, vacío, solo espacios o de más de 2000 caracteres | 400 | Mapa campo → mensaje |
-| JSON mal formado o `id_producto` no numérico | 400 | Mapa campo → mensaje (depende del manejador de `HttpMessageNotReadableException` previsto en HU-17) |
+| JSON mal formado, `id_producto` no numérico o con tipo incorrecto | 400 | Mapa con una sola entrada: `{"json": "El cuerpo de la solicitud no es un JSON válido"}`. Lo responde un nuevo `@ExceptionHandler(HttpMessageNotReadableException.class)` en `ManejadorErrores`, a cargo de T04-HU05 (#169) |
 | El producto no existe | 404 | Mensaje de `RecursoNoEncontradoException` |
 | Producto con estado distinto de `ACTIVO` o con `cantidad_disponible` igual a 0 | 400 | Mensaje de una excepción específica |
 | Sin token, token inválido o expirado | 401 | Sin cuerpo exigido |
@@ -95,6 +95,7 @@ Las pruebas son **propuestas pendientes** para T03-HU05 ([#168](https://github.c
 | CON-12 | Comprador autenticado y producto disponible | Envía además `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` |
 | CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | Envía un mensaje válido | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` |
 | CON-14 | Comprador autenticado y producto disponible | Envía dos veces el mismo mensaje | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` |
+| CON-15 | Comprador autenticado | Envía un JSON mal formado o `"id_producto": "abc"` | `400` con el mapa `{"json": ...}`; no se guarda nada | `enviarContacto_conJsonMalFormado_retorna400` |
 
 En todos los rechazos no se crea ningún mensaje. En ningún caso cambia el stock, se crea un pedido ni se emite un evento.
 
@@ -113,8 +114,8 @@ Depende de la tabla `comprador` y del perfil Comprador de HU-17, que todavía no
 - **T01-HU05 (#166):** este contrato, criterios de HU-05 en [BACKLOG.md](../BACKLOG.md) y matriz de [trazabilidad BDD](trazabilidad-bdd.md#hu-05--contacto-directo-planificado).
 - **T02-HU05 (#167):** entidad `MensajeContacto`, repositorio y DTOs, con pruebas de relaciones y de validación.
 - **T03-HU05 (#168):** servicio transaccional de contacto con TDD.
-- **T04-HU05 (#169):** `ContactoController`, regla de rol en `SecurityConfig` y mapeos de error en `ManejadorErrores`.
-- **T05-HU05 (#170):** escenarios CON-01 a CON-14 con comprador real registrado mediante HU-17; completar la matriz con pruebas reales.
+- **T04-HU05 (#169):** `ContactoController`, regla de rol en `SecurityConfig`, mapeos de error en `ManejadorErrores` y el manejador de `HttpMessageNotReadableException` (JSON mal formado → 400, escenario CON-15). Hoy ninguna tarea de HU-17 lo incluye; si alguna lo integra antes en `develop`, T04-HU05 lo reutiliza y conserva el formato de mapa.
+- **T05-HU05 (#170):** escenarios CON-01 a CON-15 con comprador real registrado mediante HU-17; completar la matriz con pruebas reales.
 - **T06-HU05 (#171):** documentación del endpoint implementado, diagrama de secuencia y demostración.
 
 Los consumidores no deben interpretar este documento como evidencia de que el endpoint esté implementado.

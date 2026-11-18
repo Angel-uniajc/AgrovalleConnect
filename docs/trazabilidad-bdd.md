@@ -56,6 +56,7 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 | CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Pendiente: T05-HU05 (#170) |
 | CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` | Pendiente: T03-HU05 (#168) |
 | CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` | Pendiente: T05-HU05 (#170) |
+| CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `enviarContacto_conJsonMalFormado_retorna400` | Pendiente: T04-HU05 (#169) |
 
 ## HU-16 — Inicio de Sesión
 
