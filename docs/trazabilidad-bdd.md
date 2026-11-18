@@ -36,6 +36,27 @@ Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-esc
 | CAT-14 | Consulta el catálogo | `200` con las mismas reglas de selección; no recibe `403` por su rol | `consultarCatalogo_conRolAgricultor_retorna200` | Pendiente: T05-HU04 (#164) |
 | CAT-15 | Consulta nombres parciales, sin la tilde requerida, o con `%`/`_` | No se amplía la coincidencia literal de nombre completo; `[]` si no existe ese nombre | `consultarCatalogo_conNombreNoExacto_noAmpliaLaBusqueda` | Pendiente: T05-HU04 (#164) |
 
+## HU-05 — Contacto directo (planificado)
+
+Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU05 (#166). Los Given/When/Then completos están allí. **El endpoint, la entidad y todas las pruebas de esta sección están pendientes de implementación**; los nombres siguientes son propuestas, no pruebas existentes ni resultados en verde. Las pruebas de DTO, servicio y controlador de T02, T03 y T04 darán cobertura parcial; T05-HU05 completa los escenarios con un comprador real.
+
+| ID BDD | Consulta o condición | Resultado esperado | Prueba propuesta | Estado |
+|---|---|---|---|---|
+| CON-01 | Comprador envía `id_producto` y mensaje válidos | `200`; se guarda un mensaje con el comprador del token, el producto y la fecha del servidor | `enviarContacto_conDatosValidos_retorna200YPersiste` | Pendiente: T05-HU05 (#170) |
+| CON-02 | Envía un `id_producto` que no existe | `404`; no se guarda nada | `enviarContacto_conProductoInexistente_retorna404` | Pendiente: T05-HU05 (#170) |
+| CON-03 | Producto `INACTIVO` | `400`; no se guarda nada | `enviarContacto_conProductoInactivo_retorna400` | Pendiente: T05-HU05 (#170) |
+| CON-04 | Producto `AGOTADO` | `400`; no se guarda nada | `enviarContacto_conProductoAgotado_retorna400` | Pendiente: T05-HU05 (#170) |
+| CON-05 | Producto `ACTIVO` con stock 0 | `400`; no se guarda nada | `enviarContacto_conStockCero_retorna400` | Pendiente: T05-HU05 (#170) |
+| CON-06 | `mensaje` nulo, vacío o solo espacios | `400`; no se guarda nada | `enviarContacto_conMensajeVacio_retorna400` | Pendiente: T05-HU05 (#170) |
+| CON-07 | Mensaje de 2000 y de 2001 caracteres | El de 2000 responde `200`; el de 2001 responde `400` | `enviarContacto_conMensajeEnElLimite_aceptaHasta2000` | Pendiente: T05-HU05 (#170) |
+| CON-08 | `id_producto` nulo, 0 o negativo | `400`; no se guarda nada | `enviarContacto_conIdProductoInvalido_retorna400` | Pendiente: T05-HU05 (#170) |
+| CON-09 | Petición sin token | `401`; no se guarda nada | `enviarContacto_sinToken_retorna401` | Pendiente: T05-HU05 (#170) |
+| CON-10 | Token inválido o expirado | `401`; no se guarda nada | `enviarContacto_conTokenInvalido_retorna401` | Pendiente: T05-HU05 (#170) |
+| CON-11 | Agricultor autenticado | `403`; no se guarda nada | `enviarContacto_conRolAgricultor_retorna403` | Pendiente: T05-HU05 (#170) |
+| CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Pendiente: T05-HU05 (#170) |
+| CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` | Pendiente: T03-HU05 (#168) |
+| CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` | Pendiente: T05-HU05 (#170) |
+
 ## HU-16 — Inicio de Sesión
 
 | Escenario BDD | Resultado esperado | Prueba real (nombre = matriz) |
@@ -68,4 +89,4 @@ HU-14 se verifica con `FincaControllerIntegrationTest`: registro válido, munici
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.
 
-Las filas planificadas de HU-04 todavía no se ejecutan con Maven. T05-HU04 deberá reemplazar los nombres propuestos por referencias a pruebas reales y registrar su verificación.
+Las filas planificadas de HU-04 y HU-05 todavía no se ejecutan con Maven. T05-HU04 y T05-HU05 deberán reemplazar los nombres propuestos por referencias a pruebas reales y registrar su verificación.
