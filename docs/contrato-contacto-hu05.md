@@ -77,7 +77,7 @@ Orden de evaluación: autenticación (401), rol (403), validación del cuerpo (4
 
 ## 5. Escenarios BDD y nombres de prueba propuestos
 
-Las pruebas son **propuestas pendientes** para T03-HU05 ([#168](https://github.com/Angel-uniajc/AgrovalleConnect/issues/168)) y T05-HU05 ([#170](https://github.com/Angel-uniajc/AgrovalleConnect/issues/170)), no evidencia de ejecución. Los datos de prueba deben crear sus propios productos con distinto estado y stock.
+Las pruebas son **propuestas pendientes** para T03-HU05 ([#168](https://github.com/Angel-uniajc/AgrovalleConnect/issues/168)), T04-HU05 ([#169](https://github.com/Angel-uniajc/AgrovalleConnect/issues/169)) y T05-HU05 ([#170](https://github.com/Angel-uniajc/AgrovalleConnect/issues/170)), no evidencia de ejecución. Los datos de prueba deben crear sus propios productos con distinto estado y stock.
 
 | ID | Given (Dado) | When (Cuando) | Then (Entonces) | Prueba propuesta |
 |---|---|---|---|---|
