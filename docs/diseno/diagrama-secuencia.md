@@ -1,16 +1,19 @@
-# Diagramas de secuencia (HU-01, HU-16 y uso del token JWT) - AgroValle Connect
+# Diagramas de secuencia (HU-01, HU-16, HU-02 y uso del token JWT) - AgroValle Connect
 
 Documento de diseño asociado a la tarea **T05-DIS (#78)**, parte del Sprint de Diseño (#73).
 
+La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02.
+
 ## 1. Contexto y objetivo
 
-Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela dos historias de usuario y el uso del token JWT en un endpoint protegido:
+Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela tres historias de usuario y el uso del token JWT en un endpoint protegido:
 
 | Historia | Descripción | Sección | 
 | ----- | ----- | ----- | 
 | HU-01 | Registro de un agricultor | 3 | 
 | HU-16 | Inicio de sesión (login) con generación de token JWT | 4 | 
 | Uso de JWT | Autenticación en un endpoint protegido | 5 | 
+| HU-02 | Publicación de una cosecha con evento Observer | 9 |
 
 Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama_de_despliegue.md`.
 
@@ -30,7 +33,13 @@ El diseño de HU-16 refleja las piezas integradas en los PR #87, #88, #91 y #92.
 | `PasswordEncoder` | Servicio / Dominio | Genera el hash BCrypt (`encode`) y lo compara (`matches`); patrón Strategy | HU-01, HU-16 | 
 | `JwtUtil` | Servicio / Dominio | Genera y valida el token JWT firmado con HS256 | HU-16, uso de JWT | 
 | `UsuarioRepository` y `AgricultorRepository` | Repositorio / Acceso a datos | Consultan y persisten mediante Spring Data JPA | HU-01, HU-16 | 
-| PostgreSQL | Persistencia | Almacena las tablas `usuario` y `agricultor` | HU-01, HU-16 | 
+| `ProductoController` | Presentación / REST | Publica cosechas con el correo autenticado y devuelve `201` con el ID | HU-02 |
+| Spring MVC | Presentación / REST | Resuelve el DTO validado y delega excepciones al advice | HU-02 |
+| `CosechaService` | Servicio / Dominio | Valida finca, propiedad y categoría, guarda el producto y emite el evento | HU-02 |
+| `FincaRepository`, `CategoriaRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Consultan la finca y la categoría y persisten el producto | HU-02 |
+| `ApplicationEventPublisher` | Infraestructura de eventos de Spring | Distribuye `CosechaPublicadaEvent` a sus observadores | HU-02 |
+| `CosechaPublicadaListener` | Servicio / Dominio | Recibe el evento de forma síncrona y registra la publicación | HU-02 |
+| PostgreSQL | Persistencia | Almacena usuarios, agricultores, fincas, municipios, categorías y productos | HU-01, HU-16, HU-02 |
 
 ## 3. HU-01: Registro de un agricultor
 
@@ -305,4 +314,159 @@ sequenceDiagram
 | ----- | ----- | 
 | Adecuación funcional | Cada historia tiene definidos su flujo exitoso y sus caminos de error, con el código HTTP correspondiente | 
 | Seguridad | Contraseñas almacenadas solo como hash BCrypt, mensaje genérico en el login, token firmado y respuestas que no exponen datos sensibles | 
-| Mantenibilidad | Responsabilidades separadas por capa y errores traducidos en un único punto | 
+| Mantenibilidad | Responsabilidades separadas por capa y errores traducidos en un único punto |
+
+## 9. HU-02: Publicación de una cosecha
+
+### 9.1 Alcance y participantes
+
+Esta sección corresponde a [T11-DIS (#146)](https://github.com/Angel-uniajc/AgrovalleConnect/issues/146). Describe el endpoint implementado en la línea base de develop `41e5782` y complementa el [Observer de la sección 5.2 de arquitectura](arquitectura-mvc-gof.md#52-observer-en-la-publicación-de-cosechas-t04-hu02).
+
+| Elemento | Detalle |
+|---|---|
+| Actor | Agricultor autenticado que publica en una finca propia |
+| Endpoint | `POST /api/v1/productos` |
+| Autenticación | Cabecera `Authorization: Bearer <token>` con JWT válido |
+| Entrada | `PublicarCosechaRequest`: `finca_id`, `categoria_id`, `tipo`, `cantidad`, `precio_unitario` y `fecha_cosecha` |
+| Éxito | `201 Created` con `PublicarCosechaResponse` que contiene el `id` |
+| Evento | `CosechaPublicadaEvent(productoId, tipo, fincaId, municipio)` después de `save`, dentro de la transacción |
+| Persistencia | Tablas `producto`, `finca`, `agricultor`, `usuario`, `municipio` y `categoria` |
+
+Spring Security representa las reglas declaradas en `SecurityConfig`. Spring MVC representa la deserialización, Bean Validation y la resolución de excepciones mediante `@RestControllerAdvice`. Ambos son componentes del framework y permiten distinguir los rechazos de seguridad de los que maneja `ManejadorErrores`.
+
+### 9.2 Diagrama completo
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente
+    participant F as JwtAuthenticationFilter
+    participant SEG as Spring Security (SecurityConfig)
+    participant MVC as Spring MVC
+    participant C as ProductoController
+    participant S as CosechaService
+    participant FR as FincaRepository
+    participant CR as CategoriaRepository
+    participant PR as ProductoRepository
+    participant P as ApplicationEventPublisher
+    participant L as CosechaPublicadaListener
+    participant E as ManejadorErrores
+    participant DB as PostgreSQL
+
+    Cliente->>F: POST /api/v1/productos (JSON y Bearer opcional)
+    opt Cabecera Bearer presente
+        F->>F: Validar token con JwtUtil
+        opt Token válido
+            F->>F: Extraer correo y rol y guardar ROLE_rol en SecurityContext
+        end
+    end
+    F->>SEG: filterChain.doFilter(request, response)
+    alt Sin autenticación (token ausente, inválido o expirado)
+        SEG-->>Cliente: 401 Unauthorized (HttpStatusEntryPoint)
+    else Usuario autenticado con rol COMPRADOR
+        SEG-->>Cliente: 403 Forbidden (acceso denegado)
+    else Usuario autenticado con rol AGRICULTOR
+        SEG->>MVC: Permitir POST /api/v1/productos
+        MVC->>MVC: Deserializar JSON y validar PublicarCosechaRequest
+        alt Datos inválidos según Bean Validation
+            MVC->>E: datosInvalidos(MethodArgumentNotValidException)
+            E-->>Cliente: 400 Bad Request (campos con error)
+        else Request válido
+            MVC->>C: publicar(request, authentication)
+            C->>S: publicar(authentication.getName(), request)
+            Note over S,DB: El proxy de Spring abre la transacción de publicar
+            S->>FR: findById(fincaId)
+            FR->>DB: SELECT finca por id
+            DB-->>FR: Finca o ausencia
+            FR-->>S: Optional de Finca
+            alt Finca inexistente
+                Note over S,DB: La excepción provoca rollback, no hay INSERT de producto
+                S-->>C: RecursoNoEncontradoException
+                C-->>MVC: Propagar excepción
+                MVC->>E: recursoNoEncontrado(ex)
+                E-->>Cliente: 404 Not Found (Finca no encontrada)
+            else Finca existente
+                Note over S,DB: JPA puede consultar agricultor y usuario al acceder a relaciones LAZY
+                S->>S: Comparar correo del propietario con el correo autenticado
+                alt Finca de otro agricultor
+                    Note over S,DB: Rollback, no se consulta categoría ni se guarda producto
+                    S-->>C: AccesoDenegadoException
+                    C-->>MVC: Propagar excepción
+                    MVC->>E: accesoDenegado(ex)
+                    E-->>Cliente: 403 Forbidden (La finca no pertenece al agricultor autenticado)
+                else Finca propia
+                    S->>CR: findById(categoriaId)
+                    CR->>DB: SELECT categoría por id
+                    DB-->>CR: Categoría o ausencia
+                    CR-->>S: Optional de Categoria
+                    alt Categoría inexistente
+                        Note over S,DB: Rollback, no se guarda producto ni se emite evento
+                        S-->>C: CategoriaInvalidaException
+                        C-->>MVC: Propagar excepción
+                        MVC->>E: categoriaInvalida(ex)
+                        E-->>Cliente: 400 Bad Request (Categoría inválida)
+                    else Categoría válida
+                        S->>S: Construir Producto con estado ACTIVO y datos del request
+                        S->>PR: save(producto)
+                        PR->>DB: INSERT producto (GenerationType.IDENTITY)
+                        DB-->>PR: id generado
+                        PR-->>S: Producto guardado con id
+                        Note over S,DB: JPA puede cargar el municipio al preparar el evento
+                        S->>P: publishEvent(CosechaPublicadaEvent)
+                        P->>L: registrarPublicacion(evento) con EventListener
+                        L->>L: Registrar productoId, tipo, fincaId y municipio en el log
+                        L-->>P: Retorno normal
+                        P-->>S: Retorno de publishEvent
+                        Note over S,DB: Tras el listener, el proxy confirma la transacción al salir del servicio
+                        S-->>C: PublicarCosechaResponse(id)
+                        C-->>MVC: ResponseEntity con status CREATED
+                        MVC-->>Cliente: 201 Created con JSON id
+                    end
+                end
+            end
+        end
+    end
+```
+
+### 9.3 Explicación del flujo
+
+1. El filtro JWT autentica la petición cuando recibe un token válido. Siempre continúa la cadena, incluso si el token está ausente o es inválido. Las reglas de Spring Security exigen el rol `AGRICULTOR` para este POST.
+2. Una petición sin autenticación válida termina en `401`. Un comprador autenticado recibe `403`. Estos caminos terminan antes de entrar al controlador, al servicio o a los repositorios.
+3. Spring MVC construye y valida `PublicarCosechaRequest` por el `@Valid` del argumento del controlador. Los identificadores son obligatorios, el tipo es obligatorio y admite hasta 80 caracteres, cantidad y precio son positivos con hasta 10 enteros y 2 decimales, y la fecha debe ser hoy o futura. La validación rechazada produce `400` mediante `ManejadorErrores`.
+4. El controlador toma el correo desde `Authentication.getName()` y delega en el servicio. El proxy de `@Transactional` abre la transacción alrededor de `publicar`.
+5. El servicio busca primero la finca. Si existe, verifica la propiedad mediante `finca.getAgricultor().getUsuario().getCorreo()`. Solo después de comprobar la propiedad busca la categoría.
+6. Con finca y categoría válidas, el servicio guarda un `Producto` en estado `ACTIVO`. El identificador se obtiene con el INSERT porque la entidad usa `GenerationType.IDENTITY`.
+7. Después de que `save` retorna, el servicio construye y publica el evento con valores simples. El publicador entrega el evento al listener síncrono, que registra la publicación en el log.
+8. Tras el retorno normal del listener, el método entrega la respuesta al proxy. Spring confirma la transacción antes de devolver el control al controlador. Este construye la respuesta `201` con el identificador.
+
+Los accesos JPA se resumen como operaciones de repositorio. La carga diferida de las asociaciones puede producir SELECT adicionales, según el estado del contexto de persistencia. Las notas transaccionales representan el proxy de Spring y evitan atribuir llamadas manuales de commit o rollback al servicio.
+
+### 9.4 Rechazos y evidencia de verificación
+
+Los nombres de prueba de la tabla pertenecen a `ProductoControllerIntegrationTest`.
+
+| Escenario | Punto de rechazo | Respuesta | Prueba |
+|---|---|---|---|
+| Datos inválidos | Bean Validation, antes de ejecutar el servicio | `400` con errores de campos | `publicarCosecha_conFechaPasada_retorna400` y `publicarCosecha_conCantidadInvalida_retorna400` |
+| Categoría inexistente | Servicio, después de verificar finca y propiedad | `400` | `publicarCosecha_conCategoriaInexistente_retorna400` |
+| Sin token | Cadena de Spring Security | `401` | `publicarCosecha_sinToken_retorna401` |
+| Rol COMPRADOR | Regla de autorización de Spring Security | `403` | `publicarCosecha_conRolComprador_retorna403` |
+| Finca ajena | Servicio, antes de consultar la categoría | `403` | `publicarCosecha_enFincaAjena_retorna403` |
+| Finca inexistente | Servicio, al consultar la finca | `404` | `publicarCosecha_conFincaInexistente_retorna404` |
+
+Las pruebas comprueban que los rechazos conservan la cantidad de productos. Los errores de validación utilizan nombres Java de los campos, como `fechaCosecha`, aunque el request utiliza `fecha_cosecha`.
+
+El caso `publicarCosecha_conDatosValidos_retorna201YId` verifica el éxito y la persistencia. `CosechaServiceTest` comprueba el orden guardar → emitir y la ausencia de emisión si falla la validación de negocio o el guardado. `CosechaPublicadaIntegrationTest` comprueba persistencia, contenido del evento y ejecución del listener.
+
+### 9.5 Alcance del Observer y de la transacción
+
+La publicación del evento ocurre después del guardado y antes del commit. El evento anuncia la operación dentro de la transacción. Si `save` lanza una excepción, `publishEvent` queda sin ejecutar. Si un listener síncrono lanza una excepción no controlada, se propaga al servicio y puede provocar el rollback completo. Este caso es un fallo interno, distinto de los rechazos de negocio modelados en el diagrama.
+
+El listener actual escribe en consola. Los futuros efectos externos, como correos o notificaciones, deben ejecutarse después de confirmar la transacción, mediante `@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)`, según la decisión de arquitectura de la sección 5.2.
+
+### 9.6 Fuentes del flujo
+
+- [Filtro JWT](../../src/main/java/com/agrovalleconnect/agrovalle_connect/security/JwtAuthenticationFilter.java) y [reglas de seguridad](../../src/main/java/com/agrovalleconnect/agrovalle_connect/config/SecurityConfig.java).
+- [Controlador](../../src/main/java/com/agrovalleconnect/agrovalle_connect/controller/ProductoController.java), [DTO de entrada](../../src/main/java/com/agrovalleconnect/agrovalle_connect/dto/PublicarCosechaRequest.java) y [servicio](../../src/main/java/com/agrovalleconnect/agrovalle_connect/service/CosechaService.java).
+- [Evento](../../src/main/java/com/agrovalleconnect/agrovalle_connect/event/CosechaPublicadaEvent.java), [listener](../../src/main/java/com/agrovalleconnect/agrovalle_connect/listener/CosechaPublicadaListener.java) y [manejo de errores](../../src/main/java/com/agrovalleconnect/agrovalle_connect/exception/ManejadorErrores.java).
+- [Pruebas REST](../../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ProductoControllerIntegrationTest.java), [pruebas del servicio](../../src/test/java/com/agrovalleconnect/agrovalle_connect/service/CosechaServiceTest.java) y [prueba de integración del evento](../../src/test/java/com/agrovalleconnect/agrovalle_connect/event/CosechaPublicadaIntegrationTest.java).
