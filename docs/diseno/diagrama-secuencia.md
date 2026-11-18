@@ -357,7 +357,7 @@ sequenceDiagram
     opt Cabecera Bearer presente
         F->>F: Validar token con JwtUtil
         opt Token válido
-            F->>F: Extraer correo y rol; guardar ROLE_rol en SecurityContext
+            F->>F: Extraer correo y rol y guardar ROLE_rol en SecurityContext
         end
     end
     F->>SEG: filterChain.doFilter(request, response)
@@ -380,7 +380,7 @@ sequenceDiagram
             DB-->>FR: Finca o ausencia
             FR-->>S: Optional de Finca
             alt Finca inexistente
-                Note over S,DB: La excepción provoca rollback; no hay INSERT de producto
+                Note over S,DB: La excepción provoca rollback, no hay INSERT de producto
                 S-->>C: RecursoNoEncontradoException
                 C-->>MVC: Propagar excepción
                 MVC->>E: recursoNoEncontrado(ex)
@@ -389,7 +389,7 @@ sequenceDiagram
                 Note over S,DB: JPA puede consultar agricultor y usuario al acceder a relaciones LAZY
                 S->>S: Comparar correo del propietario con el correo autenticado
                 alt Finca de otro agricultor
-                    Note over S,DB: Rollback; no se consulta categoría ni se guarda producto
+                    Note over S,DB: Rollback, no se consulta categoría ni se guarda producto
                     S-->>C: AccesoDenegadoException
                     C-->>MVC: Propagar excepción
                     MVC->>E: accesoDenegado(ex)
@@ -400,7 +400,7 @@ sequenceDiagram
                     DB-->>CR: Categoría o ausencia
                     CR-->>S: Optional de Categoria
                     alt Categoría inexistente
-                        Note over S,DB: Rollback; no se guarda producto ni se emite evento
+                        Note over S,DB: Rollback, no se guarda producto ni se emite evento
                         S-->>C: CategoriaInvalidaException
                         C-->>MVC: Propagar excepción
                         MVC->>E: categoriaInvalida(ex)
