@@ -34,9 +34,9 @@ Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md).
 | Escenario BDD | Resultado esperado | Prueba real |
 | :--- | :---: | :--- |
 | Registro válido de comprador | `201 Created`, persiste, sin password ni hash en la respuesta | pendiente (implementación HU-17) |
-| Correo duplicado | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
+| Correo duplicado | `409 Conflict`, no se guarda | pendiente (implementación HU-17) |
 | `tipo_comprador` inválido | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
-| Documento duplicado | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
+| Documento duplicado | `409 Conflict`, no se guarda | pendiente (implementación HU-17) |
 | Campos faltantes, documento o rol inválidos | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
 | Compatibilidad HU-01 (JSON sin `rol`) | `201 Created` como AGRICULTOR | pendiente (implementación HU-17) |
 
