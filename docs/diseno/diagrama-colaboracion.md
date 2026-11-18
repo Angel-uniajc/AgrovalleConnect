@@ -28,7 +28,7 @@ El diagrama de secuencia muestra **cuándo** ocurre cada mensaje. Este diagrama 
 ## 3. Diagrama de colaboración (camino exitoso)
 
 ```mermaid
-flowchart LR
+flowchart TB
     MVC[":Spring MVC"]
     C["c : ProductoController"]
     S["s : CosechaService"]
