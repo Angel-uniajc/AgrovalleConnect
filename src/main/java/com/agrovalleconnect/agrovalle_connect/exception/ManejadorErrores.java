@@ -4,12 +4,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ManejadorErrores {
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> jsonInvalido() {
+        return ResponseEntity.badRequest().body(Map.of("json", "El cuerpo de la solicitud no es un JSON válido"));
+    }
 
     @ExceptionHandler(RecursoDuplicadoException.class)
     public ResponseEntity<String> recursoDuplicado(RecursoDuplicadoException ex) {
