@@ -10,6 +10,7 @@ import com.agrovalleconnect.agrovalle_connect.model.Comprador;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.CompradorRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
+import java.sql.SQLException;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +31,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Service
 public class CompradorRegisterService {
+
+    private static final String SQLSTATE_CLAVE_DUPLICADA = "23505";
 
     private final UsuarioRepository usuarioRepository;
 
@@ -63,6 +66,10 @@ public class CompradorRegisterService {
         try {
             return transaccion.execute(estado -> guardarUsuarioYPerfil(dto, passwordHash));
         } catch (DataIntegrityViolationException ex) {
+            if (!(ex.getMostSpecificCause() instanceof SQLException causa)
+                    || !SQLSTATE_CLAVE_DUPLICADA.equals(causa.getSQLState())) {
+                throw ex;
+            }
             // Otro registro simultáneo pudo ganar el correo o el documento entre la verificación
             // y el INSERT; el UNIQUE de la base lo frena. Solo se responde 409 si al revisar de
             // nuevo el duplicado existe: cualquier otra violación se propaga tal cual.

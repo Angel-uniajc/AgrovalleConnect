@@ -17,6 +17,7 @@ import com.agrovalleconnect.agrovalle_connect.model.Comprador.TipoComprador;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.CompradorRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
+import java.sql.SQLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -181,7 +182,8 @@ class CompradorRegisterServiceTest {
         when(passwordEncoder.encode(any())).thenReturn("HASH_FALSO");
         // La verificación previa no lo ve; la base lo rechaza; al revisar de nuevo ya existe
         when(usuarioRepository.existsByCorreo("compras@laceiba.co")).thenReturn(false, true);
-        when(usuarioRepository.save(any())).thenThrow(new DataIntegrityViolationException("unique correo"));
+        when(usuarioRepository.save(any())).thenThrow(new DataIntegrityViolationException(
+                "unique correo", new SQLException("correo duplicado", "23505")));
 
         assertThatThrownBy(() -> servicio.registrar(dtoValido()))
                 .isInstanceOf(CorreoDuplicadoException.class);
@@ -195,7 +197,8 @@ class CompradorRegisterServiceTest {
         when(passwordEncoder.encode(any())).thenReturn("HASH_FALSO");
         when(compradorRepository.existsByDocumento("900123456")).thenReturn(false, true);
         when(compradorRepository.saveAndFlush(any()))
-                .thenThrow(new DataIntegrityViolationException("unique documento"));
+                .thenThrow(new DataIntegrityViolationException(
+                        "unique documento", new SQLException("documento duplicado", "23505")));
 
         assertThatThrownBy(() -> servicio.registrar(dtoValido()))
                 .isInstanceOf(DocumentoDuplicadoException.class);
@@ -204,12 +207,24 @@ class CompradorRegisterServiceTest {
     }
 
     @Test
-    void registrar_otraViolacionDeIntegridad_noSeConvierteEnDuplicado() {
-        when(passwordEncoder.encode(any())).thenReturn("HASH_FALSO");
-        DataIntegrityViolationException original = new DataIntegrityViolationException("check tipo_comprador");
+    void registrar_uniqueSinCorreoNiDocumentoDuplicado_conservaElErrorOriginal() {
+        DataIntegrityViolationException original = new DataIntegrityViolationException(
+                "otra clave única", new SQLException("clave duplicada", "23505"));
         when(compradorRepository.saveAndFlush(any())).thenThrow(original);
 
-        // Correo y documento siguen libres: no es un duplicado y no se disfraza de 409
+        assertThatThrownBy(() -> servicio.registrar(dtoValido())).isSameAs(original);
+        verify(transactionManager).rollback(any());
+    }
+
+    @Test
+    void registrar_otraViolacionDeIntegridad_noSeConvierteEnDuplicado() {
+        when(passwordEncoder.encode(any())).thenReturn("HASH_FALSO");
+        DataIntegrityViolationException original = new DataIntegrityViolationException(
+                "check tipo_comprador", new SQLException("tipo inválido", "23514"));
+        when(usuarioRepository.existsByCorreo("compras@laceiba.co")).thenReturn(false, true);
+        when(compradorRepository.saveAndFlush(any())).thenThrow(original);
+
+        // Aunque otro registro gane el correo, el fallo original fue de CHECK.
         assertThatThrownBy(() -> servicio.registrar(dtoValido()))
                 .isSameAs(original);
 
