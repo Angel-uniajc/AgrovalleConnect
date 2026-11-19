@@ -94,6 +94,58 @@ class ProductoRepositoryTest {
     }
 
     @Test
+    void consultarOfertas_aplicaFiltrosOpcionalesPorNombreCompleto() {
+        Producto mango = entityManager.persist(productoValido());
+        Categoria tuberculos = entityManager.persist(Categoria.builder().nombre("Tubérculos").build());
+        Finca otraFinca = entityManager.persist(Finca.builder()
+                .nombre("El Porvenir").agricultor(mango.getFinca().getAgricultor())
+                .municipio(entityManager.persist(Municipio.builder().nombre("El Valle").build())).build());
+        Producto papa = guardarOferta(mango.getFinca(), tuberculos, Producto.Estado.ACTIVO, 2);
+        Producto pera = guardarOferta(otraFinca, mango.getCategoria(), Producto.Estado.ACTIVO, 3);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(productoRepository.consultarOfertasDisponibles("  daGUA ", null))
+                .extracting(Producto::getId).containsExactly(mango.getId(), papa.getId());
+        assertThat(productoRepository.consultarOfertasDisponibles("  ", " frUTas "))
+                .extracting(Producto::getId).containsExactly(mango.getId(), pera.getId());
+        assertThat(productoRepository.consultarOfertasDisponibles("Dagua", "TUBÉRCULOS"))
+                .extracting(Producto::getId).containsExactly(papa.getId());
+        assertThat(productoRepository.consultarOfertasDisponibles("El Valle", "Tubérculos")).isEmpty();
+        assertThat(productoRepository.consultarOfertasDisponibles(null, "Tuberculos")).isEmpty();
+        assertThat(productoRepository.consultarOfertasDisponibles("Da%", null)).isEmpty();
+        assertThat(productoRepository.consultarOfertasDisponibles(null, "Fr_tas")).isEmpty();
+    }
+
+    @Test
+    void consultarOfertas_excluyeNoDisponiblesYCargaRelacionesDelCatalogo() {
+        Producto mango = entityManager.persist(productoValido());
+        Finca finca = mango.getFinca();
+        Categoria categoria = mango.getCategoria();
+        guardarOferta(finca, categoria, Producto.Estado.AGOTADO, 2);
+        guardarOferta(finca, categoria, Producto.Estado.ACTIVO, 0);
+        guardarOferta(finca, categoria, Producto.Estado.INACTIVO, 4);
+        Producto disponible = guardarOferta(finca, categoria, Producto.Estado.ACTIVO, 1);
+        entityManager.flush();
+        entityManager.clear();
+
+        var ofertas = productoRepository.consultarOfertasDisponibles(null, "");
+        entityManager.clear();
+        assertThat(ofertas).extracting(Producto::getId).containsExactly(mango.getId(), disponible.getId());
+        assertThat(ofertas).allSatisfy(oferta -> {
+            assertThat(oferta.getFinca().getMunicipio().getNombre()).isEqualTo("Dagua");
+            assertThat(oferta.getCategoria().getNombre()).isEqualTo("Frutas");
+        });
+    }
+
+    private Producto guardarOferta(Finca finca, Categoria categoria, Producto.Estado estado, int cantidad) {
+        return entityManager.persist(Producto.builder()
+                .tipo("Oferta").finca(finca).categoria(categoria).estado(estado)
+                .cantidadDisponible(BigDecimal.valueOf(cantidad)).precioUnitario(BigDecimal.TEN)
+                .fechaCosecha(LocalDate.of(2020, 1, 1)).build());
+    }
+
+    @Test
     void guardarProductoConCantidadNegativa_esRechazado() {
         Producto producto = productoValido();
         producto.setCantidadDisponible(new BigDecimal("-1"));
