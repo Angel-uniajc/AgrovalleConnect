@@ -133,7 +133,7 @@ class CatalogoServiceTest {
                 .precioUnitario(new BigDecimal("3200.00"))
                 .fechaCosecha(LocalDate.of(2026, 11, 20))
                 .finca(finca)
-                .categoria(categoria == null ? null : categoriaOferta)
+                .categoria(categoriaOferta)
                 .build();
     }
 }
