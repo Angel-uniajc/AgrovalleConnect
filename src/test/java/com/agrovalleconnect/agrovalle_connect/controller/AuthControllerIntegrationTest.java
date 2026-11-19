@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -61,6 +62,57 @@ class AuthControllerIntegrationTest {
         return mockMvc.perform(post(URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(cuerpo));
+    }
+
+    private String comprador(String tipo, String documento, String correo) {
+        return """
+                {"nombre":"La Ceiba","rol":"COMPRADOR","correo":"%s","password":"%s",
+                 "tipo_comprador":"%s","documento":"%s"}
+                """.formatted(correo, PASSWORD, tipo, documento);
+    }
+
+    @Test
+    @Transactional
+    void registrarComprador_valido_retorna201ConLosCuatroCamposPublicos() throws Exception {
+        enviar(comprador("restaurante", "900123456", "compras@ceiba.co"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$.nombre").value("La Ceiba"))
+                .andExpect(jsonPath("$.rol").value("COMPRADOR"))
+                .andExpect(jsonPath("$.tipo_comprador").value("RESTAURANTE"))
+                .andExpect(jsonPath("$.mensaje").value("Comprador registrado exitosamente"));
+    }
+
+    @Test
+    void registrarComprador_tipoInvalido_retorna400() throws Exception {
+        enviar(comprador("otro", "900123456", "compras@ceiba.co"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.tipoComprador").isString());
+        assertThat(usuarioRepository.count()).isZero();
+    }
+
+    @Test
+    void registrar_rolDesconocido_retorna400() throws Exception {
+        String cuerpo = json("12345678", "pedro@mail.com").replace("{", "{\"rol\":\"ADMIN\",");
+        enviar(cuerpo).andExpect(status().isBadRequest()).andExpect(jsonPath("$.rol").isString());
+        assertThat(usuarioRepository.count()).isZero();
+    }
+
+    @Test
+    void registrar_jsonIncompleto_retornaSoloMensajePublico() throws Exception {
+        enviar("{\"password\":\"" + PASSWORD + "\"")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.json").value("El cuerpo de la solicitud no es un JSON válido"));
+    }
+
+    @Test
+    @Transactional
+    void registrarComprador_correoODocumentoDuplicado_retorna409() throws Exception {
+        enviar(comprador("individual", "900123456", "compras@ceiba.co")).andExpect(status().isCreated());
+        enviar(comprador("individual", "900654321", "compras@ceiba.co")).andExpect(status().isConflict());
+        enviar(comprador("individual", "900123456", "otro@ceiba.co")).andExpect(status().isConflict());
+        assertThat(usuarioRepository.count()).isEqualTo(1);
     }
 
     @Test
