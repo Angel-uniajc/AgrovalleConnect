@@ -2,6 +2,7 @@ package com.agrovalleconnect.agrovalle_connect.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -63,7 +64,7 @@ class CompradorRepositoryTest {
         // THEN 2: el camino inverso, del usuario a su comprador (sin agricultor)
         Usuario usuarioRecuperado = entityManager.find(Usuario.class, usuario.getId());
         assertEquals("900123456", usuarioRecuperado.getComprador().getDocumento());
-        assertEquals(null, usuarioRecuperado.getAgricultor());
+        assertNull(usuarioRecuperado.getAgricultor());
     }
 
     @Test
@@ -106,7 +107,8 @@ class CompradorRepositoryTest {
     }
 
     @Test
-    void compradorSinUsuario_violaLaLlaveForanea() {
+    void compradorSinUsuario_violaNotNull() {
+        // usuario_id vacío -> falla el NOT NULL de la columna (no la llave foránea)
         Comprador sinUsuario = crearComprador("33333333", null);
 
         assertThrows(DataIntegrityViolationException.class,
