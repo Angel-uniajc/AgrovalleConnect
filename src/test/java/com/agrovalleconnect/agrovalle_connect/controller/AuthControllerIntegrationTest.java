@@ -5,9 +5,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.agrovalleconnect.agrovalle_connect.model.Comprador;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
+import com.agrovalleconnect.agrovalle_connect.repository.CompradorRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +40,15 @@ class AuthControllerIntegrationTest {
     private AgricultorRepository agricultorRepository;
 
     @Autowired
+    private CompradorRepository compradorRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
+    @AfterEach
     void limpiarBodega() {
+        compradorRepository.deleteAll();
         agricultorRepository.deleteAll();
         usuarioRepository.deleteAll();
     }
@@ -61,6 +69,82 @@ class AuthControllerIntegrationTest {
         return mockMvc.perform(post(URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(cuerpo));
+    }
+
+    private String comprador(String tipo, String documento, String correo) {
+        return """
+                {"nombre":"La Ceiba","rol":"COMPRADOR","correo":"%s","password":"%s",
+                 "tipo_comprador":"%s","documento":"%s"}
+                """.formatted(correo, PASSWORD, tipo, documento);
+    }
+
+    @Test
+    void registrarComprador_valido_retorna201ConLosCuatroCamposPublicos() throws Exception {
+        enviar(comprador("restaurante", "900123456", "compras@ceiba.co"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$.nombre").value("La Ceiba"))
+                .andExpect(jsonPath("$.rol").value("COMPRADOR"))
+                .andExpect(jsonPath("$.tipo_comprador").value("RESTAURANTE"))
+                .andExpect(jsonPath("$.mensaje").value("Comprador registrado exitosamente"));
+
+        Usuario usuario = usuarioRepository.findByCorreo("compras@ceiba.co").orElseThrow();
+        Comprador perfil = compradorRepository.findByUsuarioCorreo("compras@ceiba.co").orElseThrow();
+        assertThat(usuario.getRol()).isEqualTo(Usuario.Rol.COMPRADOR);
+        assertThat(passwordEncoder.matches(PASSWORD, usuario.getPasswordHash())).isTrue();
+        assertThat(perfil.getDocumento()).isEqualTo("900123456");
+        assertThat(perfil.getTipoComprador()).isEqualTo(Comprador.TipoComprador.RESTAURANTE);
+        verificarConteos(1, 1);
+    }
+
+    private void verificarConteos(long usuarios, long compradores) {
+        assertThat(usuarioRepository.count()).isEqualTo(usuarios);
+        assertThat(compradorRepository.count()).isEqualTo(compradores);
+    }
+
+    @Test
+    void registrarComprador_tipoInvalido_retorna400() throws Exception {
+        enviar(comprador("otro", "900123456", "compras@ceiba.co"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.tipoComprador").isString());
+        verificarConteos(0, 0);
+    }
+
+    @Test
+    void registrar_rolDesconocido_retorna400() throws Exception {
+        String cuerpo = json("12345678", "pedro@mail.com").replace("{", "{\"rol\":\"ADMIN\",");
+        enviar(cuerpo).andExpect(status().isBadRequest()).andExpect(jsonPath("$.rol").isString());
+        verificarConteos(0, 0);
+    }
+
+    @Test
+    void registrar_jsonIncompleto_retornaSoloMensajePublico() throws Exception {
+        enviar("{\"password\":\"" + PASSWORD + "\"")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.json").value("El cuerpo de la solicitud no es un JSON válido"));
+        verificarConteos(0, 0);
+    }
+
+    @Test
+    void registrarComprador_correoODocumentoDuplicado_retorna409() throws Exception {
+        enviar(comprador("individual", "900123456", "compras@ceiba.co")).andExpect(status().isCreated());
+        verificarConteos(1, 1);
+        enviar(comprador("individual", "900654321", "compras@ceiba.co")).andExpect(status().isConflict());
+        verificarConteos(1, 1);
+        enviar(comprador("individual", "900123456", "otro@ceiba.co")).andExpect(status().isConflict());
+        verificarConteos(1, 1);
+    }
+
+    @Test
+    void registrarAgricultor_conRolExplicito_persistePerfilDeAgricultor() throws Exception {
+        String cuerpo = json("12345678", "pedro@mail.com").replace("{", "{\"rol\":\"AGRICULTOR\",");
+        enviar(cuerpo).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nombre").value("Pedro Gomez"))
+                .andExpect(jsonPath("$.mensaje").isString())
+                .andExpect(jsonPath("$.length()").value(2));
+        assertThat(agricultorRepository.existsByCedula("12345678")).isTrue();
+        verificarConteos(1, 0);
     }
 
     @Test
