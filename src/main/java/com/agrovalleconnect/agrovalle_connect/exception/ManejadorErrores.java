@@ -61,6 +61,14 @@ public class ManejadorErrores {
     }
 
     /**
+     * HU-05: el producto existe pero no está ACTIVO o no tiene cantidad disponible -> 400.
+     */
+    @ExceptionHandler(ProductoNoDisponibleException.class)
+    public ResponseEntity<String> productoNoDisponible(ProductoNoDisponibleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
      * Datos de entrada que no cumplen las validaciones del DTO (@Valid) -> 400.
      * Devuelve cada campo con su mensaje, por ejemplo {"email": "must not be blank"}.
      */
