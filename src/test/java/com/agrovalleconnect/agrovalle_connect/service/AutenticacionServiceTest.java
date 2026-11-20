@@ -3,6 +3,8 @@ package com.agrovalleconnect.agrovalle_connect.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -10,6 +12,7 @@ import com.agrovalleconnect.agrovalle_connect.dto.LoginRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.LoginResponse;
 import com.agrovalleconnect.agrovalle_connect.exception.CredencialesInvalidasException;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
+import com.agrovalleconnect.agrovalle_connect.model.Comprador;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario.Rol;
 
@@ -80,6 +83,47 @@ class AutenticacionServiceTest {
 
         assertEquals("token-comprador", respuesta.token());
         assertEquals("Bearer", respuesta.tipo());
+    }
+
+    @Test
+    void loginCompradorConPerfilGeneraTokenConIdDelComprador() {
+        Usuario usuario = mock(Usuario.class);
+        Comprador comprador = mock(Comprador.class);
+
+        when(usuario.getCorreo()).thenReturn("laceiba@correo.com");
+        when(usuario.getPasswordHash()).thenReturn("hash-guardado");
+        when(usuario.getRol()).thenReturn(Rol.COMPRADOR);
+        when(usuario.getComprador()).thenReturn(comprador);
+        when(comprador.getId()).thenReturn(12L);
+
+        when(usuarioRepository.findByCorreo("laceiba@correo.com")).thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("Clave123", "hash-guardado")).thenReturn(true);
+        when(jwtUtil.generarToken("laceiba@correo.com", "COMPRADOR", 12L)).thenReturn("token-comprador");
+
+        LoginResponse respuesta = autenticacionService.login(
+                new LoginRequest("laceiba@correo.com", "Clave123"));
+
+        assertEquals("token-comprador", respuesta.token());
+        verify(usuario, never()).getAgricultor();
+    }
+
+    @Test
+    void loginAgricultorSinPerfilNoUsaElPerfilDeComprador() {
+        Usuario usuario = mock(Usuario.class);
+
+        when(usuario.getCorreo()).thenReturn("pedro@correo.com");
+        when(usuario.getPasswordHash()).thenReturn("hash-guardado");
+        when(usuario.getRol()).thenReturn(Rol.AGRICULTOR);
+
+        when(usuarioRepository.findByCorreo("pedro@correo.com")).thenReturn(Optional.of(usuario));
+        when(passwordEncoder.matches("Clave123", "hash-guardado")).thenReturn(true);
+        when(jwtUtil.generarToken("pedro@correo.com", "AGRICULTOR", null)).thenReturn("token-agricultor");
+
+        LoginResponse respuesta = autenticacionService.login(
+                new LoginRequest("pedro@correo.com", "Clave123"));
+
+        assertEquals("token-agricultor", respuesta.token());
+        verify(usuario, never()).getComprador();
     }
 
     @Test
