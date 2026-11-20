@@ -73,20 +73,32 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 
 ## HU-17 — Registro de Comprador
 
-Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md). Las pruebas se escribirán en las tareas de implementación de HU-17.
+Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md). Las pruebas de integración están en `AuthControllerIntegrationTest`, `CompradorRegisterServiceIntegrationTest` y `AuthLoginIntegrationTest`; la fila de formato de nombre y correo se verifica a nivel de DTO en `RegistroCompradorRequestTest`.
 
 | Escenario BDD | Resultado esperado | Prueba real |
 | :--- | :---: | :--- |
-| Registro válido de comprador | `201 Created`, persiste, sin password ni hash en la respuesta | pendiente (implementación HU-17) |
-| Correo duplicado | `409 Conflict`, no se guarda | pendiente (implementación HU-17) |
-| `tipo_comprador` inválido | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
-| Documento duplicado | `409 Conflict`, no se guarda | pendiente (implementación HU-17) |
-| Campos faltantes, documento o rol inválidos | `400 Bad Request`, no se guarda | pendiente (implementación HU-17) |
-| Compatibilidad HU-01 (JSON sin `rol`) | `201 Created` como AGRICULTOR | pendiente (implementación HU-17) |
+| Registro válido de comprador | `201 Created`, persiste, sin password ni hash en la respuesta | `AuthControllerIntegrationTest.registrarComprador_valido_retorna201ConLosCuatroCamposPublicos`, `AuthControllerIntegrationTest.registrarComprador_valido_respuestaNoExponePasswordNiHash`, `CompradorRegisterServiceIntegrationTest.registrar_guardaUsuarioYCompradorConHashBcrypt` |
+| Correo duplicado (entre compradores o con un agricultor) | `409 Conflict`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_correoODocumentoDuplicado_retorna409`, `AuthControllerIntegrationTest.registrarComprador_conCorreoDeAgricultor_retorna409`, `CompradorRegisterServiceIntegrationTest.correoDeAgricultor_noPuedeUsarseParaUnComprador` |
+| `tipo_comprador` inválido | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_tipoInvalido_retorna400` |
+| `tipo_comprador` en mayúsculas o mixtas | `201 Created`, se guarda en MAYÚSCULAS | `AuthControllerIntegrationTest.registrarComprador_conTipoEnMayusculasOMixtas_seNormalizaYRetorna201` |
+| Documento duplicado | `409 Conflict`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_correoODocumentoDuplicado_retorna409`, `CompradorRegisterServiceIntegrationTest.documentoDuplicadoQueEsquivaLaVerificacion_loFrenaLaBaseYSeDeshaceTodo` |
+| Documento igual a la cédula de un agricultor | `201 Created` (la unicidad es solo entre compradores) | `AuthControllerIntegrationTest.registrarComprador_conDocumentoIgualACedulaDeAgricultor_retorna201` |
+| Campos faltantes | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_conCamposFaltantes_retorna400` |
+| Contraseña inválida | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_conPasswordInvalida_retorna400` |
+| Documento inválido (corto, largo, con letras o con dígito de verificación) | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_conDocumentoInvalido_retorna400` |
+| Formato de nombre y correo (correo sin formato válido, nombre o correo de más de 50 caracteres) | `400 Bad Request`, no se guarda | `RegistroCompradorRequestTest.correoSinFormato_esRechazado`, `RegistroCompradorRequestTest.nombreMayorA50Caracteres_esRechazado`, `RegistroCompradorRequestTest.correoMayorA50Caracteres_esRechazado` |
+| Rol inválido o JSON mal formado | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrar_rolDesconocido_retorna400`, `AuthControllerIntegrationTest.registrar_jsonIncompleto_retornaSoloMensajePublico` |
+| Atomicidad: si falla el perfil, se deshace el usuario | no queda ni `Usuario` ni `Comprador` | `CompradorRegisterServiceIntegrationTest.falloAlCrearElPerfil_deshaceTambienElUsuario` |
+| Login real del comprador | `200 OK`, token con rol y perfil del comprador | `AuthLoginIntegrationTest.login_compradorRegistrado_retornaTokenConRolYPerfilDelComprador` |
+| Compatibilidad HU-01 (JSON sin `rol`) | `201 Created` como AGRICULTOR | `AuthControllerIntegrationTest.registroExitoso_persisteYGuardaHashNoTextoPlano`, `AuthControllerIntegrationTest.registrarAgricultor_conRolExplicito_persistePerfilDeAgricultor` |
+
+Los nombres de estas pruebas todavía no están en una planificación del Sprint 3, porque `docs/sprint-3-planning.md` aún no existe. Se agregarán ahí cuando se cree.
 
 ## Cómo verificar
 
 HU-14 se verifica con `FincaControllerIntegrationTest`: registro válido, municipio no permitido, campos inválidos, ausencia de token y rol comprador; además cubre token inválido y municipio en minúsculas con campos opcionales ausentes. Los Given/When/Then y los nombres exactos están en la matriz del Sprint 2.
+
+HU-17 se verifica con las pruebas de la tabla anterior: en las de integración, cada rechazo comprueba con `verificarConteos` que no se crearon ni `Usuario` ni `Comprador`; la fila de formato de nombre y correo se verifica con pruebas unitarias del DTO, que no tocan la base de datos.
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.
 
