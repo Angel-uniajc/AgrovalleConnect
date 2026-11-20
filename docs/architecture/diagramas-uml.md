@@ -155,7 +155,32 @@ En esta versión el registro por rol, el login, las fincas y la publicación tie
 
 ## 5. Colaboración para confirmar un pedido · HU-12
 
-Diseño pendiente en [T14-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/184).
+**Diseño propuesto.** HU-12 describe el momento en que el comprador selecciona pagar. Se propone incorporar `PedidoController`, `PedidoService` y los repositorios de carrito y pedido. `ProductoRepository` ya existe y tendría que admitir la reserva de existencias. [HU-12 en el backlog](../../BACKLOG.md) · [T14-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/184)
+
+**Dado** un comerciante autenticado con productos disponibles en su carrito, **cuando** selecciona pagar y envía `POST /api/v1/pedidos`, **entonces** el sistema crea un pedido en estado «Pendiente de pago», reserva temporalmente las unidades, vacía el carrito y responde `201 Created`.
+
+```mermaid
+flowchart TB
+    B["Comprador"]
+    C["controlador : PedidoController"]
+    S["servicio : PedidoService"]
+    K["carrito : CarritoRepository"]
+    I["inventario : ProductoRepository"]
+    P["pedidos : PedidoRepository"]
+
+    B -->|"1. POST /api/v1/pedidos"| C
+    C -->|"1.1 Confirmar pedido del comprador autenticado"| S
+    S -->|"1.1.1 Consultar las líneas de su carrito"| K
+    S -->|"1.1.2 Validar y descontar las unidades disponibles de cada producto"| I
+    S -->|"1.1.3 Guardar pedido pendiente de pago y sus detalles"| P
+    S -->|"1.1.4 Vaciar el carrito confirmado"| K
+    S -.->|"1.2 Devolver el identificador tras confirmar la transacción"| C
+    C -.->|"2. Responder 201 Created"| B
+```
+
+El descuento representa una **reserva temporal**. El servicio debe comprobar la disponibilidad al descontar cada línea para impedir que dos pedidos reserven las mismas unidades. La reserva, el guardado del pedido con sus detalles y el vaciado del carrito se confirman en una sola transacción.
+
+Si el carrito está vacío, HU-12 prevé `400 Bad Request` tras el paso 1.1.1. Si las unidades solicitadas superan las disponibles, HU-08 prevé `400` con el stock disponible en el paso 1.1.2. En ese caso se revierten los descuentos parciales, se conserva el carrito y no se crea el pedido. [Escenarios de HU-12 y HU-08](../../BACKLOG.md)
 
 ## 6. Colaboración para notificar el alistamiento · HU-15
 
