@@ -1,7 +1,9 @@
 package com.agrovalleconnect.agrovalle_connect.controller;
 
+import com.agrovalleconnect.agrovalle_connect.dto.OfertaCatalogoResponse;
 import com.agrovalleconnect.agrovalle_connect.dto.PublicarCosechaRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.PublicarCosechaResponse;
+import com.agrovalleconnect.agrovalle_connect.service.CatalogoService;
 import com.agrovalleconnect.agrovalle_connect.service.CosechaService;
 
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -28,6 +31,9 @@ class ProductoControllerTest {
 
     @Mock
     private CosechaService cosechaService;
+
+    @Mock
+    private CatalogoService catalogoService;
 
     @InjectMocks
     private ProductoController productoController;
@@ -46,5 +52,20 @@ class ProductoControllerTest {
         assertEquals(HttpStatus.CREATED, respuesta.getStatusCode());
         assertEquals(10L, respuesta.getBody().id());
         verify(cosechaService).publicar(CORREO, request);
+    }
+
+    @Test
+    void consultar_delegaLosFiltrosAlServicioYRetorna200ConLasOfertas() {
+        List<OfertaCatalogoResponse> ofertas = List.of(new OfertaCatalogoResponse(
+                12L, "Mango", new BigDecimal("25.50"), new BigDecimal("3200.00"),
+                LocalDate.of(2026, 11, 20), "Frutas", 4L, "Dagua"));
+        when(catalogoService.consultar("Dagua", "Frutas")).thenReturn(ofertas);
+
+        ResponseEntity<List<OfertaCatalogoResponse>> respuesta =
+                productoController.consultar("Dagua", "Frutas");
+
+        assertEquals(HttpStatus.OK, respuesta.getStatusCode());
+        assertEquals(ofertas, respuesta.getBody());
+        verify(catalogoService).consultar("Dagua", "Frutas");
     }
 }
