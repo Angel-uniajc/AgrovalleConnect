@@ -73,7 +73,7 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 
 ## HU-17 — Registro de Comprador
 
-Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md). Las pruebas de integración están en `AuthControllerIntegrationTest`, `CompradorRegisterServiceIntegrationTest` y `AuthLoginIntegrationTest`.
+Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md). Las pruebas de integración están en `AuthControllerIntegrationTest`, `CompradorRegisterServiceIntegrationTest` y `AuthLoginIntegrationTest`; la fila de formato de nombre y correo se verifica a nivel de DTO en `RegistroCompradorRequestTest`.
 
 | Escenario BDD | Resultado esperado | Prueba real |
 | :--- | :---: | :--- |
@@ -98,7 +98,7 @@ Los nombres de estas pruebas todavía no están en una planificación del Sprint
 
 HU-14 se verifica con `FincaControllerIntegrationTest`: registro válido, municipio no permitido, campos inválidos, ausencia de token y rol comprador; además cubre token inválido y municipio en minúsculas con campos opcionales ausentes. Los Given/When/Then y los nombres exactos están en la matriz del Sprint 2.
 
-HU-17 se verifica con las pruebas de integración de la tabla anterior: cada rechazo comprueba con `verificarConteos` que no se crearon ni `Usuario` ni `Comprador`.
+HU-17 se verifica con las pruebas de la tabla anterior: en las de integración, cada rechazo comprueba con `verificarConteos` que no se crearon ni `Usuario` ni `Comprador`; la fila de formato de nombre y correo se verifica con pruebas unitarias del DTO, que no tocan la base de datos.
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.
 
