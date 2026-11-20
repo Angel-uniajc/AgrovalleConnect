@@ -245,7 +245,7 @@ flowchart TB
     end
     DB[("PostgreSQL · agrovalle_staging")]
     G -->|"Push a develop (propuesto)"| CI
-    CI -->|"HTTPS tras verify exitoso, con el SHA"| H
+    CI -->|"HTTPS · STAGING_DEPLOY_HOOK_URL<br/>tras verify exitoso, con el SHA"| H
     H --> B
     A -->|"JDBC con SSL"| DB
 ```
