@@ -9,23 +9,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.agrovalleconnect.agrovalle_connect.model.Categoria;
 import com.agrovalleconnect.agrovalle_connect.model.Municipio;
 import com.agrovalleconnect.agrovalle_connect.model.Producto;
-import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.CategoriaRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.MunicipioRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.ProductoRepository;
-import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,12 +50,6 @@ class ProductoControllerIntegrationTest {
 
     @Autowired
     private MunicipioRepository municipioRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private EntityManager entityManager;
@@ -118,6 +108,23 @@ class ProductoControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return JsonPath.read(respuesta, "$.token");
+    }
+
+    private String registrarCompradorEIniciarSesion(String correo, String documento) throws Exception {
+        String registro = """
+                {
+                  "nombre": "Comprador de prueba",
+                  "rol": "COMPRADOR",
+                  "tipo_comprador": "individual",
+                  "documento": "%s",
+                  "correo": "%s",
+                  "password": "%s"
+                }
+                """.formatted(documento, correo, PASSWORD);
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON).content(registro))
+                .andExpect(status().isCreated());
+        return iniciarSesion(correo);
     }
 
     private long registrarFinca(String token, String nombre) throws Exception {
@@ -219,16 +226,9 @@ class ProductoControllerIntegrationTest {
 
     @Test
     void publicarCosecha_conRolComprador_retorna403() throws Exception {
-        String correoComprador = "comprador-cosechas@mail.com";
-        usuarioRepository.saveAndFlush(Usuario.builder()
-                .nombre("Comprador de prueba")
-                .correo(correoComprador)
-                .passwordHash(passwordEncoder.encode(PASSWORD))
-                .rol(Usuario.Rol.COMPRADOR)
-                .fechaRegistro(LocalDateTime.now())
-                .build());
+        String tokenComprador = registrarCompradorEIniciarSesion("comprador-cosechas@mail.com", "1122334466");
 
-        publicar(cosechaValida(), iniciarSesion(correoComprador)).andExpect(status().isForbidden());
+        publicar(cosechaValida(), tokenComprador).andExpect(status().isForbidden());
 
         assertThat(productoRepository.count()).isEqualTo(productosAntes);
     }

@@ -6,20 +6,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.agrovalleconnect.agrovalle_connect.model.Finca;
-import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.FincaRepository;
-import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,12 +36,6 @@ class FincaControllerIntegrationTest {
 
     @Autowired
     private FincaRepository fincaRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private EntityManager entityManager;
@@ -82,6 +72,23 @@ class FincaControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return JsonPath.read(respuesta, "$.token");
+    }
+
+    private String registrarCompradorEIniciarSesion(String correo, String documento) throws Exception {
+        String registro = """
+                {
+                  "nombre": "Comprador de prueba",
+                  "rol": "COMPRADOR",
+                  "tipo_comprador": "individual",
+                  "documento": "%s",
+                  "correo": "%s",
+                  "password": "%s"
+                }
+                """.formatted(documento, correo, PASSWORD);
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON).content(registro))
+                .andExpect(status().isCreated());
+        return iniciarSesion(correo);
     }
 
     private String datosValidos() {
@@ -159,17 +166,9 @@ class FincaControllerIntegrationTest {
 
     @Test
     void registrarFinca_conRolComprador_retorna403() throws Exception {
-        // HU-17 aún no tiene endpoint: se prepara el usuario y se obtiene su JWT con el login real.
-        String correoComprador = "comprador-fincas@mail.com";
-        usuarioRepository.saveAndFlush(Usuario.builder()
-                .nombre("Comprador de prueba")
-                .correo(correoComprador)
-                .passwordHash(passwordEncoder.encode(PASSWORD))
-                .rol(Usuario.Rol.COMPRADOR)
-                .fechaRegistro(LocalDateTime.now())
-                .build());
+        String tokenComprador = registrarCompradorEIniciarSesion("comprador-fincas@mail.com", "1122334455");
 
-        registrar(datosValidos(), iniciarSesion(correoComprador)).andExpect(status().isForbidden());
+        registrar(datosValidos(), tokenComprador).andExpect(status().isForbidden());
 
         assertThat(fincaRepository.count()).isEqualTo(fincasAntes);
     }
