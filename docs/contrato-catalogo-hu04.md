@@ -104,7 +104,7 @@ En todas las consultas el stock y el número de productos permanecen iguales: no
 
 ## 5. Entrega por tareas y verificación
 
-- **T01-HU04 (#160):** este contrato, criterios de HU-04 en [BACKLOG.md](../BACKLOG.md), matriz de [trazabilidad BDD](trazabilidad-bdd.md#hu-04--catálogo-y-filtros-planificado) y actualización de la historia del Kanban.
+- **T01-HU04 (#160):** este contrato, criterios de HU-04 en [BACKLOG.md](../BACKLOG.md), matriz de [trazabilidad BDD](trazabilidad-bdd.md#hu-04--catálogo-y-filtros) y actualización de la historia del Kanban.
 - **T02-HU04 (#161):** consulta de repositorio con estado, stock, filtros, orden estable y carga de las relaciones necesarias; verificar con datos propios.
 - **T03-HU04 (#162):** DTO público y servicio de lectura con normalización y mapeo; no devolver entidades JPA.
 - **T04-HU04 (#163):** añadir GET al controlador y conservar la seguridad y el POST existentes.

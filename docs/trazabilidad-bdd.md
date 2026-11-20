@@ -14,27 +14,27 @@ Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con 
 | Correo duplicado (adicional) | `409 Conflict` | — | `AuthControllerIntegrationTest#rechazaCorreoDuplicado` |
 | Contraseña débil (adicional) | `400 Bad Request`, no se guarda | — | `AuthControllerIntegrationTest#contrasenaDebil_devuelve400YNoGuardaNada` |
 
-## HU-04 — Catálogo y filtros (planificado)
+## HU-04 — Catálogo y filtros
 
-Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU04 (#160). Los Given/When/Then completos están allí. **El endpoint GET y todas las pruebas de esta sección están pendientes de implementación**; los nombres siguientes son propuestas, no pruebas existentes ni resultados en verde.
+Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU04 (#160). Los Given/When/Then completos están allí. Los escenarios se verifican en T05-HU04 (#164) con `CatalogoIntegrationTest`: un comprador real se registra y autentica por HU-17, y la prueba siembra sus propias fincas y ofertas en Dagua, Palmira y Buga, con productos `INACTIVO`, `AGOTADO` y stock cero. Cada prueba se deshace al terminar (`@Transactional`), y después de cada consulta se comprueba que no cambiaron ni la cantidad de productos ni el stock, y que no se emitió `CosechaPublicadaEvent`.
 
-| ID BDD | Consulta o condición | Resultado esperado | Prueba propuesta | Estado |
-|---|---|---|---|---|
-| CAT-01 | Consulta `?municipio=Dagua&categoria=Frutas` | `200`; solo Dagua/Frutas, con los ocho campos públicos | `consultarCatalogo_conAmbosFiltros_retornaSoloCoincidencias` | Pendiente: T05-HU04 (#164) |
-| CAT-02 | Consulta ambos filtros | `200` y `[]`, sin relajar ninguno de los filtros | `consultarCatalogo_sinCoincidencias_retornaArregloVacio` | Pendiente: T05-HU04 (#164) |
-| CAT-03 | Consulta sin parámetros | `200`; todas las ofertas disponibles | `consultarCatalogo_sinFiltros_retornaOfertasDisponibles` | Pendiente: T05-HU04 (#164) |
-| CAT-04 | Consulta solo `?municipio=Dagua` | `200`; todas las categorías de Dagua y ningún otro municipio | `consultarCatalogo_soloMunicipio_filtraPorMunicipio` | Pendiente: T05-HU04 (#164) |
-| CAT-05 | Consulta solo `?categoria=Frutas` | `200`; Frutas de todos los municipios y ninguna otra categoría | `consultarCatalogo_soloCategoria_filtraPorCategoria` | Pendiente: T05-HU04 (#164) |
-| CAT-06 | Consulta `?municipio=pALmIrA&categoria=fRuTaS` | Mismo contenido que con los nombres canónicos | `consultarCatalogo_conMayusculasMixtas_ignoraMayusculas` | Pendiente: T05-HU04 (#164) |
-| CAT-07 | Consulta `?municipio=%20Palmira%20&categoria=%20Frutas%20` | Mismo contenido que sin espacios periféricos | `consultarCatalogo_conEspaciosPerifericos_normalizaFiltros` | Pendiente: T05-HU04 (#164) |
-| CAT-08 | Consulta filtros vacíos o solo espacios, incluidos uno vacío y otro informado | Los vacíos se omiten; el filtro informado se conserva; ambos vacíos equivalen a no filtrar | `consultarCatalogo_conFiltrosVacios_losTrataComoAusentes` | Pendiente: T05-HU04 (#164) |
-| CAT-09 | Consulta municipio o categoría desconocidos, incluso junto a otro filtro válido | `200` y `[]` | `consultarCatalogo_conFiltroDesconocido_retornaArregloVacio` | Pendiente: T05-HU04 (#164) |
-| CAT-10 | Consulta con y sin filtros | Solo productos `ACTIVO` con stock mayor que cero; si no queda ninguno, `[]` | `consultarCatalogo_conOfertasNoDisponibles_lasExcluye` | Pendiente: T05-HU04 (#164) |
-| CAT-11 | Consulta el catálogo | IDs en orden ascendente, sin duplicados ni campos privados | `consultarCatalogo_conVariasOfertas_ordenaPorIdYRespetaContrato` | Pendiente: T05-HU04 (#164) |
-| CAT-12 | Consulta el catálogo | `401`, sin ejecutar la consulta del servicio | `consultarCatalogo_sinToken_retorna401` | Pendiente: T05-HU04 (#164) |
-| CAT-13 | Consulta el catálogo | `401`, sin ejecutar la consulta del servicio | `consultarCatalogo_conTokenInvalidoOExpirado_retorna401` | Pendiente: T05-HU04 (#164) |
-| CAT-14 | Consulta el catálogo | `200` con las mismas reglas de selección; no recibe `403` por su rol | `consultarCatalogo_conRolAgricultor_retorna200` | Pendiente: T05-HU04 (#164) |
-| CAT-15 | Consulta nombres parciales, sin la tilde requerida, o con `%`/`_` | No se amplía la coincidencia literal de nombre completo; `[]` si no existe ese nombre | `consultarCatalogo_conNombreNoExacto_noAmpliaLaBusqueda` | Pendiente: T05-HU04 (#164) |
+| ID BDD | Consulta o condición | Resultado esperado | Prueba real |
+|---|---|---|---|
+| CAT-01 | Consulta `?municipio=Dagua&categoria=Frutas` | `200`; solo Dagua/Frutas, con los ocho campos públicos | `CatalogoIntegrationTest#consultarCatalogo_conAmbosFiltros_retornaSoloCoincidencias` |
+| CAT-02 | Consulta ambos filtros | `200` y `[]`, sin relajar ninguno de los filtros | `CatalogoIntegrationTest#consultarCatalogo_sinCoincidencias_retornaArregloVacio` |
+| CAT-03 | Consulta sin parámetros | `200`; todas las ofertas disponibles | `CatalogoIntegrationTest#consultarCatalogo_sinFiltros_retornaOfertasDisponibles` |
+| CAT-04 | Consulta solo `?municipio=Dagua` | `200`; todas las categorías de Dagua y ningún otro municipio | `CatalogoIntegrationTest#consultarCatalogo_soloMunicipio_filtraPorMunicipio` |
+| CAT-05 | Consulta solo `?categoria=Frutas` | `200`; Frutas de todos los municipios y ninguna otra categoría | `CatalogoIntegrationTest#consultarCatalogo_soloCategoria_filtraPorCategoria` |
+| CAT-06 | Consulta `?municipio=pALmIrA&categoria=fRuTaS` | Mismo contenido que con los nombres canónicos | `CatalogoIntegrationTest#consultarCatalogo_conMayusculasMixtas_ignoraMayusculas` |
+| CAT-07 | Consulta `?municipio=%20Palmira%20&categoria=%20Frutas%20` | Mismo contenido que sin espacios periféricos | `CatalogoIntegrationTest#consultarCatalogo_conEspaciosPerifericos_normalizaFiltros` |
+| CAT-08 | Consulta filtros vacíos o solo espacios, incluidos uno vacío y otro informado | Los vacíos se omiten; el filtro informado se conserva; ambos vacíos equivalen a no filtrar | `CatalogoIntegrationTest#consultarCatalogo_conFiltrosVacios_losTrataComoAusentes` |
+| CAT-09 | Consulta municipio o categoría desconocidos, incluso junto a otro filtro válido | `200` y `[]` | `CatalogoIntegrationTest#consultarCatalogo_conFiltroDesconocido_retornaArregloVacio` |
+| CAT-10 | Consulta con y sin filtros | Solo productos `ACTIVO` con stock mayor que cero; si no queda ninguno, `[]` | `CatalogoIntegrationTest#consultarCatalogo_conOfertasNoDisponibles_lasExcluye` |
+| CAT-11 | Consulta el catálogo | IDs en orden ascendente, sin duplicados ni campos privados | `CatalogoIntegrationTest#consultarCatalogo_conVariasOfertas_ordenaPorIdYRespetaContrato` |
+| CAT-12 | Consulta el catálogo sin token | `401`, sin ejecutar la consulta del servicio | `CatalogoIntegrationTest#consultarCatalogo_sinToken_retorna401` |
+| CAT-13 | Consulta con token inválido, de otra clave o expirado | `401`, sin ejecutar la consulta del servicio | `CatalogoIntegrationTest#consultarCatalogo_conTokenInvalidoOExpirado_retorna401` |
+| CAT-14 | Agricultor autenticado consulta el catálogo | `200` con las mismas reglas de selección; no recibe `403` por su rol | `CatalogoIntegrationTest#consultarCatalogo_conRolAgricultor_retorna200` |
+| CAT-15 | Consulta nombres parciales, sin la tilde requerida, o con `%`/`_` | No se amplía la coincidencia literal de nombre completo; `[]` si no existe ese nombre | `CatalogoIntegrationTest#consultarCatalogo_conNombreNoExacto_noAmpliaLaBusqueda` |
 
 ## HU-05 — Contacto directo (planificado)
 
@@ -102,4 +102,4 @@ HU-17 se verifica con las pruebas de la tabla anterior: en las de integración, 
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.
 
-Las filas planificadas de HU-04 y HU-05 todavía no se ejecutan con Maven. T05-HU04 y T05-HU05 deberán reemplazar los nombres propuestos por referencias a pruebas reales y registrar su verificación.
+HU-04 se verifica con `CatalogoIntegrationTest` (`./mvnw test -Dtest=CatalogoIntegrationTest`). Las filas planificadas de HU-05 todavía no se ejecutan con Maven; T05-HU05 deberá reemplazar los nombres propuestos por referencias a pruebas reales.
