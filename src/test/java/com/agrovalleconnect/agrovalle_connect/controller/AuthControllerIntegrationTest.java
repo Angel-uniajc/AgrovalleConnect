@@ -10,6 +10,7 @@ import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.CompradorRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -226,5 +227,80 @@ class AuthControllerIntegrationTest {
 
         assertThat(usuarioRepository.count()).isZero();
         assertThat(agricultorRepository.count()).isZero();
+    }
+
+    @Test
+    void registrarComprador_conCamposFaltantes_retorna400() throws Exception {
+        enviar("{\"rol\":\"COMPRADOR\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.nombre").isString())
+                .andExpect(jsonPath("$.correo").isString())
+                .andExpect(jsonPath("$.password").isString())
+                .andExpect(jsonPath("$.tipoComprador").isString())
+                .andExpect(jsonPath("$.documento").isString());
+        verificarConteos(0, 0);
+    }
+
+    @Test
+    void registrarComprador_conPasswordInvalida_retorna400() throws Exception {
+        for (String debil : List.of("123", "Segura#2026")) {
+            enviar(comprador("individual", "900123456", "compras@ceiba.co").replace(PASSWORD, debil))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.password").isString());
+            verificarConteos(0, 0);
+        }
+    }
+
+    @Test
+    void registrarComprador_conDocumentoInvalido_retorna400() throws Exception {
+        for (String invalido : List.of("12345", "12345678901", "9001234ab", "900123456-7")) {
+            enviar(comprador("individual", invalido, "compras@ceiba.co"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.documento").isString());
+            verificarConteos(0, 0);
+        }
+    }
+
+    @Test
+    void registrarComprador_conCorreoDeAgricultor_retorna409() throws Exception {
+        enviar(json("12345678", "pedro@mail.com")).andExpect(status().isCreated());
+        verificarConteos(1, 0);
+
+        enviar(comprador("individual", "900123456", "pedro@mail.com")).andExpect(status().isConflict());
+
+        verificarConteos(1, 0);
+    }
+
+    @Test
+    void registrarComprador_conDocumentoIgualACedulaDeAgricultor_retorna201() throws Exception {
+        enviar(json("900123456", "pedro@mail.com")).andExpect(status().isCreated());
+
+        enviar(comprador("individual", "900123456", "compras@ceiba.co")).andExpect(status().isCreated());
+
+        verificarConteos(2, 1);
+    }
+
+    @Test
+    void registrarComprador_conTipoEnMayusculasOMixtas_seNormalizaYRetorna201() throws Exception {
+        enviar(comprador("Comerciante", "900123456", "compras@ceiba.co"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo_comprador").value("COMERCIANTE"));
+
+        Comprador perfil = compradorRepository.findByUsuarioCorreo("compras@ceiba.co").orElseThrow();
+        assertThat(perfil.getTipoComprador()).isEqualTo(Comprador.TipoComprador.COMERCIANTE);
+        verificarConteos(1, 1);
+    }
+
+    @Test
+    void registrarComprador_valido_respuestaNoExponePasswordNiHash() throws Exception {
+        MvcResult resultado = enviar(comprador("restaurante", "900123456", "compras@ceiba.co"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist())
+                .andExpect(jsonPath("$.password_hash").doesNotExist())
+                .andReturn();
+
+        String hash = usuarioRepository.findByCorreo("compras@ceiba.co").orElseThrow().getPasswordHash();
+        assertThat(resultado.getResponse().getContentAsString()).doesNotContain(PASSWORD).doesNotContain(hash);
     }
 }
