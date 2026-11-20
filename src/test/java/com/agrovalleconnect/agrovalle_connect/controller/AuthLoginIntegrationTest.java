@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.AgricultorRepository;
+import com.agrovalleconnect.agrovalle_connect.repository.CompradorRepository;
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
 import com.agrovalleconnect.agrovalle_connect.security.JwtUtil;
 import com.jayway.jsonpath.JsonPath;
@@ -33,6 +34,8 @@ class AuthLoginIntegrationTest {
 
     private static final String URL = "/api/v1/auth/login";
 
+    private static final String URL_REGISTRO = "/api/v1/auth/register";
+
     private static final String EMAIL = "pedro@mail.com";
 
     private static final String PASSWORD = "Clave@123";
@@ -47,6 +50,9 @@ class AuthLoginIntegrationTest {
     private AgricultorRepository agricultorRepository;
 
     @Autowired
+    private CompradorRepository compradorRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -56,6 +62,7 @@ class AuthLoginIntegrationTest {
 
     @BeforeEach
     void prepararUsuarioRegistrado() {
+        compradorRepository.deleteAll();
         agricultorRepository.deleteAll();
         usuarioRepository.deleteAll();
 
@@ -95,6 +102,22 @@ class AuthLoginIntegrationTest {
         return resultado.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
     }
 
+    private void registrarComprador(String correo) throws Exception {
+        mockMvc.perform(post(URL_REGISTRO)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre": "La Ceiba", "rol": "COMPRADOR", "correo": "%s", "password": "%s",
+                                 "tipo_comprador": "restaurante", "documento": "900123456"}
+                                """.formatted(correo, PASSWORD)))
+                .andExpect(status().isCreated());
+    }
+
+    private Claims claimsDelLogin(String email) throws Exception {
+        ResultActions resultado = enviar(json(email, PASSWORD)).andExpect(status().isOk());
+        String token = JsonPath.read(cuerpoDe(resultado), "$.token");
+        return jwtUtil.extraerClaims(token);
+    }
+
     @Test
     void login_conCredencialesValidas_retorna200YToken() throws Exception {
         ResultActions resultado = enviar(json(EMAIL, PASSWORD))
@@ -109,6 +132,36 @@ class AuthLoginIntegrationTest {
         assertThat(claims.getSubject()).isEqualTo(EMAIL);
         assertThat(claims.get("rol", String.class)).isEqualTo("AGRICULTOR");
         assertThat(claims.get("perfil_id", Long.class)).isEqualTo(agricultorId);
+    }
+
+    @Test
+    void login_compradorRegistrado_retornaTokenConRolYPerfilDelComprador() throws Exception {
+        String correo = "compras@ceiba.co";
+        registrarComprador(correo);
+        Long compradorId = compradorRepository.findByUsuarioCorreo(correo).orElseThrow().getId();
+
+        Claims claims = claimsDelLogin(correo);
+
+        assertThat(claims.getSubject()).isEqualTo(correo);
+        assertThat(claims.get("rol", String.class)).isEqualTo("COMPRADOR");
+        assertThat(claims.get("perfil_id", Long.class)).isEqualTo(compradorId);
+    }
+
+    @Test
+    void login_compradorSinPerfil_retornaTokenSinPerfilId() throws Exception {
+        String correo = "sin-perfil@mail.com";
+        usuarioRepository.save(Usuario.builder()
+                .nombre("Comprador sin perfil")
+                .correo(correo)
+                .passwordHash(passwordEncoder.encode(PASSWORD))
+                .rol(Usuario.Rol.COMPRADOR)
+                .fechaRegistro(LocalDateTime.now())
+                .build());
+
+        Claims claims = claimsDelLogin(correo);
+
+        assertThat(claims.get("rol", String.class)).isEqualTo("COMPRADOR");
+        assertThat(claims.get("perfil_id")).isNull();
     }
 
     @Test
