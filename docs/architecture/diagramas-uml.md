@@ -231,4 +231,23 @@ En todos los rechazos se conserva el estado existente y se omite la publicación
 
 ## 7. Despliegue de staging
 
-El [diagrama de despliegue existente](../diseno/diagrama_de_despliegue.md) describe la arquitectura de referencia. El diagrama de staging y el ADR sobre la elección del PaaS corresponden a [T16-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/186).
+**Diseño propuesto.** El flujo parte del commit integrado en `develop`. Hoy GitHub Actions ejecuta Maven Verify en los PR y en los envíos a `main`. La verificación posterior al merge en `develop`, el despliegue y la conexión con la base de staging quedan como propuesta. [Workflow vigente](../../.github/workflows/ci.yml) · [ADR-001: elección del PaaS para staging](../architecture-decisions/ADR-001-despliegue-staging-paas.md)
+
+```mermaid
+flowchart TB
+    G["GitHub · commit integrado en develop"]
+    CI["GitHub Actions · Maven Verify con JDK 25"]
+    H["Deploy hook de staging"]
+    subgraph PAAS["Render · servicio web de staging"]
+        B["Construcción Docker del commit verificado"]
+        A["Spring Boot · JRE 25"]
+        B --> A
+    end
+    DB[("PostgreSQL · agrovalle_staging")]
+    G -->|"Push a develop (propuesto)"| CI
+    CI -->|"HTTPS tras verify exitoso, con el SHA"| H
+    H --> B
+    A -->|"JDBC con SSL"| DB
+```
+
+El servicio recibe la configuración de conexión y la clave JWT como variables del entorno de staging. La URL del hook se guarda como secreto de GitHub Actions. [Arquitectura de despliegue de referencia](../diseno/diagrama_de_despliegue.md)
