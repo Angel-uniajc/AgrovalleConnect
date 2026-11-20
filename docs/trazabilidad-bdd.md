@@ -86,6 +86,7 @@ Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md).
 | Campos faltantes | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_conCamposFaltantes_retorna400` |
 | Contraseña inválida | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_conPasswordInvalida_retorna400` |
 | Documento inválido (corto, largo, con letras o con dígito de verificación) | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrarComprador_conDocumentoInvalido_retorna400` |
+| Formato de nombre y correo (correo sin formato válido, nombre o correo de más de 50 caracteres) | `400 Bad Request`, no se guarda | `RegistroCompradorRequestTest.correoSinFormato_esRechazado`, `RegistroCompradorRequestTest.nombreMayorA50Caracteres_esRechazado`, `RegistroCompradorRequestTest.correoMayorA50Caracteres_esRechazado` |
 | Rol inválido o JSON mal formado | `400 Bad Request`, no se guarda | `AuthControllerIntegrationTest.registrar_rolDesconocido_retorna400`, `AuthControllerIntegrationTest.registrar_jsonIncompleto_retornaSoloMensajePublico` |
 | Atomicidad: si falla el perfil, se deshace el usuario | no queda ni `Usuario` ni `Comprador` | `CompradorRegisterServiceIntegrationTest.falloAlCrearElPerfil_deshaceTambienElUsuario` |
 | Login real del comprador | `200 OK`, token con rol y perfil del comprador | `AuthLoginIntegrationTest.login_compradorRegistrado_retornaTokenConRolYPerfilDelComprador` |

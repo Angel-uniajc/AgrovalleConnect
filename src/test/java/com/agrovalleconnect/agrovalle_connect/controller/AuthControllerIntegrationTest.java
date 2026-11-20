@@ -285,10 +285,15 @@ class AuthControllerIntegrationTest {
         enviar(comprador("Comerciante", "900123456", "compras@ceiba.co"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.tipo_comprador").value("COMERCIANTE"));
+        enviar(comprador("RESTAURANTE", "900123457", "cocina@ceiba.co"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo_comprador").value("RESTAURANTE"));
 
-        Comprador perfil = compradorRepository.findByUsuarioCorreo("compras@ceiba.co").orElseThrow();
-        assertThat(perfil.getTipoComprador()).isEqualTo(Comprador.TipoComprador.COMERCIANTE);
-        verificarConteos(1, 1);
+        Comprador mixto = compradorRepository.findByUsuarioCorreo("compras@ceiba.co").orElseThrow();
+        Comprador mayusculas = compradorRepository.findByUsuarioCorreo("cocina@ceiba.co").orElseThrow();
+        assertThat(mixto.getTipoComprador()).isEqualTo(Comprador.TipoComprador.COMERCIANTE);
+        assertThat(mayusculas.getTipoComprador()).isEqualTo(Comprador.TipoComprador.RESTAURANTE);
+        verificarConteos(2, 2);
     }
 
     @Test
