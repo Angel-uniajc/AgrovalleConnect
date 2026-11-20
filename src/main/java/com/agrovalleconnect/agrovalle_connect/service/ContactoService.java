@@ -16,6 +16,11 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * HU-05: registra la intención de contacto de un comprador sobre un producto.
+ * Contrato en docs/contrato-contacto-hu05.md. Solo guarda el mensaje:
+ * no cambia el stock, no crea pedidos ni emite eventos.
+ */
 @Service
 public class ContactoService {
 
@@ -35,16 +40,8 @@ public class ContactoService {
 
     @Transactional
     public MensajeContactoResponse enviar(String correoComprador, MensajeContactoRequest request) {
-        Comprador comprador = compradorRepository.findByUsuarioCorreo(correoComprador)
-                .orElseThrow(() -> new AccesoDenegadoException("Acceso denegado"));
-
-        Producto producto = productoRepository.findById(request.idProducto())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
-
-        if (producto.getEstado() != Estado.ACTIVO
-                || producto.getCantidadDisponible().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ProductoNoDisponibleException("El producto no está disponible para contacto");
-        }
+        Comprador comprador = obtenerComprador(correoComprador);
+        Producto producto = obtenerProductoDisponible(request.idProducto());
 
         MensajeContacto mensaje = MensajeContacto.builder()
                 .comprador(comprador)
@@ -53,5 +50,27 @@ public class ContactoService {
                 .build();
 
         return MensajeContactoResponse.desde(mensajeContactoRepository.save(mensaje));
+    }
+
+    private Comprador obtenerComprador(String correo) {
+        // mensaje genérico: no revela si el usuario existe o qué le falta
+        return compradorRepository.findByUsuarioCorreo(correo)
+                .orElseThrow(() -> new AccesoDenegadoException("Acceso denegado"));
+    }
+
+    private Producto obtenerProductoDisponible(Long idProducto) {
+        Producto producto = productoRepository.findById(idProducto)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
+
+        if (!estaDisponible(producto)) {
+            throw new ProductoNoDisponibleException("El producto no está disponible para contacto");
+        }
+        return producto;
+    }
+
+    private static boolean estaDisponible(Producto producto) {
+        return producto.getEstado() == Estado.ACTIVO
+                && producto.getCantidadDisponible() != null
+                && producto.getCantidadDisponible().compareTo(BigDecimal.ZERO) > 0;
     }
 }
