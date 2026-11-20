@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ManejadorErrores {
 
+    /** Responde 400 al recibir un cuerpo ilegible y evita exponer su contenido en el error. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> jsonInvalido() {
         return ResponseEntity.badRequest().body(Map.of("json", "El cuerpo de la solicitud no es un JSON válido"));
