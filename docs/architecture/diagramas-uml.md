@@ -1,6 +1,6 @@
 # Diagramas UML de AgroValle Connect
 
-Consolidado de la sesión 13. Las vistas de secuencia y componentes describen la versión de `develop` en `f5e089b`. Los escenarios proceden del [backlog](../../BACKLOG.md) y sus pruebas se identifican en la [matriz de trazabilidad BDD](../trazabilidad-bdd.md).
+Consolidado de la sesión 13. Las vistas de secuencia y componentes describen la versión de `develop` en `5d99ab6`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprint-2-planning.md) recoge las de cosechas y fincas.
 
 ## 1. Secuencia de inicio de sesión · HU-16
 
@@ -37,7 +37,7 @@ sequenceDiagram
     end
 ```
 
-El JWT tiene una vigencia configurada de **una hora**. En esta versión el servicio obtiene el identificador del perfil de agricultor cuando existe. [Configuración](../../src/main/resources/application.properties) · [Secuencia detallada](../diseno/diagrama-secuencia.md)
+El JWT tiene una vigencia configurada de **una hora**. El servicio incluye en el token el identificador del perfil correspondiente al rol del usuario (agricultor o comprador). Si el usuario carece de ese perfil, se omite el campo `perfil_id`. [Configuración](../../src/main/resources/application.properties) · [Secuencia detallada](../diseno/diagrama-secuencia.md)
 
 ## 2. Secuencia de publicación de cosecha · HU-02
 
@@ -58,23 +58,38 @@ sequenceDiagram
     C->>S: publicar(correo, request)
     S->>R: FincaRepository.findById(fincaId)
     R->>DB: Consultar finca
-    R-->>S: Finca
-    S->>S: Verificar propietario
-    S->>R: CategoriaRepository.findById(categoriaId)
-    R->>DB: Consultar categoría
-    R-->>S: Categoría
-    S->>R: ProductoRepository.save(producto)
-    R->>DB: Insertar producto ACTIVO
-    R-->>S: Producto con ID
-    S->>P: publishEvent(CosechaPublicadaEvent)
-    P->>L: registrarPublicacion(evento)
-    L-->>P: Registro en log completado
-    P-->>S: Retorno síncrono
-    S-->>C: PublicarCosechaResponse al confirmar la transacción
-    C-->>A: 201 Created con id
+    DB-->>R: Resultado de la consulta
+    R-->>S: Finca opcional
+    alt Finca inexistente
+        S-->>C: RecursoNoEncontradoException
+        Note over C,A: ManejadorErrores traduce la excepción a 404
+    else Finca de otro agricultor
+        S-->>C: AccesoDenegadoException
+        Note over C,A: ManejadorErrores traduce la excepción a 403
+    else Finca propia
+        S->>R: CategoriaRepository.findById(categoriaId)
+        R->>DB: Consultar categoría
+        DB-->>R: Resultado de la consulta
+        R-->>S: Categoría opcional
+        alt Categoría inexistente
+            S-->>C: CategoriaInvalidaException
+            Note over C,A: ManejadorErrores traduce la excepción a 400
+        else Categoría existente
+            S->>R: ProductoRepository.save(producto)
+            R->>DB: Insertar producto ACTIVO
+            DB-->>R: Identificador del producto
+            R-->>S: Producto con ID
+            S->>P: publishEvent(CosechaPublicadaEvent)
+            P->>L: registrarPublicacion(evento)
+            L-->>P: Registro en log completado
+            P-->>S: Retorno síncrono
+            S-->>C: PublicarCosechaResponse al confirmar la transacción
+            C-->>A: 201 Created con id
+        end
+    end
 ```
 
-La propiedad de la finca se verifica antes de guardar. Si pertenece a otro agricultor, la API devuelve 403. El listener se ejecuta dentro de la transacción. [Alternativas y orden del Observer](../diseno/diagrama-secuencia.md) · [Colaboración de cosechas](../diseno/diagrama-colaboracion.md)
+El servicio verifica la finca y la categoría antes de guardar el producto. El listener se ejecuta dentro de la transacción. [Pruebas de HU-02 en la sección 7 del Sprint 2](../sprint-2-planning.md) · [Alternativas y orden del Observer](../diseno/diagrama-secuencia.md) · [Colaboración de cosechas](../diseno/diagrama-colaboracion.md)
 
 ## 3. Secuencia de registro de finca · HU-14
 
@@ -109,6 +124,8 @@ sequenceDiagram
     end
 ```
 
+[Pruebas de HU-14 en la sección 3 del Sprint 2](../sprint-2-planning.md)
+
 ## 4. Componentes del backend
 
 Vista general adaptada del [diagrama de componentes](../diseno/diagrama-de-componentes.md). El backend usa **Java 25**. Los controladores reciben HTTP y delegan en servicios, que aplican reglas de negocio y delimitan transacciones. Los repositorios JPA acceden a PostgreSQL. [Configuración de compilación](../../pom.xml)
@@ -128,11 +145,10 @@ flowchart TB
         Cosechas --> Eventos["ApplicationEventPublisher"]
         Eventos --> Observer["CosechaPublicadaListener: log"]
         Catalogo["CatalogoService: consulta de ofertas"] --> JPA
-        Contacto["MensajeContactoRepository: persistencia de contacto"]
+        Contacto["MensajeContactoRepository"] --> JPA
         Controladores -.-> Errores["ManejadorErrores: respuestas HTTP"]
     end
     JPA --> DB[("PostgreSQL")]
-    Contacto --> DB
 ```
 
 En esta versión el registro por rol, el login, las fincas y la publicación tienen rutas REST. El catálogo cuenta con servicio de lectura y el contacto con entidad, DTO y repositorio. Las rutas para consultar el catálogo y enviar mensajes corresponden a tareas posteriores.
@@ -147,4 +163,4 @@ Diseño pendiente en [T15-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/
 
 ## 7. Despliegue de staging
 
-El diagrama y el ADR sobre la elección del PaaS corresponden a [T16-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/186).
+El [diagrama de despliegue existente](../diseno/diagrama_de_despliegue.md) describe la arquitectura de referencia. El diagrama de staging y el ADR sobre la elección del PaaS corresponden a [T16-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/186).
