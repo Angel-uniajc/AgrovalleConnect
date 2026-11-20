@@ -1,6 +1,7 @@
 package com.agrovalleconnect.agrovalle_connect.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.json.JsonMapper;
 
 class MensajeContactoRequestTest {
@@ -85,5 +87,23 @@ class MensajeContactoRequestTest {
 
         assertThat(request.idProducto()).isEqualTo(12L);
         assertThat(request.mensaje()).isEqualTo("Hola");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"12.9", "12.0", "\"12\"", "true"})
+    void json_idProductoQueNoEsEntero_esRechazadoAlDeserializar(String valor) {
+        String cuerpo = "{\"id_producto\": " + valor + ", \"mensaje\": \"Hola\"}";
+
+        assertThatThrownBy(() -> MAPPER.readValue(cuerpo, MensajeContactoRequest.class))
+                .isInstanceOf(MismatchedInputException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"123", "true", "[\"Hola\"]", "{\"texto\": \"Hola\"}"})
+    void json_mensajeQueNoEsTexto_esRechazadoAlDeserializar(String valor) {
+        String cuerpo = "{\"id_producto\": 12, \"mensaje\": " + valor + "}";
+
+        assertThatThrownBy(() -> MAPPER.readValue(cuerpo, MensajeContactoRequest.class))
+                .isInstanceOf(MismatchedInputException.class);
     }
 }
