@@ -184,7 +184,50 @@ Si el carrito está vacío, HU-12 prevé `400 Bad Request` tras el paso 1.1.1. S
 
 ## 6. Colaboración para notificar el alistamiento · HU-15
 
-Diseño pendiente en [T15-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/185).
+**Diseño propuesto.** El ejemplo de alistamiento aparece como HU-13 en la guía de la sesión 13. En el backlog de AgroValle Connect corresponde a **HU-15, Confirmación de Alistamiento de Lote**. El equipo reserva HU-13 para la consulta de la ruta de envío. [Historias de usuario](../../BACKLOG.md) · [T15-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/185)
+
+**Dado** un agricultor con un pedido pagado de su producción, **cuando** marca el lote como alistado mediante `PATCH /api/v1/pedidos/{id}/alistamiento`, **entonces** el pedido pasa de `PAGADO` a `ALISTADO`, queda disponible para la asignación de transporte y la API responde `200 OK`. Para notificar al comprador, se propone registrar un aviso asociado al pedido mediante el [patrón Observer usado en HU-02](../diseno/diagrama-colaboracion.md).
+
+**Alcance del alistamiento.** El esquema guarda el estado del pedido completo. Para este PATCH se propone exigir al menos un detalle y que **todas** sus líneas correspondan al agricultor autenticado. El servicio obtiene el comprador de `pedido.comprador_id` y recorre `detalle_pedido → producto → finca → agricultor` para verificar quién produjo cada línea. Un pedido mixto requiere un diseño de alistamiento parcial antes de que cada productor pueda confirmar su parte. [Esquema de datos](../diseno/schema.sql)
+
+**Componentes propuestos.** La entidad `Notificacion`, la tabla `notificacion` y `NotificacionRepository` se incorporarían para registrar el aviso al comprador. También se propone restringir este PATCH al rol `AGRICULTOR` en `SecurityConfig`, siguiendo la regla de publicación de productos. El servicio verificaría además la titularidad de las líneas.
+
+```mermaid
+flowchart TB
+    A["Agricultor"]
+    C["c : PedidoController"]
+    S["s : PedidoService"]
+    R["r : PedidoRepository"]
+    P["p : ApplicationEventPublisher"]
+    L["l : PedidoAlistadoListener"]
+    N["n : NotificacionRepository"]
+
+    A -- "1: PATCH de alistamiento →" --- C
+    C -- "1.1: alistar pedido del agricultor →" --- S
+    S -- "1.1.1: cargar pedido, comprador y productor de cada línea →" --- R
+    S -- "1.1.2: validar líneas propias y estado PAGADO" --- S
+    S -- "1.1.3: guardar estado ALISTADO →" --- R
+    S -- "1.1.4: publicar PedidoAlistadoEvent →" --- P
+    P -- "1.1.4.1: entregar evento →" --- L
+    L -- "1.1.4.1.1: guardar aviso para el comprador →" --- N
+    S -- "1.2: devolver resultado tras confirmar la transacción →" --- C
+    C -- "2: responder 200 OK →" --- A
+
+    classDef observer fill:#fff3e0,stroke:#e65100,color:#000
+    class S,P,L observer
+```
+
+El servicio publica un evento con los identificadores del pedido y del comprador. El listener registra el aviso en la misma transacción que el cambio de estado. Si falla el registro, ambos cambios se revierten. El controlador devuelve el `200` después de confirmarse la transacción.
+
+**Rechazos.** HU-15 establece `400 Bad Request` para un pedido en `PENDIENTE_PAGO`. Para los demás casos se propone:
+
+| Condición | Respuesta |
+|---|---|
+| El pedido no existe | `404 Not Found` |
+| El usuario autenticado carece del rol agricultor o alguna línea pertenece a otro agricultor (incluidos los pedidos mixtos) | `403 Forbidden` |
+| El pedido carece de detalles o está en `ALISTADO`, `EN_CAMINO`, `ENTREGADO` o `CANCELADO` | `409 Conflict` |
+
+En todos los rechazos se conserva el estado existente y se omite la publicación del evento. Repetir el PATCH sobre un pedido ya alistado tampoco duplica el aviso.
 
 ## 7. Despliegue de staging
 
