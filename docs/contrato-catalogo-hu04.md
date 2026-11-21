@@ -1,6 +1,6 @@
 # Contrato del catálogo de cosechas — HU-04
 
-Documento de T01-HU04 ([#160](https://github.com/Angel-uniajc/AgrovalleConnect/issues/160)), parte de [HU-04 (#18)](https://github.com/Angel-uniajc/AgrovalleConnect/issues/18). Define el comportamiento que implementarán T02 a T05 de HU-04. **El GET y sus pruebas todavía están pendientes**: este contrato no afirma que ya estén disponibles en `develop`.
+Documento de T01-HU04 ([#160](https://github.com/Angel-uniajc/AgrovalleConnect/issues/160)), parte de [HU-04 (#18)](https://github.com/Angel-uniajc/AgrovalleConnect/issues/18). Define el comportamiento que implementan T02 a T05 de HU-04. El GET está disponible en `develop` (T04-HU04, [#163](https://github.com/Angel-uniajc/AgrovalleConnect/issues/163)) y los escenarios CAT-01 a CAT-15 se verifican en `CatalogoIntegrationTest` (T05-HU04, [#164](https://github.com/Angel-uniajc/AgrovalleConnect/issues/164)).
 
 ## 1. Operación y acceso
 
@@ -80,9 +80,9 @@ No se devuelven entidades JPA, objetos de usuario/agricultor anidados, correo, d
 
 ## 4. Escenarios BDD y nombres de prueba propuestos
 
-Cada fila define un escenario Given/When/Then. Las pruebas son **propuestas pendientes** para T05-HU04 ([#164](https://github.com/Angel-uniajc/AgrovalleConnect/issues/164)), no evidencia de ejecución. Los datos de prueba deben incluir ofertas que difieran en estado, stock, municipio y categoría, para detectar filtros omitidos o combinados incorrectamente.
+Cada fila define un escenario Given/When/Then y se verifica con la prueba indicada, implementada en `CatalogoIntegrationTest` por T05-HU04 ([#164](https://github.com/Angel-uniajc/AgrovalleConnect/issues/164)); la evidencia de ejecución es el CI del PR. Los datos de prueba incluyen ofertas que difieren en estado, stock, municipio y categoría, para detectar filtros omitidos o combinados incorrectamente.
 
-| ID | Given (Dado) | When (Cuando) | Then (Entonces) | Prueba propuesta |
+| ID | Given (Dado) | When (Cuando) | Then (Entonces) | Prueba (`CatalogoIntegrationTest`) |
 |---|---|---|---|---|
 | CAT-01 | Comprador autenticado; ofertas disponibles en Dagua/Frutas, Dagua/Granos y Palmira/Frutas | Consulta `?municipio=Dagua&categoria=Frutas` | `200`; solo Dagua/Frutas, con los ocho campos públicos | `consultarCatalogo_conAmbosFiltros_retornaSoloCoincidencias` |
 | CAT-02 | Usuario autenticado; no hay ofertas que cumplan ambos filtros | Consulta ambos filtros | `200` y `[]`, sin relajar ninguno de los filtros | `consultarCatalogo_sinCoincidencias_retornaArregloVacio` |
@@ -111,7 +111,7 @@ En todas las consultas el stock y el número de productos permanecen iguales: no
 - **T05-HU04 (#164):** implementar los escenarios anteriores con comprador registrado y autenticado mediante HU-17; completar la matriz con pruebas reales y verificar el CI.
 - **T06-HU04 (#165):** documentar el endpoint implementado y su diagrama de secuencia, ejemplos y demostración.
 
-El contrato no requiere una tabla nueva ni cambios en `schema.sql`. No se incluyen frontend, paginación, precios regionales, pedidos, pagos, reserva de stock o envío de contacto. Los consumidores no deben interpretar este documento como evidencia de que el GET esté implementado.
+El contrato no requiere una tabla nueva ni cambios en `schema.sql`. No se incluyen frontend, paginación, precios regionales, pedidos, pagos, reserva de stock o envío de contacto. La documentación del endpoint implementado, su diagrama de secuencia y ejemplos se completan en T06-HU04 (#165).
 
 ## 6. Fuentes contrastadas en develop
 
