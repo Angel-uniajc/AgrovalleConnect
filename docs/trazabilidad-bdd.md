@@ -16,6 +16,8 @@ Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con 
 
 ## HU-04 — Catálogo y filtros
 
+El [diagrama de secuencia de HU-04](diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo) muestra dónde se valida el JWT y cómo se construye la respuesta que comprueban los escenarios siguientes.
+
 Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU04 (#160). Los Given/When/Then completos están allí. Los escenarios se verifican en T05-HU04 (#164) con `CatalogoIntegrationTest`: un comprador real se registra y autentica por HU-17, y la prueba siembra sus propias fincas y ofertas en Dagua, Palmira y Buga, con productos `INACTIVO`, `AGOTADO` y stock cero. Cada prueba se deshace al terminar (`@Transactional`), y después de cada consulta se comprueba que no cambiaron ni la cantidad de productos ni el stock, y que no se emitió `CosechaPublicadaEvent`.
 
 | ID BDD | Consulta o condición | Resultado esperado | Prueba real |

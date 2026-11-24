@@ -587,3 +587,37 @@ El listener actual escribe en consola. Los futuros efectos externos, como correo
 - [Controlador](../../src/main/java/com/agrovalleconnect/agrovalle_connect/controller/ProductoController.java), [DTO de entrada](../../src/main/java/com/agrovalleconnect/agrovalle_connect/dto/PublicarCosechaRequest.java) y [servicio](../../src/main/java/com/agrovalleconnect/agrovalle_connect/service/CosechaService.java).
 - [Evento](../../src/main/java/com/agrovalleconnect/agrovalle_connect/event/CosechaPublicadaEvent.java), [listener](../../src/main/java/com/agrovalleconnect/agrovalle_connect/listener/CosechaPublicadaListener.java) y [manejo de errores](../../src/main/java/com/agrovalleconnect/agrovalle_connect/exception/ManejadorErrores.java).
 - [Pruebas REST](../../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ProductoControllerIntegrationTest.java), [pruebas del servicio](../../src/test/java/com/agrovalleconnect/agrovalle_connect/service/CosechaServiceTest.java) y [prueba de integración del evento](../../src/test/java/com/agrovalleconnect/agrovalle_connect/event/CosechaPublicadaIntegrationTest.java).
+
+
+## 10. HU-04 · Consulta del catálogo
+
+Dado un comprador autenticado y ofertas de varios municipios, cuando consulta Dagua y Frutas, recibe las ofertas disponibles que cumplen ambos filtros. El agricultor autenticado puede realizar la misma consulta. [Escenarios CAT-01 a CAT-15](../trazabilidad-bdd.md#hu-04--catálogo-y-filtros)
+
+```mermaid
+sequenceDiagram
+    actor U as Usuario
+    participant F as Spring Security
+    participant C as ProductoController
+    participant S as CatalogoService
+    participant R as ProductoRepository
+    participant DB as Base de datos
+    participant M as CatalogoMapper
+    U->>F: GET /api/v1/productos con filtros opcionales
+    alt Token ausente, inválido o expirado
+        F-->>U: 401 Unauthorized
+    else Usuario autenticado
+        F->>C: Autorizar GET
+        C->>S: consultar(municipio, categoria)
+        S->>S: Normalizar ambos filtros
+        S->>R: consultarOfertasDisponibles
+        R->>DB: Filtrar activos con stock positivo y ordenar por id
+        DB-->>R: Filas coincidentes
+        R-->>S: Ofertas
+        loop Por cada oferta
+            S->>M: aOferta
+            M-->>S: OfertaCatalogoResponse
+        end
+        S-->>C: Lista de DTO
+        C-->>U: 200 con arreglo de ofertas o arreglo vacío
+    end
+```
