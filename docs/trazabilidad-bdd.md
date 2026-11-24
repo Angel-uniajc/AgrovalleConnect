@@ -16,6 +16,8 @@ Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con 
 
 ## HU-04 — Catálogo y filtros
 
+El [diagrama de secuencia de HU-04](diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo) muestra dónde se valida el JWT y cómo se construye la respuesta que comprueban los escenarios siguientes.
+
 Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU04 (#160). Los Given/When/Then completos están allí. Los escenarios se verifican en T05-HU04 (#164) con `CatalogoIntegrationTest`: un comprador real se registra y autentica por HU-17, y la prueba siembra sus propias fincas y ofertas en Dagua, Palmira y Buga, con productos `INACTIVO`, `AGOTADO` y stock cero. Cada prueba se deshace al terminar (`@Transactional`), y después de cada consulta se comprueba que no cambiaron ni la cantidad de productos ni el stock, y que no se emitió `CosechaPublicadaEvent`.
 
 | ID BDD | Consulta o condición | Resultado esperado | Prueba real |
@@ -36,9 +38,9 @@ Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-esc
 | CAT-14 | Agricultor autenticado consulta el catálogo | `200` con las mismas reglas de selección; no recibe `403` por su rol | `CatalogoIntegrationTest#consultarCatalogo_conRolAgricultor_retorna200` |
 | CAT-15 | Consulta nombres parciales, sin la tilde requerida, o con `%`/`_` | No se amplía la coincidencia literal de nombre completo; `[]` si no existe ese nombre | `CatalogoIntegrationTest#consultarCatalogo_conNombreNoExacto_noAmpliaLaBusqueda` |
 
-## HU-05 — Contacto directo (planificado)
+## HU-05 — Contacto directo (implementado; verificación integral pendiente)
 
-Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU05 (#166). Los Given/When/Then completos están allí. **El endpoint, la entidad y todas las pruebas de esta sección están pendientes de implementación**; los nombres siguientes son propuestas, no pruebas existentes ni resultados en verde. Las pruebas de DTO, servicio y controlador de T02, T03 y T04 darán cobertura parcial; T05-HU05 completa los escenarios con un comprador real.
+Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU05 (#166). Los Given/When/Then completos están allí. **El endpoint `POST /api/v1/contacto/mensaje`, la entidad `MensajeContacto` y `ContactoService` ya están implementados** en la línea base `caf1151`. Existen pruebas parciales de DTO, repositorio, servicio y controlador, incluidas `ContactoServiceTest` y `ContactoControllerWebTest`. Los nombres de la columna «Prueba propuesta» corresponden al recorrido integral pendiente: no deben interpretarse como pruebas ya ejecutadas. T05-HU05 (#170) completa la verificación con persistencia real; T06-HU05 (#171) documenta la demostración.
 
 | ID BDD | Consulta o condición | Resultado esperado | Prueba propuesta | Estado |
 |---|---|---|---|---|
@@ -54,9 +56,9 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 | CON-10 | Token inválido o expirado | `401`; no se guarda nada | `enviarContacto_conTokenInvalido_retorna401` | Pendiente: T05-HU05 (#170) |
 | CON-11 | Agricultor autenticado | `403`; no se guarda nada | `enviarContacto_conRolAgricultor_retorna403` | Pendiente: T05-HU05 (#170) |
 | CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Pendiente: T05-HU05 (#170) |
-| CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` | Pendiente: T03-HU05 (#168) |
+| CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` | Cobertura parcial: `ContactoServiceTest#enviar_conCompradorSinPerfil_lanzaAccesoDenegadoSinGuardar`; integración pendiente en #170 |
 | CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` | Pendiente: T05-HU05 (#170) |
-| CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `enviarContacto_conJsonMalFormado_retorna400` | Pendiente: T04-HU05 (#169) |
+| CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `enviarContacto_conJsonMalFormado_retorna400` | Cobertura parcial: `ContactoControllerWebTest#enviarContacto_conJsonMalFormado_retorna400ConElMapaJson`; integración pendiente en #170 |
 
 ## HU-16 — Inicio de Sesión
 
@@ -102,4 +104,4 @@ HU-17 se verifica con las pruebas de la tabla anterior: en las de integración, 
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.
 
-HU-04 se verifica con `CatalogoIntegrationTest` (`./mvnw test -Dtest=CatalogoIntegrationTest`). Las filas planificadas de HU-05 todavía no se ejecutan con Maven; T05-HU05 deberá reemplazar los nombres propuestos por referencias a pruebas reales.
+HU-04 se verifica con `CatalogoIntegrationTest` (`./mvnw test -Dtest=CatalogoIntegrationTest`). HU-05 ya cuenta con pruebas parciales ejecutables con Maven, entre ellas `ContactoServiceTest` y `ContactoControllerWebTest`. La tabla conserva los nombres propuestos para la verificación integral de T05-HU05 (#170), que deberá sustituirlos por referencias a las pruebas reales correspondientes; esto no implica que el endpoint esté pendiente de implementación.

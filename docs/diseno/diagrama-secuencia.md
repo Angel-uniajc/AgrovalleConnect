@@ -1,12 +1,12 @@
-# Diagramas de secuencia (HU-01, HU-16, HU-02 y uso del token JWT) - AgroValle Connect
+# Diagramas de secuencia (HU-01, HU-16, HU-14, HU-02, HU-04 y uso del token JWT) - AgroValle Connect
 
 Documento de diseño asociado a las tareas **T05-DIS (#78)** y **T10-DIS (#145)**, parte del Sprint de Diseño (#73).
 
-La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02.
+La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02. La sección 10 incorpora T06-HU04 para consultar el catálogo.
 
 ## 1. Contexto y objetivo
 
-Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela tres historias de usuario y el uso del token JWT en un endpoint protegido:
+Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela cinco historias de usuario y el uso del token JWT en un endpoint protegido:
 
 | Historia | Descripción | Sección | 
 | ----- | ----- | ----- | 
@@ -15,6 +15,7 @@ Un diagrama de secuencia muestra **en qué orden** se envían mensajes los compo
 | Uso de JWT | Autenticación en un endpoint protegido | 5 | 
 | HU-14 | Registro de una finca por un agricultor autenticado | 6 | 
 | HU-02 | Publicación de una cosecha con evento Observer | 9 |
+| HU-04 | Consulta del catálogo por municipio y categoría | 10 |
 
 Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama_de_despliegue.md`.
 
@@ -39,10 +40,12 @@ El diseño de HU-16 refleja las piezas integradas en los PR #87, #88, #91 y #92.
 | `MunicipioRepository` y `FincaRepository` | Repositorio / Acceso a datos | Buscan el municipio permitido por nombre y guardan la finca | HU-14 | 
 | PostgreSQL | Persistencia | Almacena las tablas `usuario`, `agricultor`, `municipio` y `finca` | HU-01, HU-16, HU-14 | 
 | `UsuarioRepository` y `AgricultorRepository` | Repositorio / Acceso a datos | Consultan y persisten mediante Spring Data JPA | HU-01, HU-16 | 
-| `ProductoController` | Presentación / REST | Publica cosechas con el correo autenticado y devuelve `201` con el ID | HU-02 |
+| `ProductoController` | Presentación / REST | Publica cosechas y devuelve `201` con el ID. Atiende `GET /api/v1/productos`, delega los filtros al servicio y devuelve `200` con ofertas o `[]` | HU-02, HU-04 |
+| `CatalogoService` | Servicio / Dominio | Normaliza los filtros, consulta ofertas disponibles en una transacción de lectura y solicita su conversión a DTO | HU-04 |
+| `CatalogoMapper` | Mapeo | Convierte cada producto en `OfertaCatalogoResponse` con los ocho campos públicos del contrato | HU-04 |
 | Spring MVC | Presentación / REST | Resuelve el DTO validado y delega excepciones al advice | HU-02 |
 | `CosechaService` | Servicio / Dominio | Valida finca, propiedad y categoría, guarda el producto y emite el evento | HU-02 |
-| `FincaRepository`, `CategoriaRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Consultan la finca y la categoría y persisten el producto | HU-02 |
+| `FincaRepository`, `CategoriaRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Consultan la finca y la categoría y persisten el producto. `ProductoRepository` consulta ofertas disponibles según los filtros del catálogo | HU-02, HU-04 |
 | `ApplicationEventPublisher` | Infraestructura de eventos de Spring | Distribuye `CosechaPublicadaEvent` a sus observadores | HU-02 |
 | `CosechaPublicadaListener` | Servicio / Dominio | Recibe el evento de forma síncrona y registra la publicación | HU-02 |
 | PostgreSQL | Persistencia | Almacena usuarios, agricultores, fincas, municipios, categorías y productos | HU-01, HU-16, HU-02 |
@@ -424,7 +427,7 @@ Los rechazos `401` y `403` los produce Spring Security, no `ManejadorErrores`, p
 
 * **Clave de firma del token:** la clave HS256 que usa `JwtUtil` es un secreto; debe inyectarse por variable de entorno, como el resto de la configuración sensible descrita en `diagrama_de_despliegue.md`, y no guardarse en el repositorio.
 
-## 9. Relación con atributos de calidad (ISO 25010)
+### 8.1 Relación con atributos de calidad (ISO 25010)
 
 | Atributo | Cómo lo respalda el diseño | 
 | ----- | ----- | 
@@ -587,3 +590,43 @@ El listener actual escribe en consola. Los futuros efectos externos, como correo
 - [Controlador](../../src/main/java/com/agrovalleconnect/agrovalle_connect/controller/ProductoController.java), [DTO de entrada](../../src/main/java/com/agrovalleconnect/agrovalle_connect/dto/PublicarCosechaRequest.java) y [servicio](../../src/main/java/com/agrovalleconnect/agrovalle_connect/service/CosechaService.java).
 - [Evento](../../src/main/java/com/agrovalleconnect/agrovalle_connect/event/CosechaPublicadaEvent.java), [listener](../../src/main/java/com/agrovalleconnect/agrovalle_connect/listener/CosechaPublicadaListener.java) y [manejo de errores](../../src/main/java/com/agrovalleconnect/agrovalle_connect/exception/ManejadorErrores.java).
 - [Pruebas REST](../../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ProductoControllerIntegrationTest.java), [pruebas del servicio](../../src/test/java/com/agrovalleconnect/agrovalle_connect/service/CosechaServiceTest.java) y [prueba de integración del evento](../../src/test/java/com/agrovalleconnect/agrovalle_connect/event/CosechaPublicadaIntegrationTest.java).
+
+
+## 10. HU-04 · Consulta del catálogo
+
+Corresponde a T06-HU04 ([#165](https://github.com/Angel-uniajc/AgrovalleConnect/issues/165)). Describe el endpoint implementado en `develop` en el commit `caf1151`.
+
+Dado un comprador autenticado y ofertas de varios municipios, cuando consulta Dagua y Frutas, recibe las ofertas disponibles que cumplen ambos filtros. El agricultor autenticado puede realizar la misma consulta. [Escenarios CAT-01 a CAT-15](../trazabilidad-bdd.md#hu-04--catálogo-y-filtros)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Cliente
+    participant J as JwtAuthenticationFilter
+    participant F as Spring Security
+    participant C as ProductoController
+    participant S as CatalogoService
+    participant R as ProductoRepository
+    participant DB as Base de datos
+    participant M as CatalogoMapper
+    U->>J: GET /api/v1/productos con filtros opcionales
+    J->>J: Validar JWT si está presente
+    J->>F: Continuar con la autenticación resultante
+    alt Token ausente, inválido o expirado
+        F-->>U: 401 Unauthorized
+    else Usuario autenticado
+        F->>C: Autorizar GET
+        C->>S: consultar(municipio, categoria)
+        S->>S: Normalizar ambos filtros
+        S->>R: consultarOfertasDisponibles
+        R->>DB: Filtrar activos con stock positivo y ordenar por id
+        DB-->>R: Filas coincidentes
+        R-->>S: Ofertas
+        loop Por cada oferta
+            S->>M: aOferta
+            M-->>S: OfertaCatalogoResponse
+        end
+        S-->>C: Lista de DTO
+        C-->>U: 200 con arreglo de ofertas o arreglo vacío
+    end
+```

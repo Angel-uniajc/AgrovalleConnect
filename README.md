@@ -171,6 +171,24 @@ cd agrovalle-connect
 
 Configura tu conexión local a PostgreSQL en `src/main/resources/application.properties` antes de ejecutar.
 
+## Consultar el catálogo de cosechas (HU-04)
+
+En Postman, configura `baseUrl` con la dirección del backend y selecciona **Authorization → Bearer Token**. Usa el token que devuelve `POST /api/v1/auth/login`. Tanto compradores como agricultores pueden consultar.
+
+```http
+GET {{baseUrl}}/api/v1/productos?municipio=Dagua&categoria=Frutas
+GET {{baseUrl}}/api/v1/productos?municipio=Dagua
+GET {{baseUrl}}/api/v1/productos
+```
+
+Cada filtro es opcional. Juntos deben coincidir con la misma oferta. La consulta compara nombres completos, ignora mayúsculas y espacios periféricos, y trata un filtro vacío como ausente. Devuelve productos activos con stock positivo por ID ascendente. Ejemplo ficticio de respuesta `200 OK`:
+
+```json
+[{"id":12,"tipo":"Mango","cantidad_disponible":25.50,"precio_unitario":3200,"fecha_cosecha":"2026-11-24","categoria":"Frutas","finca_id":4,"municipio":"Dagua"}]
+```
+
+Sin coincidencias devuelve `200` con `[]`. Una petición sin token válido recibe `401`. [Contrato del catálogo](docs/contrato-catalogo-hu04.md) · [Recorrido de demostración del Sprint 3](docs/sprint-3-planning.md)
+
 ## Convención de Commits
 
 Este repositorio sigue el estándar de **Conventional Commits**:
@@ -188,7 +206,9 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
 - [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
 - [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
+- [`docs/sprint-3-planning.md`](./docs/sprint-3-planning.md) — Planificación y demostración del catálogo en el Sprint 3.
+- [`docs/contrato-catalogo-hu04.md`](./docs/contrato-catalogo-hu04.md) — Filtros, respuestas y escenarios del catálogo.
 - [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
-- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01, HU-16 y HU-14 hacia sus pruebas JUnit 5.
+- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Escenarios BDD y referencias a pruebas de HU-01, HU-04, HU-05, HU-16 y HU-17. HU-05 incluye escenarios planificados. La matriz de HU-14 está en [la planificación del Sprint 2](./docs/sprint-2-planning.md).

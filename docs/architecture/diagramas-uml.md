@@ -1,6 +1,6 @@
 # Diagramas UML de AgroValle Connect
 
-Consolidado de la sesión 13. Las vistas de secuencia y componentes describen la versión de `develop` en `5d99ab6`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprint-2-planning.md) recoge las de cosechas y fincas.
+Consolidado de la sesión 13. Las secuencias de las secciones 1 a 3 describen la versión de `develop` en `5d99ab6`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprint-2-planning.md) recoge las de cosechas y fincas.
 
 ## 1. Secuencia de inicio de sesión · HU-16
 
@@ -134,7 +134,7 @@ Vista general adaptada del [diagrama de componentes](../diseno/diagrama-de-compo
 flowchart TB
     Cliente["Cliente HTTP"] --> Seguridad["JwtAuthenticationFilter y SecurityConfig"]
     subgraph Backend["Backend Spring Boot · Java 25"]
-        Seguridad --> Controladores["REST: AuthController, FincaController y ProductoController"]
+        Seguridad --> Controladores["REST: AuthController, FincaController, ProductoController y ContactoController"]
         Controladores --> Auth["Registro por rol e inicio de sesión"]
         Controladores --> Fincas["FincaService"]
         Controladores --> Cosechas["CosechaService"]
@@ -144,14 +144,18 @@ flowchart TB
         Cosechas --> JPA
         Cosechas --> Eventos["ApplicationEventPublisher"]
         Eventos --> Observer["CosechaPublicadaListener: log"]
-        Catalogo["CatalogoService: consulta de ofertas"] --> JPA
-        Contacto["MensajeContactoRepository"] --> JPA
+        Controladores --> Catalogo["CatalogoService: consulta de ofertas"]
+        Catalogo --> JPA
+        Controladores --> Contacto["ContactoService: envío de mensajes"]
+        Contacto --> ContactoRepo["MensajeContactoRepository"]
+        ContactoRepo --> JPA
+        Contacto --> JPA
         Controladores -.-> Errores["ManejadorErrores: respuestas HTTP"]
     end
     JPA --> DB[("PostgreSQL")]
 ```
 
-En esta versión el registro por rol, el login, las fincas y la publicación tienen rutas REST. El catálogo cuenta con servicio de lectura y el contacto con entidad, DTO y repositorio. Las rutas para consultar el catálogo y enviar mensajes corresponden a tareas posteriores.
+En `develop` (`caf1151`), compradores y agricultores autenticados consultan el catálogo mediante `GET /api/v1/productos`. El controlador delega los filtros de municipio y categoría en `CatalogoService`. El contacto del comprador tiene su propia ruta, `POST /api/v1/contacto/mensaje`. [Secuencia de consulta del catálogo](../diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo)
 
 ## 5. Colaboración para confirmar un pedido · HU-12
 
