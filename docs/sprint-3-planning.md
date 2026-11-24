@@ -77,37 +77,5 @@ Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 
 
 ## Recorrido de demostración de HU-05: contacto directo
 
-Este recorrido complementa la verificación automatizada de T05-HU05 (#170). Usa datos ficticios y se ejecuta con el backend conectado a PostgreSQL/staging:
+El recorrido reproducible con Postman y la consulta SQL para verificar la persistencia en PostgreSQL/staging están centralizados en [`docs/evidencias/sprint3-contacto.md`](evidencias/sprint3-contacto.md). La prueba automatizada equivalente es [`ContactoControllerIntegrationTest`](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ContactoControllerIntegrationTest.java), que cubre CON-01 a CON-15 con H2 aislada.
 
-1. Registrar y autenticar un agricultor; crear una finca y publicar una cosecha activa con stock positivo. Guardar `id_producto`.
-2. Registrar y autenticar un comprador con `rol: COMPRADOR`. Enviar el token del comprador como `Authorization: Bearer <token>`.
-3. Ejecutar `POST /api/v1/contacto/mensaje` con:
-
-```json
-{
-  "id_producto": 1,
-  "mensaje": "Estoy interesado en comprar esta cosecha."
-}
-```
-
-4. Comprobar el `200 OK` con `id`, `id_producto` y `fecha_envio`. En la consola SQL ejecutar:
-
-```sql
-SELECT mc.id, mc.comprador_id, mc.producto_id, mc.mensaje, mc.fecha_envio,
-       u.correo AS comprador_correo
-FROM mensaje_contacto mc
-JOIN comprador c ON c.id = mc.comprador_id
-JOIN usuario u ON u.id = c.usuario_id
-WHERE mc.producto_id = 1
-ORDER BY mc.id DESC;
-```
-
-5. Consultar la oferta para confirmar que el stock no cambió:
-
-```sql
-SELECT id, cantidad_disponible, estado
-FROM producto
-WHERE id = 1;
-```
-
-La fila de `mensaje_contacto` debe asociarse al comprador del JWT y la fecha debe ser la asignada por el servidor. La prueba automatizada equivalente es [`ContactoControllerIntegrationTest`](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ContactoControllerIntegrationTest.java), que cubre CON-01 a CON-15 con H2 aislada. La evidencia y el guion SQL están en [`docs/evidencias/sprint3-contacto.md`](evidencias/sprint3-contacto.md).
