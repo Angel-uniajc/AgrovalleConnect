@@ -13,18 +13,18 @@ Esta evidencia corresponde a T06-HU05 (#171) y complementa las pruebas de T05-HU
 ## Recorrido manual en PostgreSQL/staging
 
 1. Registrar y autenticar un agricultor.
-2. Crear una finca y publicar una cosecha activa con stock positivo; guardar `id_producto`.
+2. Crear una finca y publicar una cosecha activa con stock positivo; guardar el `id_producto` real devuelto.
 3. Registrar y autenticar un comprador con `rol: COMPRADOR`.
 4. Enviar `POST /api/v1/contacto/mensaje` con el JWT del comprador:
 
 ```json
 {
-  "id_producto": 1,
+  "id_producto": 123,
   "mensaje": "Estoy interesado en comprar esta cosecha."
 }
 ```
 
-5. Esperar `200 OK` con `id`, `id_producto` y `fecha_envio`. Consultar la interacción persistida:
+5. Esperar `200 OK` con `id`, `id_producto` y `fecha_envio`. Sustituir `123` por el `id_producto` real guardado en el paso 2 y consultar la interacción persistida:
 
 ```sql
 SELECT mc.id, mc.comprador_id, mc.producto_id, mc.mensaje, mc.fecha_envio,
@@ -32,7 +32,7 @@ SELECT mc.id, mc.comprador_id, mc.producto_id, mc.mensaje, mc.fecha_envio,
 FROM mensaje_contacto mc
 JOIN comprador c ON c.id = mc.comprador_id
 JOIN usuario u ON u.id = c.usuario_id
-WHERE mc.producto_id = 1
+WHERE mc.producto_id = 123
 ORDER BY mc.id DESC;
 ```
 
@@ -41,7 +41,8 @@ ORDER BY mc.id DESC;
 ```sql
 SELECT id, cantidad_disponible, estado
 FROM producto
-WHERE id = 1;
+WHERE id = 123;
 ```
 
 La fila debe quedar asociada al comprador del JWT y la fecha debe ser la asignada por el servidor. El stock y el estado deben conservar los valores anteriores al envío.
+
