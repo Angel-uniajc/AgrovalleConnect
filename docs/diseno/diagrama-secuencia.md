@@ -40,10 +40,12 @@ El diseño de HU-16 refleja las piezas integradas en los PR #87, #88, #91 y #92.
 | `MunicipioRepository` y `FincaRepository` | Repositorio / Acceso a datos | Buscan el municipio permitido por nombre y guardan la finca | HU-14 | 
 | PostgreSQL | Persistencia | Almacena las tablas `usuario`, `agricultor`, `municipio` y `finca` | HU-01, HU-16, HU-14 | 
 | `UsuarioRepository` y `AgricultorRepository` | Repositorio / Acceso a datos | Consultan y persisten mediante Spring Data JPA | HU-01, HU-16 | 
-| `ProductoController` | Presentación / REST | Publica cosechas con el correo autenticado y devuelve `201` con el ID | HU-02 |
+| `ProductoController` | Presentación / REST | Publica cosechas y devuelve `201` con el ID. Atiende `GET /api/v1/productos`, delega los filtros al servicio y devuelve `200` con ofertas o `[]` | HU-02, HU-04 |
+| `CatalogoService` | Servicio / Dominio | Normaliza los filtros, consulta ofertas disponibles en una transacción de lectura y solicita su conversión a DTO | HU-04 |
+| `CatalogoMapper` | Mapeo | Convierte cada producto en `OfertaCatalogoResponse` con los ocho campos públicos del contrato | HU-04 |
 | Spring MVC | Presentación / REST | Resuelve el DTO validado y delega excepciones al advice | HU-02 |
 | `CosechaService` | Servicio / Dominio | Valida finca, propiedad y categoría, guarda el producto y emite el evento | HU-02 |
-| `FincaRepository`, `CategoriaRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Consultan la finca y la categoría y persisten el producto | HU-02 |
+| `FincaRepository`, `CategoriaRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Consultan la finca y la categoría y persisten el producto. `ProductoRepository` consulta ofertas disponibles según los filtros del catálogo | HU-02, HU-04 |
 | `ApplicationEventPublisher` | Infraestructura de eventos de Spring | Distribuye `CosechaPublicadaEvent` a sus observadores | HU-02 |
 | `CosechaPublicadaListener` | Servicio / Dominio | Recibe el evento de forma síncrona y registra la publicación | HU-02 |
 | PostgreSQL | Persistencia | Almacena usuarios, agricultores, fincas, municipios, categorías y productos | HU-01, HU-16, HU-02 |
