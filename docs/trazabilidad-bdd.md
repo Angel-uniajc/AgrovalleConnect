@@ -44,20 +44,20 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 
 | ID BDD | Consulta o condición | Resultado esperado | Prueba propuesta | Estado |
 |---|---|---|---|---|
-| CON-01 | Comprador envía `id_producto` y mensaje válidos | `200`; se guarda un mensaje con el comprador del token, el producto y la fecha del servidor | `enviarContacto_conDatosValidos_retorna200YPersiste` | Pendiente: T05-HU05 (#170) |
-| CON-02 | Envía un `id_producto` que no existe | `404`; no se guarda nada | `enviarContacto_conProductoInexistente_retorna404` | Pendiente: T05-HU05 (#170) |
-| CON-03 | Producto `INACTIVO` | `400`; no se guarda nada | `enviarContacto_conProductoInactivo_retorna400` | Pendiente: T05-HU05 (#170) |
-| CON-04 | Producto `AGOTADO` | `400`; no se guarda nada | `enviarContacto_conProductoAgotado_retorna400` | Pendiente: T05-HU05 (#170) |
-| CON-05 | Producto `ACTIVO` con stock 0 | `400`; no se guarda nada | `enviarContacto_conStockCero_retorna400` | Pendiente: T05-HU05 (#170) |
-| CON-06 | `mensaje` nulo, vacío o solo espacios | `400`; no se guarda nada | `enviarContacto_conMensajeVacio_retorna400` | Pendiente: T05-HU05 (#170) |
-| CON-07 | Mensaje de 2000 y de 2001 caracteres | El de 2000 responde `200`; el de 2001 responde `400` | `enviarContacto_conMensajeEnElLimite_aceptaHasta2000` | Pendiente: T05-HU05 (#170) |
-| CON-08 | `id_producto` nulo, 0 o negativo | `400`; no se guarda nada | `enviarContacto_conIdProductoInvalido_retorna400` | Pendiente: T05-HU05 (#170) |
-| CON-09 | Petición sin token | `401`; no se guarda nada | `enviarContacto_sinToken_retorna401` | Pendiente: T05-HU05 (#170) |
-| CON-10 | Token inválido o expirado | `401`; no se guarda nada | `enviarContacto_conTokenInvalido_retorna401` | Pendiente: T05-HU05 (#170) |
-| CON-11 | Agricultor autenticado | `403`; no se guarda nada | `enviarContacto_conRolAgricultor_retorna403` | Pendiente: T05-HU05 (#170) |
-| CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Pendiente: T05-HU05 (#170) |
+| CON-01 | Comprador envía `id_producto` y mensaje válidos | `200`; se guarda un mensaje con el comprador del token, el producto y la fecha del servidor | `enviarContacto_conDatosValidos_retorna200YPersiste` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-02 | Envía un `id_producto` que no existe | `404`; no se guarda nada | `enviarContacto_conProductoInexistente_retorna404` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-03 | Producto `INACTIVO` | `400`; no se guarda nada | `enviarContacto_conProductoInactivo_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-04 | Producto `AGOTADO` | `400`; no se guarda nada | `enviarContacto_conProductoAgotado_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-05 | Producto `ACTIVO` con stock 0 | `400`; no se guarda nada | `enviarContacto_conStockCero_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-06 | `mensaje` nulo, vacío o solo espacios | `400`; no se guarda nada | `enviarContacto_conMensajeVacio_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-07 | Mensaje de 2000 y de 2001 caracteres | El de 2000 responde `200`; el de 2001 responde `400` | `enviarContacto_conMensajeEnElLimite_aceptaHasta2000` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-08 | `id_producto` nulo, 0 o negativo | `400`; no se guarda nada | `enviarContacto_conIdProductoInvalido_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-09 | Petición sin token | `401`; no se guarda nada | `enviarContacto_sinToken_retorna401` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-10 | Token inválido o expirado | `401`; no se guarda nada | `enviarContacto_conTokenInvalido_retorna401` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-11 | Agricultor autenticado | `403`; no se guarda nada | `enviarContacto_conRolAgricultor_retorna403` | Verificado: `ContactoControllerIntegrationTest` |
+| CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Verificado: `ContactoControllerIntegrationTest` |
 | CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` | Cobertura parcial: `ContactoServiceTest#enviar_conCompradorSinPerfil_lanzaAccesoDenegadoSinGuardar`; integración pendiente en #170 |
-| CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` | Pendiente: T05-HU05 (#170) |
+| CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: `ContactoControllerIntegrationTest` |
 | CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `enviarContacto_conJsonMalFormado_retorna400` | Cobertura parcial: `ContactoControllerWebTest#enviarContacto_conJsonMalFormado_retorna400ConElMapaJson`; integración pendiente en #170 |
 
 ## HU-16 — Inicio de Sesión
