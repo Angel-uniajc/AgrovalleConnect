@@ -94,7 +94,7 @@ Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md).
 | Login real del comprador | `200 OK`, token con rol y perfil del comprador | `AuthLoginIntegrationTest.login_compradorRegistrado_retornaTokenConRolYPerfilDelComprador` |
 | Compatibilidad HU-01 (JSON sin `rol`) | `201 Created` como AGRICULTOR | `AuthControllerIntegrationTest.registroExitoso_persisteYGuardaHashNoTextoPlano`, `AuthControllerIntegrationTest.registrarAgricultor_conRolExplicito_persistePerfilDeAgricultor` |
 
-Los nombres de estas pruebas todavía no están en una planificación del Sprint 3, porque `docs/sprint-3-planning.md` aún no existe. Se agregarán ahí cuando se cree.
+Los nombres de estas pruebas también están agrupados por clase en la [planificación del Sprint 3](sprint-3-planning.md#hu-17-lo-ejecutado-y-lo-pendiente), junto con el estado de las tareas de HU-17.
 
 ## Cómo verificar
 

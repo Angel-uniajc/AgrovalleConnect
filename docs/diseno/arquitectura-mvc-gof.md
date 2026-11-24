@@ -19,12 +19,12 @@ Al ser una API REST, la **Vista (View)** es el cliente externo (aplicación web 
 
 | # | Capa | Responsabilidad | Paquetes / componentes |
 |---|---|---|---|
-| 1 | Presentación / REST | Recibir peticiones HTTP, validar los DTO de entrada, devolver respuestas y traducir errores a códigos HTTP | `controller` (`AuthController`), `dto` (`RegistroAgricultorRequest`, `RegistroAgricultorResponse`), `exception` (`ManejadorErrores`) |
-| 2 | Servicio / Dominio | Reglas de negocio, validaciones de unicidad, hash de contraseña, control transaccional, entidades y comunicación por eventos | `service` (`AgricultorRegisterService`, `CosechaService`), `model` (`Usuario`, `Agricultor`), `event` (`CosechaPublicadaEvent`), `listener` (`CosechaPublicadaListener`) |
-| 3 | Repositorio / Acceso a datos | Consultas y persistencia mediante Spring Data JPA | `repository` (`UsuarioRepository`, `AgricultorRepository`) |
+| 1 | Presentación / REST | Recibir peticiones HTTP, validar los DTO de entrada, devolver respuestas y traducir errores a códigos HTTP | `controller` (`AuthController`, `FincaController`, `ProductoController`, `ContactoController`), `dto` (un `record` de entrada y otro de salida por caso de uso; el registro usa el tipo común `RegistroRequest` con `RegistroAgricultorRequest` y `RegistroCompradorRequest`), `exception` (`ManejadorErrores` y las excepciones de negocio, como `RecursoDuplicadoException` y sus subclases) |
+| 2 | Servicio / Dominio | Reglas de negocio, validaciones de unicidad, hash de contraseña, control transaccional, entidades y comunicación por eventos | `service` (`AgricultorRegisterService`, `CompradorRegisterService`, `AutenticacionService`, `FincaService`, `CosechaService`, `CatalogoService`, `ContactoService`), `mapper` (`AgricultorMapper`, `CompradorMapper`, `CatalogoMapper`), `model` (`Usuario`, `Agricultor`, `Comprador`, `Finca`, `Municipio`, `Categoria`, `Producto`, `MensajeContacto`), `event` (`CosechaPublicadaEvent`), `listener` (`CosechaPublicadaListener`) |
+| 3 | Repositorio / Acceso a datos | Consultas y persistencia mediante Spring Data JPA | `repository` (`UsuarioRepository`, `AgricultorRepository`, `CompradorRepository`, `FincaRepository`, `MunicipioRepository`, `CategoriaRepository`, `ProductoRepository`, `MensajeContactoRepository`) |
 | 4 | Persistencia | Almacenamiento relacional | PostgreSQL |
 
-El paquete `config` (por ejemplo `SecurityConfig`, que declara el bean de `PasswordEncoder`) es transversal a las capas.
+Los paquetes `config` (`SecurityConfig`, que declara el bean de `PasswordEncoder`, y los cargadores de municipios y categorías) y `security` (`JwtAuthenticationFilter` y `JwtUtil`) son transversales a las capas.
 
 Las entidades de `model` pertenecen al **Dominio**: el repositorio las usa para mapearlas a las tablas, pero nunca salen por la API.
 
@@ -58,27 +58,80 @@ flowchart TD
 src/main/java/com/agrovalleconnect/agrovalle_connect/
 ├── AgrovalleConnectApplication.java
 ├── config/
+│   ├── CargadorCategorias.java
+│   ├── CargadorMunicipios.java
 │   └── SecurityConfig.java
 ├── controller/
-│   └── AuthController.java
+│   ├── AuthController.java
+│   ├── ContactoController.java
+│   ├── FincaController.java
+│   └── ProductoController.java
 ├── dto/
+│   ├── LecturaJsonEstricta.java
+│   ├── LoginRequest.java
+│   ├── LoginResponse.java
+│   ├── MensajeContactoRequest.java
+│   ├── MensajeContactoResponse.java
+│   ├── OfertaCatalogoResponse.java
+│   ├── PublicarCosechaRequest.java
+│   ├── PublicarCosechaResponse.java
 │   ├── RegistroAgricultorRequest.java
-│   └── RegistroAgricultorResponse.java
+│   ├── RegistroAgricultorResponse.java
+│   ├── RegistroCompradorRequest.java
+│   ├── RegistroCompradorResponse.java
+│   ├── RegistroFincaRequest.java
+│   ├── RegistroFincaResponse.java
+│   ├── RegistroRequest.java
+│   └── ReglasRegistro.java
 ├── event/
 │   └── CosechaPublicadaEvent.java
 ├── exception/
-│   └── ManejadorErrores.java
+│   ├── AccesoDenegadoException.java
+│   ├── CategoriaInvalidaException.java
+│   ├── CedulaDuplicadaException.java
+│   ├── CorreoDuplicadoException.java
+│   ├── CredencialesInvalidasException.java
+│   ├── DocumentoDuplicadoException.java
+│   ├── ManejadorErrores.java
+│   ├── MunicipioNoPermitidoException.java
+│   ├── ProductoNoDisponibleException.java
+│   ├── RecursoDuplicadoException.java
+│   └── RecursoNoEncontradoException.java
 ├── listener/
 │   └── CosechaPublicadaListener.java
+├── mapper/
+│   ├── AgricultorMapper.java
+│   ├── CatalogoMapper.java
+│   └── CompradorMapper.java
 ├── model/
 │   ├── Agricultor.java
+│   ├── Categoria.java
+│   ├── Comprador.java
+│   ├── Finca.java
+│   ├── MensajeContacto.java
+│   ├── Municipio.java
+│   ├── Producto.java
 │   └── Usuario.java
 ├── repository/
 │   ├── AgricultorRepository.java
+│   ├── CategoriaRepository.java
+│   ├── CompradorRepository.java
+│   ├── FincaRepository.java
+│   ├── MensajeContactoRepository.java
+│   ├── MunicipioRepository.java
+│   ├── ProductoRepository.java
 │   └── UsuarioRepository.java
+├── security/
+│   ├── JwtAuthenticationFilter.java
+│   └── JwtUtil.java
 └── service/
     ├── AgricultorRegisterService.java
-    └── CosechaService.java
+    ├── AutenticacionService.java
+    ├── CatalogoService.java
+    ├── CompradorRegisterService.java
+    ├── ContactoService.java
+    ├── CosechaService.java
+    └── FincaService.java
 ```
 
 ## 3. Diagrama de clases
@@ -229,10 +282,11 @@ Los patrones provienen de distintos catálogos: algunos son GoF (Gang of Four) y
 | **DTO** | Arquitectura empresarial (PoEAA) | `RegistroAgricultorRequest` y `RegistroAgricultorResponse` | Son `record` de Java (inmutables) que aíslan las entidades de la API: solo viaja lo necesario y el modelo interno puede cambiar sin romper el contrato |
 | **IoC / inyección por constructor** | Principio de diseño (Spring) | `AuthController` y `AgricultorRegisterService` | El contenedor de Spring crea y entrega las dependencias; las clases no se instancian entre sí, lo que facilita las pruebas |
 | **Builder** | GoF (creacional) | `@Builder` de Lombok en `Usuario` y `Agricultor`, usado en `registrar` | Construcción legible de entidades con muchos atributos, sin constructores largos |
-| **Mapper** | Arquitectura empresarial (PoEAA) | `AgricultorMapper` convierte `RegistroAgricultorRequest` en `Usuario` y `Agricultor` | Separa el paso de DTO a entidad del servicio y del controlador |
+| **Mapper** | Arquitectura empresarial (PoEAA) | `AgricultorMapper` convierte `RegistroAgricultorRequest` en `Usuario` y `Agricultor`, `CompradorMapper` convierte `RegistroCompradorRequest` en `Usuario` y `Comprador` y arma la respuesta, y `CatalogoMapper` convierte `Producto` en `OfertaCatalogoResponse` | Separa el paso entre DTO y entidad del servicio y del controlador |
 | **Singleton** | GoF (creacional) | Beans de Spring (`@Service`, `@RestController`, `@Configuration`) | El contenedor crea una única instancia por bean (alcance singleton por defecto) |
 | **Strategy** | GoF (comportamiento) | `PasswordEncoder` (interfaz) y `BCryptPasswordEncoder` (estrategia concreta) | El algoritmo de hash se puede cambiar modificando solo el bean de `SecurityConfig` |
 | **Proxy** | GoF (estructural) | `@Transactional` en `AgricultorRegisterService` | Spring envuelve el servicio en un proxy (AOP) que abre, confirma o revierte la transacción |
+| **Template Method** | GoF (comportamiento) | `TransactionTemplate` en `CompradorRegisterService` | Spring fija los pasos de la transacción (abrir, confirmar o deshacer) y el servicio solo aporta el paso de guardar `Usuario` y `Comprador`. Se usa en vez de `@Transactional` para poder revisar duplicados después del `ROLLBACK` |
 | **Facade** | GoF (estructural) | `AgricultorRegisterService.registrar(...)` | Un único punto de entrada que oculta la coordinación de dos repositorios, el hash y la transacción |
 | **Observer** | GoF (comportamiento) | `CosechaService`, `CosechaPublicadaEvent` y `CosechaPublicadaListener` | El servicio publica un evento de Spring tras guardar el producto; los observadores reaccionan sin que el servicio conozca sus implementaciones |
 
@@ -242,7 +296,7 @@ Nota: en **Singleton**, la instancia única la gestiona el contenedor de Spring 
 
 | Patrón | Propuesta de uso |
 |---|---|
-| **Factory Method** | Crear usuarios según el `Rol` (`AGRICULTOR`, `COMPRADOR`) cuando se agregue el registro de compradores |
+| **Factory Method** | Ya no hace falta para HU-17: el registro de compradores se resolvió con el tipo común `RegistroRequest` (interfaz *sealed*), `@JsonTypeInfo` construye el DTO según `rol` y `AuthController` envía cada caso a su servicio con un `switch`. Se puede retomar si aparecen más tipos de usuario |
 | **Observer para usuario registrado** | Propuesta de un evento de registro de usuarios para futuras notificaciones; es un flujo distinto de `CosechaPublicadaEvent`, ya implementado para HU-02 en la sección 5.2 |
 
 ### 5.2 Observer en la publicación de cosechas (T04-HU02)
@@ -279,7 +333,7 @@ Para futuras notificaciones a compradores, se pueden añadir observadores del mi
 |---|---|---|
 | **S: responsabilidad única** | `AgricultorMapper` construye `Usuario` y `Agricultor`. `AgricultorRegisterService` orquesta validaciones y guardado. `AuthController` atiende HTTP, delega en servicios y no conoce entidades. | PR #128 y #129 |
 | **O: abierto/cerrado** | `ManejadorErrores` responde 409 para `RecursoDuplicadoException`. Un duplicado nuevo se agrega como subclase, sin modificar el manejador. Un observador nuevo se agrega sin modificar `CosechaService`. | PR #128 y #130 |
-| **L: sustitución de Liskov** | `CorreoDuplicadoException` y `CedulaDuplicadaException` sustituyen a su clase base. El manejador las atiende por igual y conserva el contrato: 409 con el mensaje de la excepción. | `rechazaCorreoDuplicado` y `rechazaCedulaDuplicada` |
+| **L: sustitución de Liskov** | `CorreoDuplicadoException`, `CedulaDuplicadaException` y `DocumentoDuplicadoException` sustituyen a su clase base. El manejador las atiende por igual y conserva el contrato: 409 con el mensaje de la excepción. | `rechazaCorreoDuplicado` y `rechazaCedulaDuplicada` |
 | **I: segregación de interfaces** | `CosechaService` depende de `ApplicationEventPublisher`, que solo publica eventos, y no del contexto completo de Spring. Los DTO separan la entrada y la salida de cada caso de uso. | `CosechaService` y paquete `dto` |
 | **D: inversión de dependencias** | `AgricultorRegisterService` depende de la interfaz `PasswordEncoder` y `SecurityConfig` define la implementación BCrypt. Los servicios reciben por constructor las interfaces de repositorio, lo que permite aislarlos con Mockito. | `SecurityConfig` y pruebas de servicio |
 

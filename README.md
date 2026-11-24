@@ -171,6 +171,46 @@ cd agrovalle-connect
 
 Configura tu conexión local a PostgreSQL en `src/main/resources/application.properties` antes de ejecutar.
 
+## Ejemplo: registro e inicio de sesión de un comprador (HU-17)
+
+Con el proyecto corriendo en `http://localhost:8080`. Los datos son de prueba: el dominio `example.com` está reservado para ejemplos, así que no corresponden a una persona real. En Windows se puede enviar el mismo cuerpo JSON desde Postman.
+
+**1. Registro** (`POST /api/v1/auth/register`, responde `201 Created`):
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Restaurante La Ceiba","correo":"compras.laceiba@example.com","password":"Segura@2026","rol":"COMPRADOR","tipo_comprador":"restaurante","documento":"900123456"}'
+```
+
+```json
+{
+  "nombre": "Restaurante La Ceiba",
+  "rol": "COMPRADOR",
+  "tipo_comprador": "RESTAURANTE",
+  "mensaje": "Comprador registrado exitosamente"
+}
+```
+
+Si el correo o el documento ya existen, responde `409 Conflict`; si falta un campo o tiene un formato inválido, `400 Bad Request`. Sin el campo `rol`, el mismo endpoint registra un agricultor (HU-01).
+
+**2. Inicio de sesión** (`POST /api/v1/auth/login`, responde `200 OK`):
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"compras.laceiba@example.com","password":"Segura@2026"}'
+```
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "tipo": "Bearer"
+}
+```
+
+El token lleva el rol `COMPRADOR` y el `perfil_id` del comprador, y se envía en la cabecera `Authorization: Bearer <token>` para las rutas protegidas. El detalle está en el [contrato de HU-17](./docs/contrato-registro-hu17.md) y en la [secuencia del registro y el login](./docs/architecture/secuencia-registro-comprador-hu17.md).
+
 ## Consultar el catálogo de cosechas (HU-04)
 
 En Postman, configura `baseUrl` con la dirección del backend y selecciona **Authorization → Bearer Token**. Usa el token que devuelve `POST /api/v1/auth/login`. Tanto compradores como agricultores pueden consultar.
@@ -208,6 +248,7 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
 - [`docs/sprint-3-planning.md`](./docs/sprint-3-planning.md) — Planificación y demostración del catálogo en el Sprint 3.
 - [`docs/contrato-catalogo-hu04.md`](./docs/contrato-catalogo-hu04.md) — Filtros, respuestas y escenarios del catálogo.
+- [`docs/contrato-registro-hu17.md`](./docs/contrato-registro-hu17.md) — Contrato del registro de comprador (HU-17).
 - [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
