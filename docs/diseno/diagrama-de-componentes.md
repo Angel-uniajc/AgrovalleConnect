@@ -29,7 +29,7 @@ flowchart TB
         subgraph Modulos["Módulos de negocio — cada uno con Controller + Service + Repository"]
             AUTH["«component»<br/>AUTH<br/>HU-01 registro agricultor ✔<br/>HU-16 login ✔<br/>HU-17 registro comprador ✔"]
             FINCA["«component»<br/>FINCAS<br/>HU-14<br/>registrar finca por municipio"]
-            PROD["«component»<br/>PRODUCTOS y CATÁLOGO<br/>HU-02 publicar cosecha<br/>HU-04 filtro municipio y categoría"]
+            PROD["«component»<br/>PRODUCTOS y CATÁLOGO<br/>HU-02 publicar cosecha ✔<br/>HU-04 filtro municipio y categoría ✔"]
             CONT["«component»<br/>CONTACTO<br/>HU-05<br/>mensaje comprador a agricultor"]
             PED["«component»<br/>PEDIDOS<br/>HU-12 realizar pedido<br/>HU-08 validar stock<br/>HU-15 alistamiento"]
             PAGO["«component»<br/>PAGOS<br/>HU-07<br/>cobro y comprobante"]
@@ -95,8 +95,8 @@ flowchart TB
     classDef parcial fill:#ffe5b4,stroke:#e67e22,color:#000;
     classDef pendiente stroke-dasharray: 5 5,fill:#fff3cd,stroke:#b58900,color:#000;
     class JWT,SEC,PE,ME hecho;
-    class AUTH hecho;
-    class FINCA,PROD,CONT,PED,PAGO,LOG,CAL,REC,PRE,NOT pendiente;
+    class AUTH,PROD hecho;
+    class FINCA,CONT,PED,PAGO,LOG,CAL,REC,PRE,NOT pendiente;
 ```
 
 ---
@@ -198,7 +198,7 @@ flowchart LR
 | **ManejadorErrores** | todas | Traduce excepciones a HTTP: 409 (duplicados), 401 (credenciales inválidas) y 400 (validación, con detalle por campo). | — | ✅ |
 | **AUTH** | HU-01, 16, 17 | Registro de agricultor, registro de comprador y login (hechos). El campo `rol` decide qué registro se ejecuta. | `usuario`, `agricultor`, `comprador`, `usuario_telefono` | ✅ |
 | **FINCAS** | HU-14 | Registrar fincas asociadas a un municipio del Valle. | `finca`, `municipio` | pendiente |
-| **PRODUCTOS y CATÁLOGO** | HU-02, 04 | Publicar cosechas (publica el evento `CosechaPublicadaEvent`); filtrar por municipio y categoría. | `producto`, `finca`, `categoria`, `municipio` | pendiente |
+| **PRODUCTOS y CATÁLOGO** | HU-02, 04 | Publicar cosechas (publica el evento `CosechaPublicadaEvent`) y consultar el catálogo por municipio y categoría (`GET /api/v1/productos`), ambos hechos. | `producto`, `finca`, `categoria`, `municipio` | ✅ |
 | **CONTACTO** | HU-05 | Mensaje directo del comprador al agricultor. | `mensaje_contacto` | pendiente |
 | **PEDIDOS** | HU-12, 08, 15 | Crear pedido, validar stock, marcar alistamiento. | `pedido`, `detalle_pedido`, `producto` | pendiente |
 | **PAGOS** | HU-07 | Cobrar vía pasarela y registrar el pago. | `pago`, `pedido` | pendiente |
