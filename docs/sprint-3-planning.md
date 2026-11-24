@@ -32,7 +32,7 @@ En la línea base `caf1151`, HU-05 ya incluye el endpoint de contacto. Sus prueb
 
 ## Recorrido de demostración del catálogo
 
-Guion pendiente de ejecución. Iniciar el backend con una base de prueba inicializada. En Postman usar cuerpos JSON y, para fincas, publicación y consulta, seleccionar **Bearer Token** con el token del rol indicado. Los datos siguientes son ficticios.
+Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 2026. [Registro de las nueve respuestas](evidencias/sprint3-catalogo-http.json). Iniciar el backend con una base de prueba inicializada. En Postman usar cuerpos JSON y, para fincas, publicación y consulta, seleccionar **Bearer Token** con el token del rol indicado. Los datos siguientes son ficticios.
 
 1. Registrar al agricultor con `POST /api/v1/auth/register` y `{"nombre":"Ana Demo","ubicacion_valle":"Dagua","cedula":"12345678","correo":"ana@example.org","password":"Demo@1234"}`. Esperar `201`.
 2. Iniciar sesión con `POST /api/v1/auth/login` y `{"email":"ana@example.org","password":"Demo@1234"}`. Esperar `200` y guardar el campo `token`.

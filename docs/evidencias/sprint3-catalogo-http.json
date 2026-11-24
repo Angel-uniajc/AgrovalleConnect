@@ -1,0 +1,52 @@
+{
+  "fecha": "2026-11-24T13:21:13.0802031-05:00",
+  "entorno": "HTTP local; Spring Boot con Java 25 y H2 en memoria",
+  "commit": "a43f7b5",
+  "pasos": [
+    {
+      "estado": 201,
+      "respuesta": "{\"nombre\":\"Ana Prueba\",\"mensaje\":\"Agricultor registrado exitosamente\"}",
+      "ruta": "auth/register"
+    },
+    {
+      "estado": 200,
+      "respuesta": "JWT recibido (omitido)",
+      "ruta": "auth/login"
+    },
+    {
+      "estado": 201,
+      "respuesta": "{\"id\":1,\"nombre\":\"Finca Demo\",\"municipio\":\"Dagua\",\"vereda\":null,\"area_hectareas\":null}",
+      "ruta": "fincas"
+    },
+    {
+      "estado": 201,
+      "respuesta": "{\"id\":1}",
+      "ruta": "productos"
+    },
+    {
+      "estado": 201,
+      "respuesta": "{\"nombre\":\"Luis Demo\",\"rol\":\"COMPRADOR\",\"tipo_comprador\":\"COMERCIANTE\",\"mensaje\":\"Comprador registrado exitosamente\"}",
+      "ruta": "auth/register"
+    },
+    {
+      "estado": 200,
+      "respuesta": "JWT recibido (omitido)",
+      "ruta": "auth/login"
+    },
+    {
+      "estado": 200,
+      "respuesta": "[{\"id\":1,\"tipo\":\"Mango\",\"cantidad_disponible\":25.00,\"precio_unitario\":3200.00,\"fecha_cosecha\":\"2026-11-24\",\"categoria\":\"Frutas\",\"finca_id\":1,\"municipio\":\"Dagua\"}]",
+      "ruta": "productos?municipio=Dagua&categoria=Frutas"
+    },
+    {
+      "estado": 200,
+      "respuesta": "[]",
+      "ruta": "productos?municipio=Inexistente"
+    },
+    {
+      "estado": 401,
+      "respuesta": "",
+      "ruta": "productos?municipio=Dagua&categoria=Frutas"
+    }
+  ]
+}
