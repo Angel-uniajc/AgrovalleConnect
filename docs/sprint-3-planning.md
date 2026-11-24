@@ -28,7 +28,7 @@ El compromiso suma **11 puntos de historia**: HU-17 (registro de comprador, 5), 
 | [#171](https://github.com/Angel-uniajc/AgrovalleConnect/issues/171) | T06-HU05 — Documentar el contacto y la demostración del Sprint 3 | 1 |
 | **Total** | **HU-17: 21 h · HU-04: 16 h · HU-05: 12 h** | **49** |
 
-En la línea base `caf1151`, HU-05 ya incluye el endpoint de contacto. Sus pruebas BDD (#170) y la documentación final (#171) siguen pendientes en esa línea base.
+En la línea base `0233ff4`, HU-05 incluye el endpoint de contacto y sus pruebas BDD de persistencia y seguridad. T06-HU05 completa la secuencia, el recorrido reproducible y la consulta de persistencia en PostgreSQL/staging.
 
 ## HU-17: lo ejecutado y lo pendiente
 
@@ -74,3 +74,40 @@ Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 
 7. Consultar `GET /api/v1/productos?municipio=Dagua&categoria=Frutas` con el token del comprador. Esperar `200` y localizar el ID del producto del paso 4. Con un municipio inexistente se espera `200` y `[]`. Al quitar el token se espera `401`.
 
 [Ejemplos de consulta](../README.md) · [Contrato HU-04](contrato-catalogo-hu04.md) · [Matriz BDD](trazabilidad-bdd.md)
+
+## Recorrido de demostración de HU-05: contacto directo
+
+Este recorrido complementa la verificación automatizada de T05-HU05 (#170). Usa datos ficticios y se ejecuta con el backend conectado a PostgreSQL/staging:
+
+1. Registrar y autenticar un agricultor; crear una finca y publicar una cosecha activa con stock positivo. Guardar `id_producto`.
+2. Registrar y autenticar un comprador con `rol: COMPRADOR`. Enviar el token del comprador como `Authorization: Bearer <token>`.
+3. Ejecutar `POST /api/v1/contacto/mensaje` con:
+
+```json
+{
+  "id_producto": 1,
+  "mensaje": "Estoy interesado en comprar esta cosecha."
+}
+```
+
+4. Comprobar el `200 OK` con `id`, `id_producto` y `fecha_envio`. En la consola SQL ejecutar:
+
+```sql
+SELECT mc.id, mc.comprador_id, mc.producto_id, mc.mensaje, mc.fecha_envio,
+       u.correo AS comprador_correo
+FROM mensaje_contacto mc
+JOIN comprador c ON c.id = mc.comprador_id
+JOIN usuario u ON u.id = c.usuario_id
+WHERE mc.producto_id = 1
+ORDER BY mc.id DESC;
+```
+
+5. Consultar la oferta para confirmar que el stock no cambió:
+
+```sql
+SELECT id, cantidad_disponible, estado
+FROM producto
+WHERE id = 1;
+```
+
+La fila de `mensaje_contacto` debe asociarse al comprador del JWT y la fecha debe ser la asignada por el servidor. La prueba automatizada equivalente es [`ContactoControllerIntegrationTest`](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ContactoControllerIntegrationTest.java), que cubre CON-01 a CON-15 con H2 aislada. La evidencia y el guion SQL están en [`docs/evidencias/sprint3-contacto.md`](evidencias/sprint3-contacto.md).

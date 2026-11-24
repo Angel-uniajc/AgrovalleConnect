@@ -1,12 +1,12 @@
-# Diagramas de secuencia (HU-01, HU-16, HU-14, HU-02, HU-04 y uso del token JWT) - AgroValle Connect
+# Diagramas de secuencia (HU-01, HU-16, HU-14, HU-02, HU-04, HU-05 y uso del token JWT) - AgroValle Connect
 
 Documento de diseño asociado a las tareas **T05-DIS (#78)** y **T10-DIS (#145)**, parte del Sprint de Diseño (#73).
 
-La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02. La sección 10 incorpora T06-HU04 para consultar el catálogo. La secuencia de HU-17 (T08-HU17, #159) está en un archivo aparte, [secuencia-registro-comprador-hu17.md](../architecture/secuencia-registro-comprador-hu17.md), porque la docente pidió el 19/11 que los diagramas nuevos fueran en archivos separados.
+La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02. La sección 10 incorpora T06-HU04 para consultar el catálogo. La sección 2.3 incorpora T06-HU05 para el contacto directo. La secuencia de HU-17 (T08-HU17, #159) está en un archivo aparte, [secuencia-registro-comprador-hu17.md](../architecture/secuencia-registro-comprador-hu17.md), porque la docente pidió el 19/11 que los diagramas nuevos fueran en archivos separados.
 
 ## 1. Contexto y objetivo
 
-Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela cinco historias de usuario y el uso del token JWT en un endpoint protegido:
+Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela seis historias de usuario y el uso del token JWT en un endpoint protegido:
 
 | Historia | Descripción | Sección | 
 | ----- | ----- | ----- | 
@@ -16,6 +16,7 @@ Un diagrama de secuencia muestra **en qué orden** se envían mensajes los compo
 | HU-14 | Registro de una finca por un agricultor autenticado | 6 | 
 | HU-02 | Publicación de una cosecha con evento Observer | 9 |
 | HU-04 | Consulta del catálogo por municipio y categoría | 10 |
+| HU-05 | Contacto directo del comprador sobre una oferta | 2.3 |
 | HU-17 | Registro e inicio de sesión de un comprador | [Archivo aparte](../architecture/secuencia-registro-comprador-hu17.md) |
 
 Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama_de_despliegue.md`.
@@ -49,6 +50,10 @@ El diseño de HU-16 refleja las piezas integradas en los PR #87, #88, #91 y #92.
 | `FincaRepository`, `CategoriaRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Consultan la finca y la categoría y persisten el producto. `ProductoRepository` consulta ofertas disponibles según los filtros del catálogo | HU-02, HU-04 |
 | `ApplicationEventPublisher` | Infraestructura de eventos de Spring | Distribuye `CosechaPublicadaEvent` a sus observadores | HU-02 |
 | `CosechaPublicadaListener` | Servicio / Dominio | Recibe el evento de forma síncrona y registra la publicación | HU-02 |
+| `ContactoController` | Presentación / REST | Recibe `POST /api/v1/contacto/mensaje`, valida el cuerpo y obtiene el correo desde `Authentication` | HU-05 |
+| `ContactoService` | Servicio / Dominio | Verifica comprador y producto disponible, crea el mensaje dentro de una transacción y no modifica stock | HU-05 |
+| `MensajeContactoRequest` y `MensajeContactoResponse` | DTO | Validan `id_producto` y `mensaje`, y exponen solo el ID, producto y fecha del mensaje | HU-05 |
+| `CompradorRepository`, `MensajeContactoRepository` y `ProductoRepository` | Repositorio / Acceso a datos | Buscan el comprador/producto y persisten la interacción | HU-05 |
 | PostgreSQL | Persistencia | Almacena usuarios, agricultores, fincas, municipios, categorías y productos | HU-01, HU-16, HU-02 |
 
 ## 3. HU-01: Registro de un agricultor
@@ -116,6 +121,108 @@ sequenceDiagram
         end
     end
 ```
+
+## 2.3. HU-05 · Contacto directo del comprador
+
+Corresponde a T06-HU05 ([#171](https://github.com/Angel-uniajc/AgrovalleConnect/issues/171)) y describe `POST /api/v1/contacto/mensaje` en `develop` (`0233ff4`). El comprador se identifica por el JWT; el cuerpo solo contiene `id_producto` y `mensaje`. [Escenarios CON-01 a CON-15](../trazabilidad-bdd.md#hu-05--contacto-directo-implementado-y-verificado)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor B as Comprador
+    participant J as JwtAuthenticationFilter
+    participant SC as SecurityConfig
+    participant C as ContactoController
+    participant S as ContactoService
+    participant CR as CompradorRepository
+    participant PR as ProductoRepository
+    participant MR as MensajeContactoRepository
+    participant DB as PostgreSQL
+    participant E as ManejadorErrores
+
+    B->>J: POST /api/v1/contacto/mensaje + Bearer JWT
+    J->>SC: Validar firma y rol
+    alt Sin token, token inválido o expirado
+        SC-->>B: 401 Unauthorized
+    else Token de agricultor
+        SC-->>B: 403 Forbidden
+    else Token COMPRADOR
+        SC->>C: Autorizar petición
+        C->>C: Deserializar MensajeContactoRequest y aplicar @Valid
+        alt JSON mal formado o id_producto/mensaje inválidos
+            C->>E: HttpMessageNotReadableException o MethodArgumentNotValidException
+            E-->>B: 400 Bad Request
+        else Cuerpo válido
+            C->>S: enviar(authentication.getName(), request)
+            S->>CR: findByUsuarioCorreo(correo)
+            CR->>DB: Buscar perfil comprador
+            DB-->>CR: Comprador o ausencia
+            alt Comprador sin perfil
+                S-->>E: AccesoDenegadoException
+                E-->>B: 403 Acceso denegado
+            else Comprador encontrado
+                S->>PR: findById(id_producto)
+                PR->>DB: Buscar producto
+                DB-->>PR: Producto o ausencia
+                alt Producto inexistente
+                    S-->>E: RecursoNoEncontradoException
+                    E-->>B: 404 Producto no encontrado
+                else Producto inactivo, agotado o con stock cero
+                    S-->>E: ProductoNoDisponibleException
+                    E-->>B: 400 Producto no disponible
+                else Producto disponible
+                    S->>S: Crear MensajeContacto con fecha del servidor
+                    S->>MR: save(mensaje)
+                    MR->>DB: INSERT mensaje_contacto
+                    DB-->>MR: Fila persistida
+                    MR-->>S: MensajeContacto guardado
+                    S-->>C: MensajeContactoResponse
+                    C-->>B: 200 id, id_producto y fecha_envio
+                end
+            end
+        end
+    end
+```
+
+La transacción de `ContactoService` solo persiste `mensaje_contacto`: no descuenta stock, no crea pedidos y las relaciones JPA no usan cascada de borrado. La respuesta es un DTO y no expone correo, documento, contraseña ni hash.
+
+### 11.1 Recorrido de demostración y consulta de persistencia
+
+Con el backend levantado y una base de prueba inicializada, ejecutar en Postman:
+
+1. Registrar un agricultor con `POST /api/v1/auth/register` y autenticarse con `POST /api/v1/auth/login`.
+2. Crear una finca con `POST /api/v1/fincas` y publicar una oferta activa con stock positivo mediante `POST /api/v1/productos`. Guardar `id_producto`.
+3. Registrar un comprador con `POST /api/v1/auth/register` usando `rol: COMPRADOR`, iniciar sesión y guardar su JWT.
+4. Enviar `POST /api/v1/contacto/mensaje` con el token del comprador y este cuerpo ficticio:
+
+```json
+{
+  "id_producto": 1,
+  "mensaje": "Estoy interesado en comprar esta cosecha."
+}
+```
+
+5. Esperar `200 OK` con `id`, `id_producto` y `fecha_envio`. Consultar la base con la herramienta SQL del proveedor:
+
+```sql
+SELECT mc.id, mc.comprador_id, mc.producto_id, mc.mensaje, mc.fecha_envio,
+       u.correo AS comprador_correo
+FROM mensaje_contacto mc
+JOIN comprador c ON c.id = mc.comprador_id
+JOIN usuario u ON u.id = c.usuario_id
+WHERE mc.producto_id = 1
+ORDER BY mc.id DESC;
+```
+
+La fila debe tener el `comprador_id` correspondiente al token, el `producto_id` enviado y la fecha asignada por el servidor. Para comprobar que el contacto no altera la oferta:
+
+```sql
+SELECT id, cantidad_disponible, estado
+FROM producto
+WHERE id = 1;
+```
+
+La matriz de trazabilidad se verifica automáticamente con `ContactoControllerIntegrationTest` (CON-01 a CON-15) usando H2 aislada; la consulta SQL anterior es el paso de demostración para PostgreSQL/staging.
 
 ### 3.3 Explicación del flujo
 
@@ -595,7 +702,7 @@ El listener actual escribe en consola. Los futuros efectos externos, como correo
 
 ## 10. HU-04 · Consulta del catálogo
 
-Corresponde a T06-HU04 ([#165](https://github.com/Angel-uniajc/AgrovalleConnect/issues/165)). Describe el endpoint implementado en `develop` en el commit `caf1151`.
+Corresponde a T06-HU04 ([#165](https://github.com/Angel-uniajc/AgrovalleConnect/issues/165)). Describe el endpoint implementado en `develop` en el commit `0233ff4`.
 
 Dado un comprador autenticado y ofertas de varios municipios, cuando consulta Dagua y Frutas, recibe las ofertas disponibles que cumplen ambos filtros. El agricultor autenticado puede realizar la misma consulta. [Escenarios CAT-01 a CAT-15](../trazabilidad-bdd.md#hu-04--catálogo-y-filtros)
 
