@@ -38,27 +38,27 @@ Contrato definido en [contrato-catalogo-hu04.md](contrato-catalogo-hu04.md#4-esc
 | CAT-14 | Agricultor autenticado consulta el catálogo | `200` con las mismas reglas de selección; no recibe `403` por su rol | `CatalogoIntegrationTest#consultarCatalogo_conRolAgricultor_retorna200` |
 | CAT-15 | Consulta nombres parciales, sin la tilde requerida, o con `%`/`_` | No se amplía la coincidencia literal de nombre completo; `[]` si no existe ese nombre | `CatalogoIntegrationTest#consultarCatalogo_conNombreNoExacto_noAmpliaLaBusqueda` |
 
-## HU-05 — Contacto directo (implementado; verificación integral pendiente)
+## HU-05 — Contacto directo (implementado y verificado)
 
-Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU05 (#166). Los Given/When/Then completos están allí. **El endpoint `POST /api/v1/contacto/mensaje`, la entidad `MensajeContacto` y `ContactoService` ya están implementados** en la línea base `caf1151`. Existen pruebas parciales de DTO, repositorio, servicio y controlador, incluidas `ContactoServiceTest` y `ContactoControllerWebTest`. Los nombres de la columna «Prueba propuesta» corresponden al recorrido integral pendiente: no deben interpretarse como pruebas ya ejecutadas. T05-HU05 (#170) completa la verificación con persistencia real; T06-HU05 (#171) documenta la demostración.
+Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-escenarios-bdd-y-nombres-de-prueba-propuestos), asociado a T01-HU05 (#166). Los Given/When/Then completos están allí. **El endpoint `POST /api/v1/contacto/mensaje`, la entidad `MensajeContacto` y `ContactoService` están implementados y verificados** con persistencia real en H2, comprador registrado mediante HU-17 y producto publicado por un agricultor. T05-HU05 (#170) completó la verificación con [`ContactoControllerIntegrationTest`](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ContactoControllerIntegrationTest.java): cada fila enlaza su prueba real. Complementan la cobertura `ContactoServiceTest` y `ContactoControllerWebTest`. T06-HU05 (#171) documenta la demostración.
 
-| ID BDD | Consulta o condición | Resultado esperado | Prueba propuesta | Estado |
+| ID BDD | Consulta o condición | Resultado esperado | Prueba real | Estado |
 |---|---|---|---|---|
-| CON-01 | Comprador envía `id_producto` y mensaje válidos | `200`; se guarda un mensaje con el comprador del token, el producto y la fecha del servidor | `enviarContacto_conDatosValidos_retorna200YPersiste` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-02 | Envía un `id_producto` que no existe | `404`; no se guarda nada | `enviarContacto_conProductoInexistente_retorna404` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-03 | Producto `INACTIVO` | `400`; no se guarda nada | `enviarContacto_conProductoInactivo_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-04 | Producto `AGOTADO` | `400`; no se guarda nada | `enviarContacto_conProductoAgotado_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-05 | Producto `ACTIVO` con stock 0 | `400`; no se guarda nada | `enviarContacto_conStockCero_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-06 | `mensaje` nulo, vacío o solo espacios | `400`; no se guarda nada | `enviarContacto_conMensajeVacio_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-07 | Mensaje de 2000 y de 2001 caracteres | El de 2000 responde `200`; el de 2001 responde `400` | `enviarContacto_conMensajeEnElLimite_aceptaHasta2000` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-08 | `id_producto` nulo, 0 o negativo | `400`; no se guarda nada | `enviarContacto_conIdProductoInvalido_retorna400` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-09 | Petición sin token | `401`; no se guarda nada | `enviarContacto_sinToken_retorna401` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-10 | Token inválido o expirado | `401`; no se guarda nada | `enviarContacto_conTokenInvalido_retorna401` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-11 | Agricultor autenticado | `403`; no se guarda nada | `enviarContacto_conRolAgricultor_retorna403` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `enviarContacto_conCompradorSinPerfil_retorna403` | Cobertura parcial: `ContactoServiceTest#enviar_conCompradorSinPerfil_lanzaAccesoDenegadoSinGuardar`; integración pendiente en #170 |
-| CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: `ContactoControllerIntegrationTest` |
-| CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `enviarContacto_conJsonMalFormado_retorna400` | Cobertura parcial: `ContactoControllerWebTest#enviarContacto_conJsonMalFormado_retorna400ConElMapaJson`; integración pendiente en #170 |
+| CON-01 | Comprador envía `id_producto` y mensaje válidos | `200`; se guarda un mensaje con el comprador del token, el producto y la fecha del servidor | `ContactoControllerIntegrationTest#enviarContacto_conDatosValidos_retorna200YPersiste` | Verificado: T05-HU05 (#170) |
+| CON-02 | Envía un `id_producto` que no existe | `404`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conProductoInexistente_retorna404` | Verificado: T05-HU05 (#170) |
+| CON-03 | Producto `INACTIVO` | `400`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conProductoInactivo_retorna400` | Verificado: T05-HU05 (#170) |
+| CON-04 | Producto `AGOTADO` | `400`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conProductoAgotado_retorna400` | Verificado: T05-HU05 (#170) |
+| CON-05 | Producto `ACTIVO` con stock 0 | `400`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conStockCero_retorna400` | Verificado: T05-HU05 (#170) |
+| CON-06 | `mensaje` nulo, vacío o solo espacios | `400`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conMensajeVacio_retorna400` | Verificado: T05-HU05 (#170) |
+| CON-07 | Mensaje de 2000 y de 2001 caracteres | El de 2000 responde `200`; el de 2001 responde `400` | `ContactoControllerIntegrationTest#enviarContacto_conMensajeEnElLimite_aceptaHasta2000` | Verificado: T05-HU05 (#170) |
+| CON-08 | `id_producto` nulo, 0 o negativo | `400`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conIdProductoInvalido_retorna400` | Verificado: T05-HU05 (#170) |
+| CON-09 | Petición sin token | `401`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_sinToken_retorna401` | Verificado: T05-HU05 (#170) |
+| CON-10 | Token inválido o expirado | `401`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conTokenInvalido_retorna401` | Verificado: T05-HU05 (#170) |
+| CON-11 | Agricultor autenticado | `403`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conRolAgricultor_retorna403` | Verificado: T05-HU05 (#170) |
+| CON-12 | Cuerpo con `comprador_id` de otro comprador | `200`; el mensaje queda a nombre del comprador del token | `ContactoControllerIntegrationTest#enviarContacto_conCompradorIdEnElCuerpo_loIgnora` | Verificado: T05-HU05 (#170) |
+| CON-13 | Token de rol `COMPRADOR` sin perfil de comprador | `403` con mensaje genérico; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conCompradorSinPerfil_retorna403` | Verificado: T05-HU05 (#170) |
+| CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `ContactoControllerIntegrationTest#enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: T05-HU05 (#170) |
+| CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conJsonMalFormado_retorna400` | Verificado: T05-HU05 (#170) |
 
 ## HU-16 — Inicio de Sesión
 
@@ -104,4 +104,4 @@ HU-17 se verifica con las pruebas de la tabla anterior: en las de integración, 
 
 `./mvnw test` ejecuta todas las pruebas listadas. Un escenario sin prueba en esta tabla es una brecha de trazabilidad.
 
-HU-04 se verifica con `CatalogoIntegrationTest` (`./mvnw test -Dtest=CatalogoIntegrationTest`). HU-05 ya cuenta con pruebas parciales ejecutables con Maven, entre ellas `ContactoServiceTest` y `ContactoControllerWebTest`. La tabla conserva los nombres propuestos para la verificación integral de T05-HU05 (#170), que deberá sustituirlos por referencias a las pruebas reales correspondientes; esto no implica que el endpoint esté pendiente de implementación.
+HU-04 se verifica con `CatalogoIntegrationTest` (`./mvnw test -Dtest=CatalogoIntegrationTest`). HU-05 se verifica con `ContactoControllerIntegrationTest` (`./mvnw test -Dtest=ContactoControllerIntegrationTest`), que cubre CON-01 a CON-15 con persistencia real, y se complementa con `ContactoServiceTest` y `ContactoControllerWebTest`.
