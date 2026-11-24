@@ -134,7 +134,7 @@ Vista general adaptada del [diagrama de componentes](../diseno/diagrama-de-compo
 flowchart TB
     Cliente["Cliente HTTP"] --> Seguridad["JwtAuthenticationFilter y SecurityConfig"]
     subgraph Backend["Backend Spring Boot · Java 25"]
-        Seguridad --> Controladores["REST: AuthController, FincaController y ProductoController"]
+        Seguridad --> Controladores["REST: AuthController, FincaController, ProductoController y ContactoController"]
         Controladores --> Auth["Registro por rol e inicio de sesión"]
         Controladores --> Fincas["FincaService"]
         Controladores --> Cosechas["CosechaService"]
@@ -146,7 +146,10 @@ flowchart TB
         Eventos --> Observer["CosechaPublicadaListener: log"]
         Controladores --> Catalogo["CatalogoService: consulta de ofertas"]
         Catalogo --> JPA
-        Contacto["MensajeContactoRepository"] --> JPA
+        Controladores --> Contacto["ContactoService: envío de mensajes"]
+        Contacto --> ContactoRepo["MensajeContactoRepository"]
+        ContactoRepo --> JPA
+        Contacto --> JPA
         Controladores -.-> Errores["ManejadorErrores: respuestas HTTP"]
     end
     JPA --> DB[("PostgreSQL")]
