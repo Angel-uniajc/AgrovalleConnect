@@ -171,29 +171,6 @@ cd agrovalle-connect
 
 Configura tu conexión local a PostgreSQL en `src/main/resources/application.properties` antes de ejecutar.
 
-## Convención de Commits
-
-Este repositorio sigue el estándar de **Conventional Commits**:
-
-- `feat:` nueva funcionalidad
-- `fix:` corrección de error
-- `docs:` cambios en documentación
-- `test:` pruebas
-- `chore:` mantenimiento/configuración
-- `refactor:` reorganización de código sin cambio de comportamiento
-
-## Documentación relacionada
-
-- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
-- [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
-- [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
-- [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
-- [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
-- [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
-- [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
-- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01, HU-16 y HU-14 hacia sus pruebas JUnit 5.
-
-
 ## Consultar el catálogo de cosechas (HU-04)
 
 En Postman, configura `baseUrl` con la dirección del backend y selecciona **Authorization → Bearer Token**. Usa el token que devuelve `POST /api/v1/auth/login`. Tanto compradores como agricultores pueden consultar.
@@ -211,3 +188,27 @@ Cada filtro es opcional. Juntos deben coincidir con la misma oferta. La consulta
 ```
 
 Sin coincidencias devuelve `200` con `[]`. Una petición sin token válido recibe `401`. [Contrato del catálogo](docs/contrato-catalogo-hu04.md) · [Recorrido de demostración del Sprint 3](docs/sprint-3-planning.md)
+
+## Convención de Commits
+
+Este repositorio sigue el estándar de **Conventional Commits**:
+
+- `feat:` nueva funcionalidad
+- `fix:` corrección de error
+- `docs:` cambios en documentación
+- `test:` pruebas
+- `chore:` mantenimiento/configuración
+- `refactor:` reorganización de código sin cambio de comportamiento
+
+## Documentación relacionada
+
+- [Planificación del Sprint 3](docs/sprint-3-planning.md) y [contrato del catálogo HU-04](docs/contrato-catalogo-hu04.md).
+
+- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
+- [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
+- [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
+- [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
+- [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
+- [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
+- [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
+- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01, HU-16, HU-14 y HU-04 hacia sus pruebas JUnit 5.

@@ -26,12 +26,20 @@ El compromiso suma **11 puntos de historia**: HU-17 (registro de comprador, 5), 
 | [#169](https://github.com/Angel-uniajc/AgrovalleConnect/issues/169) | T04-HU05 — Exponer el contacto exclusivo para compradores | 2 |
 | [#170](https://github.com/Angel-uniajc/AgrovalleConnect/issues/170) | T05-HU05 — Verificar la persistencia y seguridad de mensajes con BDD | 3 |
 | [#171](https://github.com/Angel-uniajc/AgrovalleConnect/issues/171) | T06-HU05 — Documentar el contacto y la demostración del Sprint 3 | 1 |
+| **Total** | **HU-17: 21 h · HU-04: 16 h · HU-05: 12 h** | **49** |
+
+En la línea base `caf1151`, HU-05 ya incluye el endpoint de contacto. Sus pruebas BDD (#170) y la documentación final (#171) siguen pendientes en esa línea base.
 
 ## Recorrido de demostración del catálogo
 
-1. En un entorno de prueba, iniciar sesión como agricultor con `POST /api/v1/auth/login`. Con su token, registrar una finca en Dagua mediante `POST /api/v1/fincas` y conservar el ID devuelto.
-2. Publicar mango mediante `POST /api/v1/productos` con ese ID, el ID real de la categoría Frutas, cantidad y precio positivos y la fecha de hoy. Conservar el ID recibido en el `201`.
-3. Registrar un comprador de prueba con `POST /api/v1/auth/register`, rol `COMPRADOR`, nombre, correo, contraseña, documento y `tipo_comprador` válido. Iniciar sesión con su correo en el campo `email` y su contraseña en `password`.
-4. Usar el token del comprador para consultar `GET /api/v1/productos?municipio=Dagua&categoria=Frutas`. Buscar en el arreglo el ID de la publicación del paso 2. Repetir con un municipio inexistente para comprobar el arreglo vacío y sin token para comprobar el `401`.
+Guion pendiente de ejecución. Iniciar el backend con una base de prueba inicializada. En Postman usar cuerpos JSON y, para fincas, publicación y consulta, seleccionar **Bearer Token** con el token del rol indicado. Los datos siguientes son ficticios.
+
+1. Registrar al agricultor con `POST /api/v1/auth/register` y `{"nombre":"Ana Demo","ubicacion_valle":"Dagua","cedula":"12345678","correo":"ana@example.org","password":"Demo@1234"}`. Esperar `201`.
+2. Iniciar sesión con `POST /api/v1/auth/login` y `{"email":"ana@example.org","password":"Demo@1234"}`. Esperar `200` y guardar el campo `token`.
+3. Con el token del agricultor, enviar `POST /api/v1/fincas` con `{"nombre":"Finca Demo","municipio":"Dagua"}`. Esperar `201` y guardar el ID de la finca.
+4. En la base del backend ejecutar `SELECT id FROM categoria WHERE nombre = 'Frutas';`. Con el mismo token, enviar `POST /api/v1/productos` con `finca_id` y `categoria_id` numéricos obtenidos en estos pasos, `tipo` igual a `Mango`, `cantidad` igual a 25, `precio_unitario` igual a 3200 y `fecha_cosecha` igual a la fecha de hoy en formato `AAAA-MM-DD`. Esperar `201` y guardar el ID del producto.
+5. Registrar al comprador con `POST /api/v1/auth/register` y `{"nombre":"Luis Demo","rol":"COMPRADOR","tipo_comprador":"comerciante","documento":"87654321","correo":"luis@example.org","password":"Demo@1234"}`. Esperar `201`. El documento admite de 6 a 10 dígitos y el tipo admite `individual`, `comerciante` o `restaurante`. La contraseña requiere al menos ocho caracteres con mayúscula, minúscula, número y un símbolo de `@$!%*?&`.
+6. Enviar `POST /api/v1/auth/login` con `{"email":"luis@example.org","password":"Demo@1234"}`. Esperar `200` y usar el nuevo `token`. El registro recibe `correo` y el login recibe `email`.
+7. Consultar `GET /api/v1/productos?municipio=Dagua&categoria=Frutas` con el token del comprador. Esperar `200` y localizar el ID del producto del paso 4. Con un municipio inexistente se espera `200` y `[]`. Al quitar el token se espera `401`.
 
 [Ejemplos de consulta](../README.md) · [Contrato HU-04](contrato-catalogo-hu04.md) · [Matriz BDD](trazabilidad-bdd.md)

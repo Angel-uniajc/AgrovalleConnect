@@ -1,12 +1,12 @@
-# Diagramas de secuencia (HU-01, HU-16, HU-02 y uso del token JWT) - AgroValle Connect
+# Diagramas de secuencia (HU-01, HU-16, HU-14, HU-02, HU-04 y uso del token JWT) - AgroValle Connect
 
 Documento de diseño asociado a las tareas **T05-DIS (#78)** y **T10-DIS (#145)**, parte del Sprint de Diseño (#73).
 
-La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02.
+La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02. La sección 10 incorpora T06-HU04 para consultar el catálogo.
 
 ## 1. Contexto y objetivo
 
-Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela tres historias de usuario y el uso del token JWT en un endpoint protegido:
+Un diagrama de secuencia muestra **en qué orden** se envían mensajes los componentes del sistema para cumplir un caso de uso, incluyendo los caminos de error. Este documento modela cinco historias de usuario y el uso del token JWT en un endpoint protegido:
 
 | Historia | Descripción | Sección | 
 | ----- | ----- | ----- | 
@@ -15,6 +15,7 @@ Un diagrama de secuencia muestra **en qué orden** se envían mensajes los compo
 | Uso de JWT | Autenticación en un endpoint protegido | 5 | 
 | HU-14 | Registro de una finca por un agricultor autenticado | 6 | 
 | HU-02 | Publicación de una cosecha con evento Observer | 9 |
+| HU-04 | Consulta del catálogo por municipio y categoría | 10 |
 
 Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama_de_despliegue.md`.
 
@@ -424,7 +425,7 @@ Los rechazos `401` y `403` los produce Spring Security, no `ManejadorErrores`, p
 
 * **Clave de firma del token:** la clave HS256 que usa `JwtUtil` es un secreto; debe inyectarse por variable de entorno, como el resto de la configuración sensible descrita en `diagrama_de_despliegue.md`, y no guardarse en el repositorio.
 
-## 9. Relación con atributos de calidad (ISO 25010)
+### 8.1 Relación con atributos de calidad (ISO 25010)
 
 | Atributo | Cómo lo respalda el diseño | 
 | ----- | ----- | 
@@ -591,18 +592,24 @@ El listener actual escribe en consola. Los futuros efectos externos, como correo
 
 ## 10. HU-04 · Consulta del catálogo
 
+Corresponde a T06-HU04 ([#165](https://github.com/Angel-uniajc/AgrovalleConnect/issues/165)). Describe el endpoint implementado en `develop` en el commit `caf1151`.
+
 Dado un comprador autenticado y ofertas de varios municipios, cuando consulta Dagua y Frutas, recibe las ofertas disponibles que cumplen ambos filtros. El agricultor autenticado puede realizar la misma consulta. [Escenarios CAT-01 a CAT-15](../trazabilidad-bdd.md#hu-04--catálogo-y-filtros)
 
 ```mermaid
 sequenceDiagram
-    actor U as Usuario
+    autonumber
+    actor U as Cliente
+    participant J as JwtAuthenticationFilter
     participant F as Spring Security
     participant C as ProductoController
     participant S as CatalogoService
     participant R as ProductoRepository
     participant DB as Base de datos
     participant M as CatalogoMapper
-    U->>F: GET /api/v1/productos con filtros opcionales
+    U->>J: GET /api/v1/productos con filtros opcionales
+    J->>J: Validar JWT si está presente
+    J->>F: Continuar con la autenticación resultante
     alt Token ausente, inválido o expirado
         F-->>U: 401 Unauthorized
     else Usuario autenticado
