@@ -1,6 +1,6 @@
 # Secuencia del registro y el login del comprador · HU-17
 
-Documento de la tarea **T08-HU17 (#159)**, parte de **HU-17 (#44)**. Describe el código de `develop` en `caf1151`. Las reglas de cada campo están en el [contrato de registro de HU-17](../contrato-registro-hu17.md), y las pruebas que verifican cada camino, en la [matriz de trazabilidad BDD](../trazabilidad-bdd.md#hu-17--registro-de-comprador). Las demás secuencias del proyecto están en [diagramas-uml.md](diagramas-uml.md).
+Documento de la tarea **T08-HU17 (#159)**, parte de **HU-17 (#44)**. Describe el código de `develop` en `62f037a`. Las reglas de cada campo están en el [contrato de registro de HU-17](../contrato-registro-hu17.md), y las pruebas que verifican cada camino, en la [matriz de trazabilidad BDD](../trazabilidad-bdd.md#hu-17--registro-de-comprador). Las demás secuencias del proyecto están en [diagramas-uml.md](diagramas-uml.md).
 
 ## 1. Participantes
 
@@ -86,10 +86,11 @@ sequenceDiagram
             S->>M: aUsuario(dto, passwordHash)
             M-->>S: Usuario con rol COMPRADOR
             S->>UR: save(usuario)
+            UR->>DB: INSERT en usuario
             S->>M: aComprador(dto, usuario)
             M-->>S: Comprador con tipo en MAYÚSCULAS
             S->>CR: saveAndFlush(comprador)
-            CR->>DB: INSERT en usuario y comprador
+            CR->>DB: INSERT en comprador
             alt La base acepta las dos filas
                 DB-->>CR: Filas guardadas
                 S->>M: aRespuesta(comprador)
@@ -98,7 +99,7 @@ sequenceDiagram
                 S-->>C: RegistroCompradorResponse
                 C-->>U: 201 Created
             else Otro registro simultáneo ganó el correo o el documento
-                DB-->>CR: Violación de UNIQUE (SQLSTATE 23505)
+                DB-->>S: Violación de UNIQUE en usuario o comprador (SQLSTATE 23505) 
                 T->>DB: ROLLBACK de usuario y comprador
                 T-->>S: DataIntegrityViolationException
                 S->>UR: existsByCorreo(correo)
