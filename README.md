@@ -240,7 +240,7 @@ Con un JWT de un comprador, envía `POST /api/v1/contacto/mensaje`. El comprador
 }
 ```
 
-La respuesta `200 OK` contiene `id`, `id_producto` y `fecha_envio`. El mensaje se persiste en `mensaje_contacto`, no modifica el stock ni crea pedidos. Sin token válido responde `401`; un agricultor responde `403`; un producto inexistente responde `404`; una oferta inactiva, agotada o con stock cero responde `400`. [Contrato de HU-05](docs/contrato-contacto-hu05.md) · [Secuencia y recorrido de demostración](docs/diseno/diagrama-secuencia.md#23-hu-05--contacto-directo-del-comprador) · [Evidencia](docs/evidencias/sprint3-contacto.md)
+La respuesta `200 OK` contiene `id`, `id_producto` y `fecha_envio`. El mensaje se persiste en `mensaje_contacto`, no modifica el stock ni crea pedidos. Sin token válido responde `401`; un agricultor responde `403`; un producto inexistente responde `404`; una oferta inactiva, agotada o con stock cero responde `400`. [Contrato de HU-05](docs/contrato-contacto-hu05.md) · [Secuencia y recorrido de demostración](docs/diseno/diagrama-secuencia.md#11-hu-05--contacto-directo-del-comprador) · [Evidencia](docs/evidencias/sprint3-contacto.md)
 
 ## Convención de Commits
 
@@ -267,3 +267,4 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
 - [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Escenarios BDD y referencias a pruebas verificadas de HU-01, HU-04, HU-05, HU-16 y HU-17. La matriz de HU-14 está en [la planificación del Sprint 2](./docs/sprint-2-planning.md).
+
