@@ -155,7 +155,7 @@ flowchart TB
     JPA --> DB[("PostgreSQL")]
 ```
 
-En `develop` (`0233ff4`), compradores y agricultores autenticados consultan el catálogo mediante `GET /api/v1/productos`. El controlador delega los filtros de municipio y categoría en `CatalogoService`. El contacto del comprador tiene su propia ruta, `POST /api/v1/contacto/mensaje`. [Secuencia de consulta del catálogo](../diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo) · [Secuencia de contacto](../diseno/diagrama-secuencia.md#23-hu-05--contacto-directo-del-comprador)
+En `develop` (`0233ff4`), compradores y agricultores autenticados consultan el catálogo mediante `GET /api/v1/productos`. El controlador delega los filtros de municipio y categoría en `CatalogoService`. El contacto del comprador tiene su propia ruta, `POST /api/v1/contacto/mensaje`. [Secuencia de consulta del catálogo](../diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo) · [Secuencia de contacto](../diseno/diagrama-secuencia.md#11-hu-05--contacto-directo-del-comprador)
 
 ## 5. Colaboración para confirmar un pedido · HU-12
 
@@ -255,3 +255,4 @@ flowchart TB
 ```
 
 El servicio recibe la configuración de conexión y la clave JWT como variables del entorno de staging. La URL del hook se guarda como secreto de GitHub Actions. [Arquitectura de despliegue de referencia](../diseno/diagrama_de_despliegue.md)
+
