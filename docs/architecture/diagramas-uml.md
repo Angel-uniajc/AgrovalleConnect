@@ -1,6 +1,6 @@
 # Diagramas UML de AgroValle Connect
 
-Consolidado de la sesión 13. Las secuencias de las secciones 1 a 3 describen la versión de `develop` en `5d99ab6`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprint-2-planning.md) recoge las de cosechas y fincas.
+Consolidado de la sesión 13. Las secuencias de las secciones 1 a 3 describen la versión de `develop` en `62f037a`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprint-2-planning.md) recoge las de cosechas y fincas. La secuencia del registro y el login del comprador (HU-17) está en su propio archivo: [secuencia-registro-comprador-hu17.md](secuencia-registro-comprador-hu17.md).
 
 ## 1. Secuencia de inicio de sesión · HU-16
 
@@ -37,7 +37,7 @@ sequenceDiagram
     end
 ```
 
-El JWT tiene una vigencia configurada de **una hora**. El servicio incluye en el token el identificador del perfil correspondiente al rol del usuario (agricultor o comprador). Si el usuario carece de ese perfil, se omite el campo `perfil_id`. [Configuración](../../src/main/resources/application.properties) · [Secuencia detallada](../diseno/diagrama-secuencia.md)
+El JWT tiene una vigencia configurada de **una hora**. El servicio incluye en el token el identificador del perfil correspondiente al rol del usuario (agricultor o comprador). Si el usuario carece de ese perfil, se omite el campo `perfil_id`. [Configuración](../../src/main/resources/application.properties) · [Secuencia detallada](../diseno/diagrama-secuencia.md) · [Login del comprador (HU-17)](secuencia-registro-comprador-hu17.md#3-login-del-comprador)
 
 ## 2. Secuencia de publicación de cosecha · HU-02
 
@@ -155,7 +155,7 @@ flowchart TB
     JPA --> DB[("PostgreSQL")]
 ```
 
-En `develop` (`caf1151`), compradores y agricultores autenticados consultan el catálogo mediante `GET /api/v1/productos`. El controlador delega los filtros de municipio y categoría en `CatalogoService`. El contacto del comprador tiene su propia ruta, `POST /api/v1/contacto/mensaje`. [Secuencia de consulta del catálogo](../diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo)
+En `develop` (`62f037a`), compradores y agricultores autenticados consultan el catálogo mediante `GET /api/v1/productos`. El controlador delega los filtros de municipio y categoría en `CatalogoService`. El contacto del comprador tiene su propia ruta, `POST /api/v1/contacto/mensaje`. [Secuencia de consulta del catálogo](../diseno/diagrama-secuencia.md#10-hu-04--consulta-del-catálogo)
 
 ## 5. Colaboración para confirmar un pedido · HU-12
 

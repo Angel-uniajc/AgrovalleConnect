@@ -2,7 +2,7 @@
 
 Documento de diseño asociado a las tareas **T05-DIS (#78)** y **T10-DIS (#145)**, parte del Sprint de Diseño (#73).
 
-La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02. La sección 10 incorpora T06-HU04 para consultar el catálogo.
+La sección 9 incorpora **T11-DIS (#146)** para la publicación de cosechas de HU-02. La sección 10 incorpora T06-HU04 para consultar el catálogo. La secuencia de HU-17 (T08-HU17, #159) está en un archivo aparte, [secuencia-registro-comprador-hu17.md](../architecture/secuencia-registro-comprador-hu17.md), porque la docente pidió el 19/11 que los diagramas nuevos fueran en archivos separados.
 
 ## 1. Contexto y objetivo
 
@@ -16,6 +16,7 @@ Un diagrama de secuencia muestra **en qué orden** se envían mensajes los compo
 | HU-14 | Registro de una finca por un agricultor autenticado | 6 | 
 | HU-02 | Publicación de una cosecha con evento Observer | 9 |
 | HU-04 | Consulta del catálogo por municipio y categoría | 10 |
+| HU-17 | Registro e inicio de sesión de un comprador | [Archivo aparte](../architecture/secuencia-registro-comprador-hu17.md) |
 
 Los componentes que aparecen son los de la arquitectura de 4 capas descrita en `arquitectura-mvc-gof.md` (Presentación/REST, Servicio/Dominio, Repositorio/Acceso a datos y Persistencia/PostgreSQL) y se despliegan según `diagrama_de_despliegue.md`.
 

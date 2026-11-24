@@ -30,6 +30,37 @@ El compromiso suma **11 puntos de historia**: HU-17 (registro de comprador, 5), 
 
 En la línea base `caf1151`, HU-05 ya incluye el endpoint de contacto. Sus pruebas BDD (#170) y la documentación final (#171) siguen pendientes en esa línea base.
 
+## HU-17: lo ejecutado y lo pendiente
+
+Corte del 24 de noviembre de 2026, sobre `develop` en `62f037a`. Las horas son las estimadas en el Kanban; las reales se registran en cada tarjeta y se comparan en la Sprint Review.
+
+| Tarea | Responsable | PR | Estado | Horas estimadas |
+|---|---|---|---|---:|
+| T01-HU17 (#152) | Sebastián | [#172](https://github.com/Angel-uniajc/AgrovalleConnect/pull/172) | Integrada en `develop` | 2 |
+| T02-HU17 (#153) | Joel | [#175](https://github.com/Angel-uniajc/AgrovalleConnect/pull/175) | Integrada en `develop` | 2 |
+| T03-HU17 (#154) | Sebastián | [#176](https://github.com/Angel-uniajc/AgrovalleConnect/pull/176) | Integrada en `develop` | 2 |
+| T04-HU17 (#155) | Joel | [#178](https://github.com/Angel-uniajc/AgrovalleConnect/pull/178) | Integrada en `develop` | 4 |
+| T05-HU17 (#156) | Ángel | [#180](https://github.com/Angel-uniajc/AgrovalleConnect/pull/180) | Integrada en `develop` | 3 |
+| T06-HU17 (#157) | Juanito | [#187](https://github.com/Angel-uniajc/AgrovalleConnect/pull/187) | Integrada en `develop` | 2 |
+| T07-HU17 (#158) | Juanito | [#191](https://github.com/Angel-uniajc/AgrovalleConnect/pull/191) | Integrada en `develop` | 4 |
+| T08-HU17 (#159) | Juanito | Este PR | En revisión | 2 |
+| **Total** | | | **Ejecutado: 7 de 8 tareas (19 h) · Pendiente: 1 tarea (2 h)** | **21** |
+
+**Qué quedó funcionando:** `POST /api/v1/auth/register` registra compradores con `rol` igual a `COMPRADOR` (y sigue registrando agricultores sin `rol`), guarda `Usuario` y `Comprador` en una sola transacción y responde 201, 400 o 409 según el [contrato](contrato-registro-hu17.md). `POST /api/v1/auth/login` entrega al comprador un JWT con su rol y su `perfil_id`. La secuencia está en [secuencia-registro-comprador-hu17.md](architecture/secuencia-registro-comprador-hu17.md), y los pasos 5 y 6 del recorrido de demostración muestran el registro y el login de un comprador.
+
+**Qué no incluye:** pantallas de frontend ni edición o eliminación de la cuenta del comprador.
+
+### Pruebas que verifican HU-17
+
+Cada escenario BDD y su prueba están en la [matriz de trazabilidad](trazabilidad-bdd.md#hu-17--registro-de-comprador). Agrupadas por clase:
+
+| Clase | Tipo | Pruebas |
+|---|---|---|
+| `RegistroCompradorRequestTest` | Unitaria del DTO | `correoSinFormato_esRechazado`, `nombreMayorA50Caracteres_esRechazado`, `correoMayorA50Caracteres_esRechazado` |
+| `CompradorRegisterServiceIntegrationTest` | Integración del servicio | `registrar_guardaUsuarioYCompradorConHashBcrypt`, `correoDeAgricultor_noPuedeUsarseParaUnComprador`, `documentoDuplicadoQueEsquivaLaVerificacion_loFrenaLaBaseYSeDeshaceTodo`, `falloAlCrearElPerfil_deshaceTambienElUsuario` |
+| `AuthControllerIntegrationTest` | Integración HTTP (MockMvc) | `registrarComprador_valido_retorna201ConLosCuatroCamposPublicos`, `registrarComprador_valido_respuestaNoExponePasswordNiHash`, `registrarComprador_correoODocumentoDuplicado_retorna409`, `registrarComprador_conCorreoDeAgricultor_retorna409`, `registrarComprador_tipoInvalido_retorna400`, `registrarComprador_conTipoEnMayusculasOMixtas_seNormalizaYRetorna201`, `registrarComprador_conDocumentoIgualACedulaDeAgricultor_retorna201`, `registrarComprador_conCamposFaltantes_retorna400`, `registrarComprador_conPasswordInvalida_retorna400`, `registrarComprador_conDocumentoInvalido_retorna400`, `registrar_rolDesconocido_retorna400`, `registrar_jsonIncompleto_retornaSoloMensajePublico`, `registroExitoso_persisteYGuardaHashNoTextoPlano`, `registrarAgricultor_conRolExplicito_persistePerfilDeAgricultor` |
+| `AuthLoginIntegrationTest` | Integración HTTP del login | `login_compradorRegistrado_retornaTokenConRolYPerfilDelComprador` |
+
 ## Recorrido de demostración del catálogo
 
 Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 2026. [Registro de las nueve respuestas](evidencias/sprint3-catalogo-http.json). Iniciar el backend con una base de prueba inicializada. En Postman usar cuerpos JSON y, para fincas, publicación y consulta, seleccionar **Bearer Token** con el token del rol indicado. Los datos siguientes son ficticios.
