@@ -202,12 +202,12 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 
 ## Documentación relacionada
 
-- [Planificación del Sprint 3](docs/sprint-3-planning.md) y [contrato del catálogo HU-04](docs/contrato-catalogo-hu04.md).
-
 - [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
 - [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
 - [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
 - [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
+- [`docs/sprint-3-planning.md`](./docs/sprint-3-planning.md) — Planificación y demostración del catálogo en el Sprint 3.
+- [`docs/contrato-catalogo-hu04.md`](./docs/contrato-catalogo-hu04.md) — Filtros, respuestas y escenarios del catálogo.
 - [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
