@@ -60,6 +60,20 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 | CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `ContactoControllerIntegrationTest#enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: T05-HU05 (#170) |
 | CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conJsonMalFormado_retorna400` | Verificado: T05-HU05 (#170) |
 
+## HU-08 — Validación de stock (planificado)
+
+El contrato completo está en [contrato-stock-hu08.md](contrato-stock-hu08.md) y corresponde a T01-HU08 (#207). La validación ocurre al crear el pedido en `POST /api/v1/pedidos` (HU-12), antes de reservar y antes de cualquier pago. Los escenarios STK-01 a STK-11 quedan planificados para T03-HU08 (#210, pruebas unitarias) y T04-HU08 (#211, pruebas de integración); todavía no se afirma cobertura automatizada.
+
+| ID BDD | Condición | Resultado esperado | Estado |
+|---|---|---|---|
+| STK-01 | Cantidad superior al stock (16 con 10 disponibles) | `400` "Stock insuficiente" con `id_producto`, `cantidad_solicitada` y `stock_disponible`; stock sin cambios | Planificado |
+| STK-02–STK-03 | Cantidad igual o menor al stock | Pasa la validación; `201` según PED-08 y PED-01 | Planificado |
+| STK-04–STK-06 | Stock en cero, estado `AGOTADO` o `INACTIVO` con stock en cero | `400` "Producto agotado" con `id_producto` | Planificado |
+| STK-07 | Pedido mixto: una línea válida y otra insuficiente | `400` por la línea insuficiente; ninguna reserva | Planificado |
+| STK-08 | Varias líneas rechazadas | `400` solo por la primera en el orden de `items` | Planificado |
+| STK-09–STK-10 | Producto repetido en varias líneas | Se valida la suma: `400` si la supera, `201` si la alcanza | Planificado |
+| STK-11 | Frontera decimal (10.01 con 10.00 disponibles) | `400` "Stock insuficiente" | Planificado |
+
 ## HU-12 — Realizar pedido (planificado)
 
 El contrato completo está en [contrato-pedido-hu12.md](contrato-pedido-hu12.md) y corresponde a T01-HU12 (#199). Los escenarios PED-01 a PED-12 quedan planificados para las tareas de implementación de Sprint 4; todavía no se afirma cobertura automatizada. La decisión del sprint es enviar la lista `items` directamente, sin tabla de carrito persistente, guardar `costo_flete` en `pedido`, reservar stock dentro de la transacción y publicar `PedidoCreadoEvent` después del guardado.
