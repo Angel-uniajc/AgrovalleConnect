@@ -7,6 +7,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,8 +39,9 @@ class CrearPedidoRequestTest {
         return new ItemPedidoRequest(idProducto, cantidad == null ? null : new BigDecimal(cantidad));
     }
 
+    // Arrays.asList (y no List.of) porque algunas pruebas necesitan elementos null
     private CrearPedidoRequest pedido(ItemPedidoRequest... items) {
-        return new CrearPedidoRequest(List.of(items));
+        return new CrearPedidoRequest(Arrays.asList(items));
     }
 
     private Set<ConstraintViolation<CrearPedidoRequest>> errores(CrearPedidoRequest request) {
@@ -136,5 +138,27 @@ class CrearPedidoRequestTest {
         assertThat(request.items()).hasSize(1);
         assertThat(request.items().get(0).idProducto()).isEqualTo(12L);
         assertThat(request.items().get(0).cantidad()).isEqualByComparingTo("2.00");
+    }
+
+    @Test
+    void elementoNulo_fallaSoloEnEseElemento() {
+        CrearPedidoRequest request = pedido((ItemPedidoRequest) null);
+
+        assertThat(camposConError(request)).containsExactly("items[0].<list element>");
+        assertThat(mensajes(request)).containsExactly("El ítem es obligatorio");
+    }
+
+    @Test
+    void itemValidoSeguidoDeNulo_fallaSoloEnElSegundo() {
+        CrearPedidoRequest request = pedido(item(12L, "2.00"), null);
+
+        assertThat(camposConError(request)).containsExactly("items[1].<list element>");
+    }
+
+    @Test
+    void jsonConElementoNulo_esRechazado() {
+        CrearPedidoRequest request = MAPPER.readValue("{\"items\": [null]}", CrearPedidoRequest.class);
+
+        assertThat(camposConError(request)).containsExactly("items[0].<list element>");
     }
 }
