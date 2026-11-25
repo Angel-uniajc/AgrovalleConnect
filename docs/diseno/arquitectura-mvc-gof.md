@@ -131,7 +131,14 @@ src/main/java/com/agrovalleconnect/agrovalle_connect/
     ├── CompradorRegisterService.java
     ├── ContactoService.java
     ├── CosechaService.java
-    └── FincaService.java
+    ├── FincaService.java
+    └── flete/
+        ├── CalculadoraFlete.java
+        ├── EstrategiaFlete.java
+        ├── FleteBuga.java
+        ├── FleteDagua.java
+        ├── FletePalmira.java
+        └── FletePorMunicipio.java
 ```
 
 ## 3. Diagrama de clases
@@ -289,6 +296,7 @@ Los patrones provienen de distintos catálogos: algunos son GoF (Gang of Four) y
 | **Template Method** | GoF (comportamiento) | `TransactionTemplate` en `CompradorRegisterService` | Spring fija los pasos de la transacción (abrir, confirmar o deshacer) y el servicio solo aporta el paso de guardar `Usuario` y `Comprador`. Se usa en vez de `@Transactional` para poder revisar duplicados después del `ROLLBACK` |
 | **Facade** | GoF (estructural) | `AgricultorRegisterService.registrar(...)` | Un único punto de entrada que oculta la coordinación de dos repositorios, el hash y la transacción |
 | **Observer** | GoF (comportamiento) | `CosechaService`, `CosechaPublicadaEvent` y `CosechaPublicadaListener` | El servicio publica un evento de Spring tras guardar el producto; los observadores reaccionan sin que el servicio conozca sus implementaciones |
+| **Strategy** | GoF (comportamiento) | `EstrategiaFlete`, `FletePorMunicipio`, `FleteDagua`, `FletePalmira`, `FleteBuga` y el contexto `CalculadoraFlete` | El flete depende del municipio de la finca: cada municipio es una estrategia propia y la calculadora elige cuál aplicar, sin `if` ni `switch`. Un municipio nuevo es una clase nueva (ver 5.4) |
 
 Nota: en **Singleton**, la instancia única la gestiona el contenedor de Spring y no una implementación manual con constructor privado.
 
@@ -332,10 +340,53 @@ Para futuras notificaciones a compradores, se pueden añadir observadores del mi
 | Principio | Aplicación en el código | Evidencia |
 |---|---|---|
 | **S: responsabilidad única** | `AgricultorMapper` construye `Usuario` y `Agricultor`. `AgricultorRegisterService` orquesta validaciones y guardado. `AuthController` atiende HTTP, delega en servicios y no conoce entidades. | PR #128 y #129 |
-| **O: abierto/cerrado** | `ManejadorErrores` responde 409 para `RecursoDuplicadoException`. Un duplicado nuevo se agrega como subclase, sin modificar el manejador. Un observador nuevo se agrega sin modificar `CosechaService`. | PR #128 y #130 |
+| **O: abierto/cerrado** | `ManejadorErrores` responde 409 para `RecursoDuplicadoException`. Un duplicado nuevo se agrega como subclase, sin modificar el manejador. Un observador nuevo se agrega sin modificar `CosechaService`. Un municipio nuevo con tarifa de flete se agrega como una clase `@Component` nueva, sin modificar `CalculadoraFlete`. | PR #128, #130 y T04-HU12 |
 | **L: sustitución de Liskov** | `CorreoDuplicadoException`, `CedulaDuplicadaException` y `DocumentoDuplicadoException` sustituyen a su clase base. El manejador las atiende por igual y conserva el contrato: 409 con el mensaje de la excepción. | `rechazaCorreoDuplicado` y `rechazaCedulaDuplicada` |
 | **I: segregación de interfaces** | `CosechaService` depende de `ApplicationEventPublisher`, que solo publica eventos, y no del contexto completo de Spring. Los DTO separan la entrada y la salida de cada caso de uso. | `CosechaService` y paquete `dto` |
 | **D: inversión de dependencias** | `AgricultorRegisterService` depende de la interfaz `PasswordEncoder` y `SecurityConfig` define la implementación BCrypt. Los servicios reciben por constructor las interfaces de repositorio, lo que permite aislarlos con Mockito. | `SecurityConfig` y pruebas de servicio |
+
+### 5.4 Strategy en el cálculo del flete (T04-HU12)
+
+El costo de envío de un pedido depende del municipio de la finca de cada producto. En vez de un `if` o un `switch` por municipio dentro del servicio de pedidos, cada tarifa vive en su propia clase y una calculadora elige cuál usar. Esto es el patrón **Strategy**: una familia de algoritmos intercambiables detrás de una misma interfaz.
+
+| Pieza | Rol en el patrón | Responsabilidad |
+|---|---|---|
+| `EstrategiaFlete` | Estrategia (interfaz) | Declara `municipio()` y `tarifa()` |
+| `FletePorMunicipio` | Base común | Guarda el municipio y la tarifa y evita repetir código en las estrategias |
+| `FleteDagua`, `FletePalmira`, `FleteBuga` | Estrategias concretas | Cada una declara su municipio y su tarifa: 12 000.00, 10 000.00 y 15 000.00 pesos colombianos |
+| `CalculadoraFlete` | Contexto | Recibe por constructor todas las estrategias que Spring encuentra, las indexa por municipio y aplica la que corresponde |
+
+```mermaid
+classDiagram
+    class EstrategiaFlete {
+        <<interface>>
+        +municipio() String
+        +tarifa() BigDecimal
+    }
+    class FletePorMunicipio {
+        <<abstract>>
+        -municipio String
+        -tarifa BigDecimal
+    }
+    class FleteDagua
+    class FletePalmira
+    class FleteBuga
+    class CalculadoraFlete {
+        +calcular(municipio) BigDecimal
+        +calcularTotal(municipios) BigDecimal
+    }
+    EstrategiaFlete <|.. FletePorMunicipio
+    FletePorMunicipio <|-- FleteDagua
+    FletePorMunicipio <|-- FletePalmira
+    FletePorMunicipio <|-- FleteBuga
+    CalculadoraFlete o-- EstrategiaFlete
+```
+
+`CalculadoraFlete.calcular(municipio)` devuelve la tarifa de ese municipio. `calcularTotal(municipios)` quita los municipios repetidos y suma una tarifa por cada municipio distinto, como define el contrato de pedidos (sección 3 de [`contrato-pedido-hu12.md`](../contrato-pedido-hu12.md)). Si algún municipio no tiene estrategia, lanza `MunicipioSinTarifaException` con el mensaje `Municipio sin tarifa de flete`. Con eso el pedido se rechaza completo: no se reserva stock, no se crea el pedido y no se publica el evento. La traducción de esa excepción a `400 Bad Request` en `ManejadorErrores` corresponde a las tareas posteriores de HU-12, que son las que la usan desde `PedidoService`.
+
+**Cómo se agrega un municipio nuevo:** se crea una clase `@Component` que extienda `FletePorMunicipio` con el nombre y la tarifa, por ejemplo `super("Cali", "9000.00")`. Spring la entrega sola a `CalculadoraFlete`, así que no cambia ninguna clase existente (principio abierto/cerrado). Hoy las tarifas son valores fijos de negocio para el Sprint 4; si llegaran a cambiar sin tocar el código, se podrían mover a una tabla o a la configuración.
+
+**Cómo se hizo con TDD (T04-HU12):** `CalculadoraFleteTest` tiene 6 pruebas, una por municipio, una para el municipio sin tarifa, y dos para el total con municipios repetidos y con un municipio sin tarifa. Los tres commits de la rama muestran las fases: Red (pruebas con clases vacías), Green (tarifas y lógica) y Refactor (extraer `FletePorMunicipio` para quitar el código repetido de las tres estrategias).
 
 ---
 
