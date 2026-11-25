@@ -70,7 +70,7 @@ El contrato completo está en [contrato-pedido-hu12.md](contrato-pedido-hu12.md)
 | PED-02–PED-04 | Token ausente, rol agricultor o comprador sin perfil | `401`/`403`, sin cambios | Planificado |
 | PED-05 | Lista `items` vacía | `400`, sin pedido | Planificado |
 | PED-06–PED-08 | Producto inexistente, no disponible o reserva exacta | `404`/`400` o `201` con `AGOTADO` al llegar a cero | Planificado |
-| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, rollback de todas las reservas | Planificado |
+| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, validación de todas las líneas antes de reservar; ninguna reserva si una falla | Planificado |
 | PED-11–PED-12 | Evento de creación y campos inválidos | Evento único tras guardar o `400` sin reserva | Planificado |
 
 ## HU-16 — Inicio de Sesión
