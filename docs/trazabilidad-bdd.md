@@ -60,6 +60,19 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 | CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `ContactoControllerIntegrationTest#enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: T05-HU05 (#170) |
 | CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conJsonMalFormado_retorna400` | Verificado: T05-HU05 (#170) |
 
+## HU-12 — Realizar pedido (planificado)
+
+El contrato completo está en [contrato-pedido-hu12.md](contrato-pedido-hu12.md) y corresponde a T01-HU12 (#199). Los escenarios PED-01 a PED-12 quedan planificados para las tareas de implementación de Sprint 4; todavía no se afirma cobertura automatizada. La decisión del sprint es enviar la lista `items` directamente, sin tabla de carrito persistente, guardar `costo_flete` en `pedido`, reservar stock dentro de la transacción y publicar `PedidoCreadoEvent` después del guardado.
+
+| ID BDD | Condición | Resultado esperado | Estado |
+|---|---|---|---|
+| PED-01 | Comprador con items válidos | `201`, pedido `PENDIENTE_PAGO`, detalles, subtotal, flete, total y reserva | Planificado |
+| PED-02–PED-04 | Token ausente, rol agricultor o comprador sin perfil | `401`/`403`, sin cambios | Planificado |
+| PED-05 | Lista `items` vacía | `400`, sin pedido | Planificado |
+| PED-06–PED-08 | Producto inexistente, no disponible o reserva exacta | `404`/`400` o `201` con `AGOTADO` al llegar a cero | Planificado |
+| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, validación de todas las líneas antes de reservar; ninguna reserva si una falla | Planificado |
+| PED-11–PED-12 | Evento de creación y campos inválidos | Evento único tras guardar o `400` sin reserva | Planificado |
+
 ## HU-16 — Inicio de Sesión
 
 | Escenario BDD | Resultado esperado | Prueba real (nombre = matriz) |
