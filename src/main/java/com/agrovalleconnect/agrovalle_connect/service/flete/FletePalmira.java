@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class FletePalmira implements EstrategiaFlete {
 
+    private static final BigDecimal TARIFA = new BigDecimal("10000.00");
+
     @Override
     public String municipio() {
         return "Palmira";
@@ -13,6 +15,6 @@ public class FletePalmira implements EstrategiaFlete {
 
     @Override
     public BigDecimal tarifa() {
-        return BigDecimal.ZERO;
+        return TARIFA;
     }
 }
