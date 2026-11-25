@@ -5,7 +5,7 @@ Contrato funcional y BDD para `POST /api/v1/pedidos`. Esta especificación defin
 ## 1. Alcance y decisiones
 
 - Solo puede crear pedidos un usuario autenticado con rol `COMPRADOR` y perfil comprador.
-- El comprador se identifica desde el JWT; el JSON no acepta `comprador_id`.
+- El comprador se identifica desde el JWT; si el JSON incluye `comprador_id`, se ignora, igual que en HU-05. Nunca sustituye al comprador del token ni provoca un 400 por sí solo.
 - El request contiene `items`, una lista no vacía de productos y cantidades. La lista representa el carrito de esta operación; no se persiste una tabla de carrito en esta entrega.
 - El pedido se crea con estado `PENDIENTE_PAGO`. La reserva descuenta `cantidad_disponible` en la misma transacción que guarda el pedido y sus detalles.
 - Si una línea llega exactamente a cero, el producto cambia a `AGOTADO`. Ningún rechazo deja descuentos parciales ni crea el pedido.
@@ -42,7 +42,7 @@ Reglas del request:
 | `items` | Obligatorio, no nulo y con al menos un elemento. |
 | `items[].id_producto` | Obligatorio, entero positivo y producto existente. |
 | `items[].cantidad` | Obligatoria, positiva y con hasta dos decimales. |
-| `comprador_id` | No se acepta; el perfil se obtiene del token. |
+| `comprador_id` | Se ignora si se envía; el perfil siempre se obtiene del token. |
 
 Respuesta exitosa (`201 Created`):
 
@@ -71,7 +71,7 @@ Son valores fijos de negocio para esta entrega y se calculan según el municipio
 | Palmira | 10 000.00 |
 | Buga | 15 000.00 |
 
-Si un pedido contiene productos de varios municipios, el costo de flete es la suma de la tarifa aplicable a cada municipio distinto. Si alguno no tiene tarifa configurada, se rechaza la operación y no se modifica el inventario.
+Si un pedido contiene productos de varios municipios, el costo de flete es la suma de la tarifa aplicable a cada municipio distinto. Si alguno no tiene tarifa configurada, responde `400 Bad Request` con `{"error":"Municipio sin tarifa de flete"}`; no se reserva stock, no se crea el pedido y no se publica el evento.
 
 ## 4. Escenarios BDD
 
@@ -109,13 +109,13 @@ Si un pedido contiene productos de varios municipios, el costo de flete es la su
 
 **Given** una lista con un `id_producto` que no existe  
 **When** crea el pedido  
-**Then** responde `404 Not Found` y revierte cualquier validación o reserva parcial.
+**Then** responde `404 Not Found` durante la validación previa, sin reservar ninguna línea ni crear pedido.
 
 ### PED-07 — Producto no disponible
 
-**Given** un producto `INACTIVO`  
+**Given** un producto `INACTIVO`, `AGOTADO` o con `cantidad_disponible` igual a cero  
 **When** lo incluye en el pedido  
-**Then** responde `400 Bad Request` indicando que no está disponible y no modifica stock.
+**Then** responde `400 Bad Request`; para `AGOTADO` o stock cero el mensaje es "Producto agotado", conforme a HU-08; para `INACTIVO` con stock positivo indica "Producto no disponible". No se reserva ninguna línea, no se crea pedido ni se publica evento.
 
 ### PED-08 — Reserva exacta
 
@@ -133,7 +133,7 @@ Si un pedido contiene productos de varios municipios, el costo de flete es la su
 
 **Given** dos líneas donde la primera tiene stock suficiente y la segunda no  
 **When** crea el pedido  
-**Then** responde `400 Bad Request`, revierte la reserva de la primera, conserva el stock original de ambas y no crea detalles ni pedido.
+**Then** valida todas las líneas antes de reservar y responde `400 Bad Request` por la línea sin disponibilidad; no reserva ninguna, conserva el stock original de ambas y no crea detalles ni pedido ni publica evento.
 
 ### PED-11 — Evento de pedido creado
 
@@ -154,10 +154,10 @@ Si un pedido contiene productos de varios municipios, el costo de flete es la su
 | Sin token o token inválido | 401 | No se ejecuta el servicio. |
 | Rol no autorizado o comprador sin perfil | 403 | No se crea pedido. |
 | JSON/campos inválidos, lista vacía, stock insuficiente o producto no disponible | 400 | Se conserva todo el stock y no se publica evento. |
+| Municipio sin tarifa configurada | 400 | Mensaje "Municipio sin tarifa de flete"; sin reservas, pedido ni evento. |
 | Producto inexistente | 404 | Se revierte la transacción completa. |
 | Pedido válido | 201 | Se guardan pedido y detalles, se reserva stock y se publica el evento. |
 
 ## 6. Trazabilidad
 
 Los escenarios PED-01 a PED-12 se convierten en pruebas de integración de `PedidoController` y pruebas unitarias de `CalculadoraFlete`/`PedidoService` en las tareas posteriores de HU-12. La matriz de [trazabilidad BDD](trazabilidad-bdd.md) marca esta cobertura como planificada hasta que esas pruebas se fusionen.
-
