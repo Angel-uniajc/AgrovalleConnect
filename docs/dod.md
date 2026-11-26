@@ -4,7 +4,7 @@ Este documento constituye el **contrato técnico de calidad** aceptado por todos
 
 ## Checklist de Cumplimiento Obligatorio
 
-- [x] **Build Local**: el proyecto compila o transpila sin errores en el entorno local (Java 17 / Spring Boot).
+- [x] **Build Local**: el proyecto compila o transpila sin errores en el entorno local (Java 25 / Spring Boot).
 - [x] **Linter Pass (Modularity/Style)**: el código cumple con las reglas estáticas de Checkstyle, basado en Google Java Style (`checkstyle.xml`), con cero advertencias.
 - [x] **Functional Correctness**: el 100% de las pruebas unitarias existentes pasan con éxito.
 - [x] **Peer Review**: todo Pull Request ha sido revisado y aprobado por al menos un compañero de equipo tras una revisión de código.

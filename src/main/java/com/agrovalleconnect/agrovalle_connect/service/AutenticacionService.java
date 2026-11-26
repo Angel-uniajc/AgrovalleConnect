@@ -4,6 +4,7 @@ import com.agrovalleconnect.agrovalle_connect.dto.LoginRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.LoginResponse;
 import com.agrovalleconnect.agrovalle_connect.exception.CredencialesInvalidasException;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
+import com.agrovalleconnect.agrovalle_connect.model.Comprador;
 import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import com.agrovalleconnect.agrovalle_connect.repository.UsuarioRepository;
 import com.agrovalleconnect.agrovalle_connect.security.JwtUtil;
@@ -36,10 +37,22 @@ public class AutenticacionService {
             throw new CredencialesInvalidasException();
         }
 
-        Agricultor agricultor = usuario.getAgricultor();
-        Long perfilId = agricultor != null ? agricultor.getId() : null;
+        Long perfilId = obtenerPerfilId(usuario);
 
         String token = jwtUtil.generarToken(usuario.getCorreo(), usuario.getRol().name(), perfilId);
         return new LoginResponse(token);
+    }
+
+    private Long obtenerPerfilId(Usuario usuario) {
+        return switch (usuario.getRol()) {
+            case AGRICULTOR -> {
+                Agricultor agricultor = usuario.getAgricultor();
+                yield agricultor != null ? agricultor.getId() : null;
+            }
+            case COMPRADOR -> {
+                Comprador comprador = usuario.getComprador();
+                yield comprador != null ? comprador.getId() : null;
+            }
+        };
     }
 }

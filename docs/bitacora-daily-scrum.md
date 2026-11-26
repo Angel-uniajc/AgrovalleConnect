@@ -101,7 +101,7 @@ Las fechas y horas corresponden a Colombia (UTC−5). El registro se reconstruy�
 | 30/10 | El equipo integró DTO, servicio de cosechas y refactor de excepciones y mapper. | El servicio y el endpoint requerían comprobación conjunta. | Completar Observer y endpoint protegido. |
 | 02/11 | El equipo integró el desacoplamiento del controlador de autenticación. | El evento y el endpoint de cosechas seguían su revisión. | Integrar el flujo de publicación y su suite REST. |
 | 03/11 | El equipo integró Observer, endpoint y ocho escenarios de productos, incluido COMPRADOR. | La revisión solicitó datos propios y fecha compartida en las pruebas. | Preparar la evidencia documental del segundo corte. |
-| 04/11 | El equipo integró IEEE 29148 y la Sprint Review. La comprobación complementaria ejecutó 113 pruebas y registró cinco respuestas HTTP. | La entrega en main y la regla de cobertura de ramas se describen con su estado en la review. | Completar retrospectiva, bitácora y revisión de la versión de entrega. |
+| 04/11 | El equipo integró IEEE 29148, la Sprint Review, la retrospectiva y la bitácora. También exigió cobertura de ramas (#141) y llevó la versión 0.2.0 a main (#142). La comprobación complementaria ejecutó 113 pruebas y registró cinco respuestas HTTP. | La entrega en main dependía de la regla de ramas y de la documentación final. | Entregar el segundo corte y planear el Sprint 3. |
 
 ### Cronología verificable de PR
 
@@ -144,6 +144,7 @@ Las fechas y horas corresponden a Colombia (UTC−5). El registro se reconstruy�
 - La tarea T06-HU02 [#107](https://github.com/Angel-uniajc/AgrovalleConnect/issues/107) se cerró el 3 de noviembre a las 03:21. HU-02 [#17](https://github.com/Angel-uniajc/AgrovalleConnect/issues/17) se cerró en el mismo minuto.
 - La [Sprint Review](sprint-2-review.md) registra el 3 de noviembre como fecha de la sesión y la participación de todos los integrantes, según lo confirmado por el representante. Sus evidencias complementarias fueron obtenidas el 4 de noviembre.
 - La especificación IEEE 29148 se integró el 4 de noviembre a las 17:20 y la Sprint Review a las 17:25.
+- La regla de cobertura de ramas se integró el 4 de noviembre a las 18:07 (PR #141) y la versión 0.2.0 llegó a `main` a las 18:35 (PR #142).
 
 ### Integración, capacidad y mejora
 

@@ -57,9 +57,9 @@ El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se i
 | Instrucciones | 934 | 945 | 98,84 % |
 | Ramas | 18 | 20 | 90,00 % |
 
-Ambas mediciones superan el 60 %. El `jacoco:check` de esta línea base exige `INSTRUCTION / COVEREDRATIO / 0.60`. La medición de ramas está presente en el reporte, mientras la regla obligatoria `BRANCH` aún está ausente de `pom.xml`.
+Ambas mediciones superan el 60 %. El PR [#141](https://github.com/Angel-uniajc/AgrovalleConnect/pull/141) agregó la regla `BRANCH / COVEREDRATIO / 0.60` al `jacoco:check`, que ya exigía `INSTRUCTION / COVEREDRATIO / 0.60`.
 
-En la consulta del 4 de noviembre, `main` apunta a `92748f5b503e00e9f5eab37489f94a082ce219fd`, anterior al incremento, y GitHub Actions carece de ejecuciones para esa rama. Por ello, esta review aporta evidencia local del Sprint 2. La evidencia institucional del commit final de `main` y la exigencia automática de cobertura de ramas constituyen condiciones de cierre de la entrega.
+El incremento llegó a `main` el 4 de noviembre con el PR [#142](https://github.com/Angel-uniajc/AgrovalleConnect/pull/142), en la versión `v0.2.0`. La ejecución #93 de GitHub Actions terminó en Success sobre ese commit. La regla de protección de `main` exige pull request, una aprobación y el check `Maven Verify`.
 
 ## Feedback técnico y respuesta del incremento
 
@@ -72,12 +72,10 @@ Los siguientes hallazgos proceden de las revisiones de código registradas en Gi
 | El rechazo por finca ajena debía complementarse con un rechazo por rol COMPRADOR. | Se agregó la prueba del comprador autenticado y su fila en la matriz BDD. | [Revisión de integración #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) |
 | Repetir `LocalDate.now()` y depender del municipio inicial podía volver frágiles las pruebas. | La suite de productos conserva la fecha de cada prueba en una variable y prepara su propio municipio. | [Revisión de integración #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) |
 
-## Acciones de seguimiento propuestas
+## Cierre de las acciones de seguimiento
 
-La revisión técnica respalda el cumplimiento funcional de HU-14 y HU-02. Para preparar la entrega institucional se proponen las siguientes acciones, cuyos responsables se asignarán en el tablero.
+La revisión técnica respalda el cumplimiento funcional de HU-14 y HU-02. Las acciones para preparar la entrega se completaron el 4 de noviembre.
 
-- Consolidar los documentos del segundo corte y vincularlos a sus tareas de documentación.
-- Verificar el mínimo del 60 % de instrucciones y ramas, las reglas de protección y el CI de la versión entregada en `main`.
-- Adjuntar las capturas de ejecución y cobertura del commit final y conservar el vínculo con las historias y pruebas.
-
-Estas acciones se derivan de la revisión técnica y los requisitos del entregable. Su inclusión permite al equipo planificar el cierre en el Kanban.
+- Los documentos del segundo corte quedaron vinculados a sus tareas de documentación.
+- El mínimo del 60 % de instrucciones y ramas, la regla de protección y el CI quedaron verificados en `main`.
+- Las capturas de ejecución y cobertura se adjuntaron al documento de entrega.

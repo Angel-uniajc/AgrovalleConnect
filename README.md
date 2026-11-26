@@ -1,5 +1,5 @@
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Java](https://img.shields.io/badge/Java-17-orange)
+![Java](https://img.shields.io/badge/Java-25-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.x-brightgreen)
 
 # AgroValle Connect
@@ -8,7 +8,7 @@ Plataforma web que conecta directamente a los productores agrícolas del Valle d
 
 ## Declaración de Visión del Producto
 
-> Para **productores agrícolas del Valle del Cauca**, que **necesitan vender directamente a comerciantes y restaurantes sin intermediarios**, **AgroValle Connect** es **una plataforma web desarrollada en Java 17 / Spring Boot**, que **conecta la oferta agrícola con la demanda comercial urbana a precio justo y en tiempo real**. A diferencia de **los intermediarios tradicionales y las cadenas de comercialización largas**, nuestro producto **garantiza trazabilidad logística, transparencia de precios y contratos de API abiertos entre productores y compradores**.
+> Para **productores agrícolas del Valle del Cauca**, que **necesitan vender directamente a comerciantes y restaurantes sin intermediarios**, **AgroValle Connect** es **una plataforma web desarrollada en Java 25 / Spring Boot**, que **conecta la oferta agrícola con la demanda comercial urbana a precio justo y en tiempo real**. A diferencia de **los intermediarios tradicionales y las cadenas de comercialización largas**, nuestro producto **garantiza trazabilidad logística, transparencia de precios y contratos de API abiertos entre productores y compradores**.
 
 ## Integrantes del equipo
 
@@ -153,13 +153,13 @@ gitGraph
 
 ## Stack Tecnológico
 
-- **Lenguaje:** Java 17
+- **Lenguaje:** Java 25
 - **Framework:** Spring Boot
 - **Gestor de dependencias:** Maven
 - **Base de datos:** PostgreSQL
 - **Calidad de código:** Checkstyle (Google Java Style)
 - **Automatización de commits:** Husky (pre-commit hooks)
-- **Pruebas:** JUnit 5 + MockMvc (medición de cobertura con JaCoCo planificada)
+- **Pruebas:** JUnit 5 + MockMvc (cobertura mínima del 60 % verificada con JaCoCo)
 
 ## Cómo levantar el proyecto localmente
 
@@ -170,6 +170,77 @@ cd agrovalle-connect
 ```
 
 Configura tu conexión local a PostgreSQL en `src/main/resources/application.properties` antes de ejecutar.
+
+## Ejemplo: registro e inicio de sesión de un comprador (HU-17)
+
+Con el proyecto corriendo en `http://localhost:8080`. Los datos son de prueba: el dominio `example.com` está reservado para ejemplos, así que no corresponden a una persona real. En Windows se puede enviar el mismo cuerpo JSON desde Postman.
+
+**1. Registro** (`POST /api/v1/auth/register`, responde `201 Created`):
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Restaurante La Ceiba","correo":"compras.laceiba@example.com","password":"Segura@2026","rol":"COMPRADOR","tipo_comprador":"restaurante","documento":"900123456"}'
+```
+
+```json
+{
+  "nombre": "Restaurante La Ceiba",
+  "rol": "COMPRADOR",
+  "tipo_comprador": "RESTAURANTE",
+  "mensaje": "Comprador registrado exitosamente"
+}
+```
+
+Si el correo o el documento ya existen, responde `409 Conflict`; si falta un campo o tiene un formato inválido, `400 Bad Request`. Sin el campo `rol`, el mismo endpoint registra un agricultor (HU-01).
+
+**2. Inicio de sesión** (`POST /api/v1/auth/login`, responde `200 OK`):
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"compras.laceiba@example.com","password":"Segura@2026"}'
+```
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "tipo": "Bearer"
+}
+```
+
+El token lleva el rol `COMPRADOR` y el `perfil_id` del comprador, y se envía en la cabecera `Authorization: Bearer <token>` para las rutas protegidas. El detalle está en el [contrato de HU-17](./docs/contrato-registro-hu17.md) y en la [secuencia del registro y el login](./docs/architecture/secuencia-registro-comprador-hu17.md).
+
+## Consultar el catálogo de cosechas (HU-04)
+
+En Postman, configura `baseUrl` con la dirección del backend y selecciona **Authorization → Bearer Token**. Usa el token que devuelve `POST /api/v1/auth/login`. Tanto compradores como agricultores pueden consultar.
+
+```http
+GET {{baseUrl}}/api/v1/productos?municipio=Dagua&categoria=Frutas
+GET {{baseUrl}}/api/v1/productos?municipio=Dagua
+GET {{baseUrl}}/api/v1/productos
+```
+
+Cada filtro es opcional. Juntos deben coincidir con la misma oferta. La consulta compara nombres completos, ignora mayúsculas y espacios periféricos, y trata un filtro vacío como ausente. Devuelve productos activos con stock positivo por ID ascendente. Ejemplo ficticio de respuesta `200 OK`:
+
+```json
+[{"id":12,"tipo":"Mango","cantidad_disponible":25.50,"precio_unitario":3200,"fecha_cosecha":"2026-11-24","categoria":"Frutas","finca_id":4,"municipio":"Dagua"}]
+```
+
+Sin coincidencias devuelve `200` con `[]`. Una petición sin token válido recibe `401`. [Contrato del catálogo](docs/contrato-catalogo-hu04.md) · [Recorrido de demostración del Sprint 3](docs/sprint-3-planning.md)
+
+## Enviar contacto sobre una oferta (HU-05)
+
+Con un JWT de un comprador, envía `POST /api/v1/contacto/mensaje`. El comprador se toma del token; el cuerpo no acepta una identidad alternativa:
+
+```json
+{
+  "id_producto": 12,
+  "mensaje": "Estoy interesado en comprar esta cosecha."
+}
+```
+
+La respuesta `200 OK` contiene `id`, `id_producto` y `fecha_envio`. El mensaje se persiste en `mensaje_contacto`, no modifica el stock ni crea pedidos. Sin token válido responde `401`; un agricultor responde `403`; un producto inexistente responde `404`; una oferta inactiva, agotada o con stock cero responde `400`. [Contrato de HU-05](docs/contrato-contacto-hu05.md) · [Secuencia y recorrido de demostración](docs/diseno/diagrama-secuencia.md#11-hu-05--contacto-directo-del-comprador) · [Evidencia](docs/evidencias/sprint3-contacto.md)
 
 ## Convención de Commits
 
@@ -188,7 +259,12 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
 - [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
 - [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
+- [`docs/sprint-3-planning.md`](./docs/sprint-3-planning.md) — Planificación y demostración del catálogo en el Sprint 3.
+- [`docs/contrato-catalogo-hu04.md`](./docs/contrato-catalogo-hu04.md) — Filtros, respuestas y escenarios del catálogo.
+- [`docs/contrato-registro-hu17.md`](./docs/contrato-registro-hu17.md) — Contrato del registro de comprador (HU-17).
+- [`docs/contrato-contacto-hu05.md`](./docs/contrato-contacto-hu05.md) — Contrato del contacto directo del comprador (HU-05).
 - [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
 - [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
 - [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
-- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Trazabilidad de los escenarios BDD de HU-01, HU-16 y HU-14 hacia sus pruebas JUnit 5.
+- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Escenarios BDD y referencias a pruebas verificadas de HU-01, HU-04, HU-05, HU-16 y HU-17. La matriz de HU-14 está en [la planificación del Sprint 2](./docs/sprint-2-planning.md).
+

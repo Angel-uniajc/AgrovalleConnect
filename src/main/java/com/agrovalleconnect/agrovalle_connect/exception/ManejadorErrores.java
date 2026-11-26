@@ -4,12 +4,19 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ManejadorErrores {
+
+    /** Responde 400 al recibir un cuerpo ilegible y evita exponer su contenido en el error. */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> jsonInvalido() {
+        return ResponseEntity.badRequest().body(Map.of("json", "El cuerpo de la solicitud no es un JSON válido"));
+    }
 
     @ExceptionHandler(RecursoDuplicadoException.class)
     public ResponseEntity<String> recursoDuplicado(RecursoDuplicadoException ex) {
@@ -51,6 +58,38 @@ public class ManejadorErrores {
     @ExceptionHandler(CategoriaInvalidaException.class)
     public ResponseEntity<String> categoriaInvalida(CategoriaInvalidaException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /**
+     * HU-05: el producto existe pero no está ACTIVO o no tiene cantidad disponible -> 400.
+     */
+    @ExceptionHandler(ProductoNoDisponibleException.class)
+    public ResponseEntity<String> productoNoDisponible(ProductoNoDisponibleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    /** HU-12: municipio sin estrategia de flete -> 400 con el JSON del contrato. */
+    @ExceptionHandler(MunicipioSinTarifaException.class)
+    public ResponseEntity<Map<String, String>> municipioSinTarifa(MunicipioSinTarifaException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(StockInsuficienteException.class)
+    public ResponseEntity<Map<String, Object>> stockInsuficiente(StockInsuficienteException ex) {
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("error", ex.getMessage());
+        cuerpo.put("id_producto", ex.getIdProducto());
+        cuerpo.put("cantidad_solicitada", ex.getCantidadSolicitada());
+        cuerpo.put("stock_disponible", ex.getStockDisponible());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cuerpo);
+    }
+
+    @ExceptionHandler(ProductoAgotadoException.class)
+    public ResponseEntity<Map<String, Object>> productoAgotado(ProductoAgotadoException ex) {
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("error", ex.getMessage());
+        cuerpo.put("id_producto", ex.getIdProducto());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cuerpo);
     }
 
     /**

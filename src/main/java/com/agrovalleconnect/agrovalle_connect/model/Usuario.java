@@ -61,6 +61,12 @@ public class Usuario {
         orphanRemoval = true) // Relación bidireccional con Agricultor
     private Agricultor agricultor;
 
+    @OneToOne(
+        mappedBy = "usuario",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true) // Relación bidireccional con Comprador (HU-17)
+    private Comprador comprador;
+
     public enum Rol {
         AGRICULTOR,
         COMPRADOR
