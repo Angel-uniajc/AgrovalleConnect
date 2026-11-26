@@ -53,8 +53,26 @@ public class PedidoService {
     public PedidoResponse crear(String correo, CrearPedidoRequest request) {
         var comprador = compradores.findByUsuarioCorreo(correo)
                 .orElseThrow(() -> new AccesoDenegadoException("Acceso denegado"));
+        Map<Long, BigDecimal> cantidades = agruparCantidades(request);
+        List<Producto> seleccion = validarProductos(cantidades);
+        BigDecimal costoFlete = flete.calcularTotal(seleccion.stream()
+                .map(producto -> producto.getFinca().getMunicipio().getNombre()).toList());
+        Pedido pedido = Pedido.builder().comprador(comprador).costoFlete(costoFlete).build();
+        reservar(pedido, seleccion, cantidades);
+        // Los productos están gestionados por JPA: dirty checking persiste la reserva al confirmar.
+        Pedido guardado = pedidos.save(pedido);
+        eventos.publishEvent(new PedidoCreadoEvent(guardado.getId(), comprador.getId(), seleccion.stream()
+                .map(producto -> producto.getFinca().getAgricultor().getId()).distinct().toList()));
+        return respuesta(guardado);
+    }
+
+    private Map<Long, BigDecimal> agruparCantidades(CrearPedidoRequest request) {
         Map<Long, BigDecimal> cantidades = new LinkedHashMap<>();
         request.items().forEach(item -> cantidades.merge(item.idProducto(), item.cantidad(), BigDecimal::add));
+        return cantidades;
+    }
+
+    private List<Producto> validarProductos(Map<Long, BigDecimal> cantidades) {
         List<Producto> seleccion = new ArrayList<>();
         for (var entrada : cantidades.entrySet()) {
             Producto producto = productos.findById(entrada.getKey())
@@ -71,9 +89,10 @@ public class PedidoService {
             }
             seleccion.add(producto);
         }
-        BigDecimal costoFlete = flete.calcularTotal(seleccion.stream()
-                .map(producto -> producto.getFinca().getMunicipio().getNombre()).toList());
-        Pedido pedido = Pedido.builder().comprador(comprador).costoFlete(costoFlete).build();
+        return seleccion;
+    }
+
+    private void reservar(Pedido pedido, List<Producto> seleccion, Map<Long, BigDecimal> cantidades) {
         for (Producto producto : seleccion) {
             BigDecimal cantidad = cantidades.get(producto.getId());
             pedido.agregarDetalle(producto, cantidad, producto.getPrecioUnitario());
@@ -82,10 +101,9 @@ public class PedidoService {
                 producto.setEstado(Producto.Estado.AGOTADO);
             }
         }
-        // Los productos están gestionados por JPA: dirty checking persiste la reserva al confirmar.
-        Pedido guardado = pedidos.save(pedido);
-        eventos.publishEvent(new PedidoCreadoEvent(guardado.getId(), comprador.getId(), seleccion.stream()
-                .map(producto -> producto.getFinca().getAgricultor().getId()).distinct().toList()));
+    }
+
+    private PedidoResponse respuesta(Pedido guardado) {
         List<ItemPedidoResponse> items = guardado.getDetalles().stream()
                 .map(detalle -> new ItemPedidoResponse(detalle.getProducto().getId(),
                         detalle.getCantidad(), detalle.getPrecioUnitario())).toList();

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.agrovalleconnect.agrovalle_connect.dto.CrearPedidoRequest;
 import com.agrovalleconnect.agrovalle_connect.dto.ItemPedidoRequest;
+import com.agrovalleconnect.agrovalle_connect.event.PedidoCreadoEvent;
 import com.agrovalleconnect.agrovalle_connect.exception.AccesoDenegadoException;
 import com.agrovalleconnect.agrovalle_connect.exception.MunicipioSinTarifaException;
 import com.agrovalleconnect.agrovalle_connect.exception.ProductoNoDisponibleException;
@@ -114,7 +115,7 @@ class PedidoServiceTest {
         ArgumentCaptor<Pedido> captor = ArgumentCaptor.forClass(Pedido.class);
         InOrder orden = inOrder(pedidos, eventos);
         orden.verify(pedidos).save(captor.capture());
-        orden.verify(eventos).publishEvent(any(Object.class));
+        orden.verify(eventos).publishEvent(new PedidoCreadoEvent(41L, 7L, List.of(9L)));
         orden.verifyNoMoreInteractions();
         assertThat(captor.getValue().getComprador().getId()).isEqualTo(7L);
         assertThat(captor.getValue().getDetalles().getFirst().getPedido()).isSameAs(captor.getValue());
@@ -187,5 +188,60 @@ class PedidoServiceTest {
         assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"))))
                 .isInstanceOf(IllegalStateException.class).hasMessage("Fallo de persistencia");
         verifyNoInteractions(eventos);
+    }
+
+    @Test
+    void crear_variosMunicipios_delegaFleteYConservaPreciosDecimales() {
+        comprador();
+        producto(12L, "10", "Palmira");
+        producto(18L, "10", "Dagua");
+        when(flete.calcularTotal(List.of("Palmira", "Dagua"))).thenReturn(new BigDecimal("22000.00"));
+        when(pedidos.save(any(Pedido.class))).thenAnswer(invocacion -> invocacion.getArgument(0));
+        var respuesta = servicio.crear("comprador@test.co", request(item(12L, "2"), item(18L, "1.50")));
+        assertThat(respuesta.subtotal()).isEqualByComparingTo("11200.00");
+        assertThat(respuesta.total()).isEqualByComparingTo("33200.00");
+        verify(eventos).publishEvent(new PedidoCreadoEvent(null, 7L, List.of(9L)));
+    }
+
+    @Test
+    void crear_stockInsuficienteEnSegundaLinea_noReservaNinguna() {
+        comprador();
+        Producto primero = producto(12L, "10", "Palmira");
+        Producto segundo = producto(18L, "3", "Palmira");
+        assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"), item(18L, "5"))))
+                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Stock insuficiente");
+        assertThat(primero.getCantidadDisponible()).isEqualByComparingTo("10");
+        assertThat(segundo.getCantidadDisponible()).isEqualByComparingTo("3");
+        verifyNoInteractions(pedidos, flete, eventos);
+    }
+
+    @Test
+    void crear_repetidosSuperanStock_noReservaNiPublica() {
+        comprador();
+        Producto producto = producto(12L, "10", "Palmira");
+        assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "6"), item(12L, "6"))))
+                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Stock insuficiente");
+        assertThat(producto.getCantidadDisponible()).isEqualByComparingTo("10");
+        verifyNoInteractions(pedidos, flete, eventos);
+    }
+
+    @Test
+    void crear_agotadoAunqueTengaStock_noReservaNiPublica() {
+        comprador();
+        Producto producto = producto(12L, "10", "Palmira");
+        producto.setEstado(Producto.Estado.AGOTADO);
+        assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"))))
+                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Producto agotado");
+        assertThat(producto.getCantidadDisponible()).isEqualByComparingTo("10");
+        verifyNoInteractions(pedidos, flete, eventos);
+    }
+
+    @Test
+    void crear_activoSinStock_noReservaNiPublica() {
+        comprador();
+        producto(12L, "0", "Palmira");
+        assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"))))
+                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Producto agotado");
+        verifyNoInteractions(pedidos, flete, eventos);
     }
 }
