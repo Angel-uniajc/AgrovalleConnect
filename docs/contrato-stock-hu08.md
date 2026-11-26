@@ -141,4 +141,4 @@ Las claves van en *snake_case*, como el resto del JSON del API. Los mapeos exist
 
 ## 7. Trazabilidad
 
-Los escenarios STK-01 a STK-11 quedan como planificados en la [trazabilidad BDD](trazabilidad-bdd.md) hasta que las pruebas de T03-HU08 y T04-HU08 se fusionen.
+T04-HU08 (#211) incorpora un test de integración por escenario STK-01 a STK-11 en `StockPedidoIntegrationTest`, después de fusionar T03-HU08 (#210). La [trazabilidad BDD](trazabilidad-bdd.md#hu-08--validación-de-stock) enlaza los métodos y describe las comprobaciones de persistencia y eventos.

@@ -60,19 +60,27 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 | CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `ContactoControllerIntegrationTest#enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: T05-HU05 (#170) |
 | CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conJsonMalFormado_retorna400` | Verificado: T05-HU05 (#170) |
 
-## HU-08 — Validación de stock (planificado)
+## HU-08 — Validación de stock
 
-El contrato completo está en [contrato-stock-hu08.md](contrato-stock-hu08.md) y corresponde a T01-HU08 (#207). La validación ocurre al crear el pedido en `POST /api/v1/pedidos` (HU-12), antes de reservar y antes de cualquier pago. Los escenarios STK-01 a STK-11 quedan planificados para T03-HU08 (#210, pruebas unitarias) y T04-HU08 (#211, pruebas de integración); todavía no se afirma cobertura automatizada.
+Contrato: [contrato-stock-hu08.md](contrato-stock-hu08.md). T04-HU08 (#211) verifica STK-01 a STK-11 mediante [StockPedidoIntegrationTest](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/StockPedidoIntegrationTest.java): MockMvc y H2 exclusivos, seguridad y servicio reales, comprador registrado y autenticado por la API. Cada prueba limpia la base y crea sus catálogos y productos, sin depender de los cargadores. No hay mocks ni transacción envolvente de prueba: las lecturas posteriores comprueban datos confirmados.
 
-| ID BDD | Condición | Resultado esperado | Estado |
-|---|---|---|---|
-| STK-01 | Cantidad superior al stock (16 con 10 disponibles) | `400` "Stock insuficiente" con `id_producto`, `cantidad_solicitada` y `stock_disponible`; stock sin cambios | Planificado |
-| STK-02–STK-03 | Cantidad igual o menor al stock | Pasa la validación; `201` según PED-08 y PED-01 | Planificado |
-| STK-04–STK-06 | Stock en cero, estado `AGOTADO` o `INACTIVO` con stock en cero | `400` "Producto agotado" con `id_producto` | Planificado |
-| STK-07 | Pedido mixto: una línea válida y otra insuficiente | `400` por la línea insuficiente; ninguna reserva | Planificado |
-| STK-08 | Varias líneas rechazadas | `400` solo por la primera en el orden de `items` | Planificado |
-| STK-09–STK-10 | Producto repetido en varias líneas | Se valida la suma: `400` si la supera, `201` si la alcanza | Planificado |
-| STK-11 | Frontera decimal (10.01 con 10.00 disponibles) | `400` "Stock insuficiente" | Planificado |
+| ID | Escenario del contrato | Prueba de integración |
+|---|---|---|
+| STK-01 | Cantidad superior al stock | `StockPedidoIntegrationTest#stk01_cantidadSuperiorAlStock` |
+| STK-02 | Cantidad igual al stock | `StockPedidoIntegrationTest#stk02_cantidadIgualAlStock` |
+| STK-03 | Cantidad menor al stock | `StockPedidoIntegrationTest#stk03_cantidadMenorAlStock` |
+| STK-04 | Stock en cero con estado ACTIVO | `StockPedidoIntegrationTest#stk04_stockEnCeroConEstadoActivo` |
+| STK-05 | Producto en estado AGOTADO | `StockPedidoIntegrationTest#stk05_productoEnEstadoAgotado` |
+| STK-06 | Producto INACTIVO con stock en cero | `StockPedidoIntegrationTest#stk06_productoInactivoConStockEnCero` |
+| STK-07 | Pedido mixto: una línea válida y otra insuficiente | `StockPedidoIntegrationTest#stk07_pedidoMixtoSinReservasParciales` |
+| STK-08 | Varias líneas rechazadas | `StockPedidoIntegrationTest#stk08_variasLineasRechazadas` |
+| STK-09 | Producto repetido cuya suma supera el stock | `StockPedidoIntegrationTest#stk09_productoRepetidoSuperaStock` |
+| STK-10 | Producto repetido cuya suma alcanza el stock | `StockPedidoIntegrationTest#stk10_productoRepetidoAlcanzaStock` |
+| STK-11 | Frontera decimal | `StockPedidoIntegrationTest#stk11_fronteraDecimal` |
+
+En todos los rechazos se verifica el cuerpo JSON exacto (claves, mensaje, producto y cantidades cuando corresponden), que no haya pedidos ni detalles, que cada producto conserve stock y estado y que no se publique `PedidoCreadoEvent`. En los tres éxitos se comprueban 201, el detalle consolidado persistido, el estado del pedido, el stock final, ACTIVO/AGOTADO y un único evento del pedido creado.
+
+Ejecución: `./mvnw test -Dtest=StockPedidoIntegrationTest`; validación completa: `./mvnw verify`. T04-HU08 depende de T03-HU08 (#210), que conecta en `PedidoService` las excepciones de stock con los manejadores JSON existentes; por eso las pruebas deben integrarse después de esa rama.
 
 ## HU-12 — Realizar pedido
 
