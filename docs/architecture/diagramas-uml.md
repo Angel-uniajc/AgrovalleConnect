@@ -159,32 +159,45 @@ En `develop` (`0233ff4`), compradores y agricultores autenticados consultan el c
 
 ## 5. Colaboración para confirmar un pedido · HU-12
 
-**Diseño propuesto.** HU-12 describe el momento en que el comprador selecciona pagar. Se propone incorporar `PedidoController`, `PedidoService` y los repositorios de carrito y pedido. `ProductoRepository` ya existe y tendría que admitir la reserva de existencias. [HU-12 en el backlog](../../BACKLOG.md) · [T14-DIS](https://github.com/Angel-uniajc/AgrovalleConnect/issues/184)
+Actualizada por [T08-HU12 #206](https://github.com/Angel-uniajc/AgrovalleConnect/issues/206), sobre `develop` en `dbb9498`. Sustituye la propuesta de T14-DIS: el servicio recibe `items`, sin carrito persistente ni pago. [Contrato de pedidos](../contrato-pedido-hu12.md) · [Secuencia detallada](secuencia-pedido-hu12.md)
 
-**Dado** un comerciante autenticado con productos disponibles en su carrito, **cuando** selecciona pagar y envía `POST /api/v1/pedidos`, **entonces** el sistema crea un pedido en estado «Pendiente de pago», reserva temporalmente las unidades, vacía el carrito y responde `201 Created`.
+**Dado** un comprador autenticado con perfil y una lista válida de productos disponibles, **cuando** envía `POST /api/v1/pedidos`, **entonces** se guarda el pedido `PENDIENTE_PAGO`, se reserva el stock y se publica `PedidoCreadoEvent`. `PedidoController`, incorporado en T06-HU12 (#204), devuelve 201 con `PedidoResponse` tras el commit. La seguridad exige COMPRADOR y Spring MVC valida el cuerpo antes de ejecutar el controlador.
 
 ```mermaid
 flowchart TB
-    B["Comprador"]
-    C["controlador : PedidoController"]
+    B["Comprador autenticado"]
+    E["controlador : PedidoController"]
     S["servicio : PedidoService"]
-    K["carrito : CarritoRepository"]
-    I["inventario : ProductoRepository"]
+    C["compradores : CompradorRepository"]
+    R["productos : ProductoRepository"]
+    F["flete : CalculadoraFlete"]
+    EF["estrategias : EstrategiaFlete<br/>FleteDagua / FletePalmira / FleteBuga"]
     P["pedidos : PedidoRepository"]
-
-    B -->|"1. POST /api/v1/pedidos"| C
-    C -->|"1.1 Confirmar pedido del comprador autenticado"| S
-    S -->|"1.1.1 Consultar las líneas de su carrito"| K
-    S -->|"1.1.2 Validar y descontar las unidades disponibles de cada producto"| I
-    S -->|"1.1.3 Guardar pedido pendiente de pago y sus detalles"| P
-    S -->|"1.1.4 Vaciar el carrito confirmado"| K
-    S -.->|"1.2 Devolver el identificador tras confirmar la transacción"| C
-    C -.->|"2. Responder 201 Created"| B
+    EV["eventos : ApplicationEventPublisher"]
+    L["listener : PedidoCreadoListener"]
+    B -->|"0. POST /api/v1/pedidos, JWT e items"| E
+    E -->|"1. crear(authentication.getName(), request validado)"| S
+    S -->|"1.1 findByUsuarioCorreo(correo)"| C
+    S -->|"1.2 agruparCantidades: sumar repetidos"| S
+    S -->|"1.3 findById por producto y validar todos"| R
+    S -->|"1.4 calcularTotal(municipios)"| F
+    F -->|"1.4.1 tarifa por municipio distinto"| EF
+    S -->|"1.5 reservar: agregarDetalle, descontar stock, marcar AGOTADO"| S
+    S -->|"1.6 save(pedido), detalles en cascada"| P
+    S -->|"1.7 publishEvent(PedidoCreadoEvent)"| EV
+    EV -->|"1.7.1 registrarPedido(evento), síncrono"| L
+    L -->|"1.7.1.1 aviso en log por agricultor distinto"| L
+    S -.->|"2. PedidoResponse tras confirmar la transacción"| E
+    E -.->|"3. 201 Created con JSON"| B
 ```
 
-El descuento representa una **reserva temporal**. El servicio debe comprobar la disponibilidad al descontar cada línea para impedir que dos pedidos reserven las mismas unidades. La reserva, el guardado del pedido con sus detalles y el vaciado del carrito se confirman en una sola transacción.
+La entrada HTTP resume la cadena de filtros y Spring MVC: JWT ausente o inválido → 401, rol distinto → 403 y JSON o DTO inválido → 400, sin ejecutar el servicio. La [secuencia detallada](secuencia-pedido-hu12.md#2-secuencia-http-y-servicio-implementados) muestra estos rechazos y el manejador de errores, incluido 400 para municipio sin tarifa.
 
-Si el carrito está vacío, HU-12 prevé `400 Bad Request` tras el paso 1.1.1. Si las unidades solicitadas superan las disponibles, HU-08 prevé `400` con el stock disponible en el paso 1.1.2. En ese caso se revierten los descuentos parciales, se conserva el carrito y no se crea el pedido. [Escenarios de HU-12 y HU-08](../../BACKLOG.md)
+El flete usa Strategy y suma una tarifa por municipio distinto: Dagua 12000.00, Palmira 10000.00 y Buga 15000.00 COP. Los detalles copian el precio vigente y consolidan los productos repetidos. JPA persiste los cambios de stock mediante seguimiento de entidades gestionadas; no se llama a `ProductoRepository.save` para reservar.
+
+La validación de todas las líneas y el cálculo del flete ocurren antes de cualquier descuento. Si fallan, no hay reservas, detalles, pedido ni evento. El guardado y la reserva comparten una transacción: una excepción de persistencia o del listener síncrono la revierte. El evento se entrega antes del commit; el log no confirma por sí mismo una compra persistida. Los efectos externos futuros requieren ejecución después del commit.
+
+No se vacía un carrito ni se procesa un pago. La concurrencia entre compradores y la liberación de reservas quedan fuera del contrato de este sprint. [Límites y errores actuales](secuencia-pedido-hu12.md#4-observer-y-errores) · [Pruebas existentes](secuencia-pedido-hu12.md#5-código-y-verificación)
 
 ## 6. Colaboración para notificar el alistamiento · HU-15
 
