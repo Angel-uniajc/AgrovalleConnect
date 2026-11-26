@@ -269,6 +269,7 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 | Sprint 2 · Fincas y cosechas | HU-14, HU-02 | 10 de 10 | [Planning](docs/sprints/sprint-2/planning.md) · [Review](docs/sprints/sprint-2/review.md) · [Retro](docs/sprints/sprint-2/retrospective.md) |
 | Sprint 3 · Comprador, catálogo y contacto | HU-17, HU-04, HU-05 | 11 de 11 | [Planning](docs/sprints/sprint-3/planning.md) · [Review](docs/sprints/sprint-3/review.md) · [Retro](docs/sprints/sprint-3/retrospective.md) |
 | Sprint 4 · Pedidos y stock | HU-12, HU-08 | 8 de 8 | [Planning](docs/sprints/sprint-4/planning.md) · [Review](docs/sprints/sprint-4/review.md) · [Retro](docs/sprints/sprint-4/retrospective.md) |
+| Sprint 5 · Pago y alistamiento | HU-07, HU-15 | 0 de 11 | [Planning](docs/sprints/sprint-5/planning.md) |
 
 El backlog completo tiene 17 historias y 72 SP ([`BACKLOG.md`](BACKLOG.md)). Van terminadas 10 historias (37 SP). Quedan HU-03, HU-06, HU-07, HU-09, HU-10, HU-11, HU-13 y HU-15 (35 SP). La velocidad, el burndown, el CFD y los tiempos de flujo están en el [reporte de métricas](docs/metrics/sprint-metrics-corte3.md).
 
