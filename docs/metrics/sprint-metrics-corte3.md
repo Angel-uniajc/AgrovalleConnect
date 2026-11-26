@@ -22,7 +22,7 @@ xychart-beta
     bar [5, 10, 11, 8]
 ```
 
-En la gráfica, la primera barra de cada sprint es lo comprometido y la segunda lo completado. Desde el Sprint 2 el equipo completa todo lo que compromete. En el tercer corte entregó 19 SP en dos sprints, sin pasar el máximo de 12 SP por sprint que fija la materia.
+En la gráfica, la barra verde es lo completado. La parte azul que asoma encima es lo comprometido que no se terminó, y solo aparece en el Sprint 1. Desde el Sprint 2 el equipo completa todo lo que compromete. En el tercer corte entregó 19 SP en dos sprints, sin pasar el máximo de 12 SP por sprint que fija la materia.
 
 **Proyección:** el backlog suma 72 SP y van completados 37, incluidos los 3 SP de HU-16. Quedan 35 SP: HU-03, HU-06, HU-07, HU-09, HU-10, HU-11, HU-13 y HU-15. Con la velocidad promedio de 8,5 SP, faltan unos 4 sprints. Siguiendo la recomendación de la docente, se dejan para después del semestre.
 
@@ -46,7 +46,7 @@ xychart-beta
     line [49, 44, 25, 12, 8, 8, 8, 0]
 ```
 
-La línea real (la segunda) va por debajo de la ideal desde el 19/11, es decir, el avance fue más rápido de lo planeado. Del 21 al 23 de noviembre queda plana porque no hubo cierres: las cuatro tareas de documentación que faltaban (8 horas) se cerraron el 24/11.
+La línea verde (real) va por debajo de la azul (ideal) desde el 19/11, es decir, el avance fue más rápido de lo planeado. Del 21 al 23 de noviembre queda plana porque no hubo cierres: las cuatro tareas de documentación que faltaban (8 horas) se cerraron el 24/11.
 
 ### Sprint 4 (24 horas)
 
@@ -64,7 +64,7 @@ xychart-beta
     line [24, 11, 0]
 ```
 
-El Sprint 4 siguió casi exacto la línea ideal.
+La línea verde (real) del Sprint 4 siguió casi exacto la azul (ideal).
 
 ## 3. Diagrama de flujo acumulado (CFD)
 
