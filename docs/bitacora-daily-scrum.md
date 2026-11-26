@@ -142,7 +142,7 @@ Las fechas y horas corresponden a Colombia (UTC−5). El registro se reconstruy�
 
 - La tarea T05-HU14 [#101](https://github.com/Angel-uniajc/AgrovalleConnect/issues/101) se cerró el 28 de octubre a las 16:46, después del merge del PR #121 a las 16:42.
 - La tarea T06-HU02 [#107](https://github.com/Angel-uniajc/AgrovalleConnect/issues/107) se cerró el 3 de noviembre a las 03:21. HU-02 [#17](https://github.com/Angel-uniajc/AgrovalleConnect/issues/17) se cerró en el mismo minuto.
-- La [Sprint Review](sprint-2-review.md) registra el 3 de noviembre como fecha de la sesión y la participación de todos los integrantes, según lo confirmado por el representante. Sus evidencias complementarias fueron obtenidas el 4 de noviembre.
+- La [Sprint Review](sprints/sprint-2/review.md) registra el 3 de noviembre como fecha de la sesión y la participación de todos los integrantes, según lo confirmado por el representante. Sus evidencias complementarias fueron obtenidas el 4 de noviembre.
 - La especificación IEEE 29148 se integró el 4 de noviembre a las 17:20 y la Sprint Review a las 17:25.
 - La regla de cobertura de ramas se integró el 4 de noviembre a las 18:07 (PR #141) y la versión 0.2.0 llegó a `main` a las 18:35 (PR #142).
 
@@ -151,3 +151,79 @@ Las fechas y horas corresponden a Colombia (UTC−5). El registro se reconstruy�
 Entre el merge del servicio de cosechas y el del endpoint transcurrieron casi cuatro días calendario, incluido el fin de semana. La secuencia registra concentración de integración y pruebas cerca del cierre. La estimación de esfuerzo de una tarjeta se interpreta junto con dependencias, esperas y revisiones.
 
 La cronología consultada carece de las fechas previstas necesarias para afirmar un desplazamiento formal de un sprint. El siguiente ciclo incorporará, como propuesta de mejora, el registro de fecha prevista y real, impedimento confirmado, responsable y próxima acción. La [tarea de retrospectiva #135](https://github.com/Angel-uniajc/AgrovalleConnect/issues/135) recoge el plan de dos horas diarias de coordinación y trabajo compartido, revisión de WIP y atención de PR.
+
+---
+
+## Sprint 3 — 17 al 24 de noviembre de 2026
+
+**Sprint Goal:** permitir que un comprador se registre e inicie sesión, encuentre cosechas disponibles por municipio y categoría y contacte al agricultor con un mensaje asociado a la oferta.
+**Comprometido:** 11 SP (HU-17, HU-04 y HU-05), 20 tareas, 49 horas estimadas.
+
+Este seguimiento se reconstruyó el 26 de noviembre a partir de los PR, las revisiones y las tarjetas del Kanban. En cada fila, "qué hizo" es lo que el integrante fusionó ese día, "qué hará" es su siguiente tarjeta y "impedimentos" recoge lo que quedó registrado en las revisiones. Las horas son de Colombia.
+
+### Daily — 18/11/2026
+
+| Integrante | ¿Qué hizo? | Evidencia | ¿Qué hará? | Impedimentos |
+|---|---|---|---|---|
+| **Angel Castillo** | Definió el contrato del catálogo y sus filtros (T01-HU04). | PR #173 | T02-HU04: consulta de ofertas | Ninguno |
+| **Sebastian Martinez** | Alineó el contrato de registro del comprador y sus escenarios BDD (T01-HU17). | PR #172 | T03-HU17: DTO del registro | La revisión pidió unificar los duplicados en `409`. |
+| **Juan Taborda** | Definió el contrato del contacto directo (T01-HU05). | PR #174 | T03-HU04: DTO y servicio del catálogo | El PR se abrió sin conectarlo con su tarjeta. |
+| **Joel Mina** | Abrió el perfil `Comprador` y su repositorio (T02-HU17). | PR #175 (abierto) | Terminar T02-HU17 | Esperaba la revisión. |
+
+### Daily — 19/11/2026
+
+| Integrante | ¿Qué hizo? | Evidencia | ¿Qué hará? | Impedimentos |
+|---|---|---|---|---|
+| **Angel Castillo** | Implementó la consulta de ofertas por municipio y categoría (T02-HU04) y el registro público por rol (T05-HU17). | PR #177, #180 | Diagramas de la sesión 13 (T13 a T16-DIS) | El PR #180 se fusionó sin revisión registrada. |
+| **Sebastian Martinez** | Creó los DTO del registro por rol (T03-HU17) y la entidad `MensajeContacto` (T02-HU05). | PR #176, #181 | T03-HU05: servicio de contacto | El revisor pidió cambios en #181. |
+| **Juan Taborda** | Creó el DTO y el servicio de consulta del catálogo (T03-HU04). | PR #179 | T06-HU17: JWT del comprador | Ninguno |
+| **Joel Mina** | Terminó el perfil `Comprador` (T02-HU17) y el registro de compradores con TDD (T04-HU17). | PR #175, #178 | T04-HU04: endpoint del catálogo | Hubo que distinguir los duplicados de otros errores de integridad (commit `fix` de Ángel en #178). |
+
+### Daily — 20/11/2026
+
+| Integrante | ¿Qué hizo? | Evidencia | ¿Qué hará? | Impedimentos |
+|---|---|---|---|---|
+| **Angel Castillo** | Consolidó secuencias y componentes y diagramó la colaboración del pedido, del alistamiento y el despliegue de staging (T13 a T16-DIS). | PR #188, #190, #193, #194 | T06-HU04 y T06-HU05: documentación | Ninguno |
+| **Sebastian Martinez** | Implementó el servicio de contacto con TDD (T03-HU05) y verificó el catálogo con BDD (T05-HU04). | PR #192, #196 | T05-HU05: BDD del contacto | Ninguno |
+| **Juan Taborda** | Emitió el JWT con el perfil del comprador (T06-HU17) y verificó los escenarios BDD del registro (T07-HU17). | PR #187, #191 | T08-HU17: documentación del flujo | La tarjeta decía `400` para el correo repetido y el contrato decía `409`; se corrigió la tarjeta. |
+| **Joel Mina** | Expuso el GET del catálogo (T04-HU04) y el contacto exclusivo para compradores (T04-HU05). | PR #189, #195 | Apoyar las revisiones | Los dos PR entraron con el nombre de la rama como título. |
+
+### Daily — 24/11/2026
+
+| Integrante | ¿Qué hizo? | Evidencia | ¿Qué hará? | Impedimentos |
+|---|---|---|---|---|
+| **Angel Castillo** | Documentó el catálogo (T06-HU04) y el contacto con su demostración (T06-HU05). | PR #197, #213 | Planear el Sprint 4 | Ninguno |
+| **Sebastian Martinez** | Verificó la persistencia y la seguridad de los mensajes con BDD (T05-HU05). | PR #209 | T03-HU12 | Ninguno |
+| **Juan Taborda** | Documentó el flujo del comprador y su diagrama de secuencia (T08-HU17). | PR #198 | T04-HU12 y T01-HU08 | Ninguno |
+| **Joel Mina** | Revisó la documentación del contacto. | Revisión de #213 | T02-HU12 | Ninguno |
+
+**Cierre:** HU-04, HU-17 y HU-05 se cerraron el 24/11 entre las 15:55 y las 17:31. El 21, 22 y 23 de noviembre no hubo merges.
+
+---
+
+## Sprint 4 — 24 al 26 de noviembre de 2026
+
+**Sprint Goal:** permitir que un comprador autenticado cree un pedido con flete por municipio y stock reservado en la misma transacción, y rechazar con `400` las cantidades que superan el inventario.
+**Comprometido:** 8 SP (HU-12 y HU-08), 13 tareas, 24 horas estimadas.
+
+Seguimiento reconstruido con el mismo criterio del Sprint 3.
+
+### Daily — 25/11/2026
+
+| Integrante | ¿Qué hizo? | Evidencia | ¿Qué hará? | Impedimentos |
+|---|---|---|---|---|
+| **Angel Castillo** | Definió el contrato de pedidos (T01-HU12) e implementó con TDD el servicio que crea el pedido y reserva el stock (T05-HU12). | PR #215, #220 | T06-HU12 y T08-HU12 | La revisión de #215 pidió cubrir `AGOTADO` y validar todo antes de reservar. |
+| **Sebastian Martinez** | Creó los DTO del pedido y sus validaciones (T03-HU12). | PR #217 | T07-HU12: BDD del pedido | El revisor pidió cambios antes de aprobar. |
+| **Juan Taborda** | Implementó el Strategy del flete (T04-HU12), el contrato de stock (T01-HU08) y las excepciones de stock con su `400` en JSON (T02-HU08). | PR #218, #219, #221 | T05-HU08: diagrama del rechazo | Ninguno |
+| **Joel Mina** | Implementó las entidades `Pedido` y `DetallePedido` (T02-HU12). | PR #216 | Revisar los PR de HU-08 | El PR quedó conectado a la tarjeta #203 en vez de la #200. |
+
+### Daily — 26/11/2026
+
+| Integrante | ¿Qué hizo? | Evidencia | ¿Qué hará? | Impedimentos |
+|---|---|---|---|---|
+| **Angel Castillo** | Expuso `POST /api/v1/pedidos` (T06-HU12), actualizó los diagramas del pedido (T08-HU12), validó el stock en el servicio (T03-HU08) y verificó STK-01 a STK-11 (T04-HU08). Abrió la release `0.3.0` a `main`. | PR #222, #223, #225, #224, #228 | Despliegue continuo | El #224 tenía la rama atrasada y el CI en rojo, y traía el mismo cambio que #225. |
+| **Sebastian Martinez** | Verificó los escenarios BDD del pedido (T07-HU12). | PR #226 | Despliegue continuo | El PR pasó `trazabilidad-bdd.md` completo a CRLF; se corrigió en la misma rama. |
+| **Juan Taborda** | Diagramó el rechazo por stock insuficiente (T05-HU08) y revisó #220 a #226. | PR #227 | Documentación de cierre | El PR se fusionó sin revisión registrada. |
+| **Joel Mina** | Aprobó el #224 y fusionó el #224 y el #227. | Revisión de #224 | Despliegue continuo | Ninguno |
+
+**Cierre:** HU-12 y HU-08 se cerraron el 26/11 a las 09:41. El mismo día, el PR #228 llevó el incremento a `main`.

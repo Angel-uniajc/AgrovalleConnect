@@ -35,11 +35,11 @@
 
 | # | Escenario demostrado | Petición | Resultado esperado | Captura |
 | :---: | :--- | :--- | :--- | :---: |
-| 1 | Registro exitoso | `POST /api/v1/auth/register` con `nombre`, `ubicacion_valle`, `cedula`, correo y contraseña válidos | `201 Created` + mensaje "Agricultor registrado exitosamente" | ![Texto descriptivo](./evidencias/01-registro-201.png) |
-| 2 | Correo duplicado | Mismo JSON por segunda vez | `409 Conflict` | ![Texto descriptivo](./evidencias/02-correo-duplicado-409.png) |
-| 3 | Cédula duplicada | Otro correo con la misma cédula | `409 Conflict` | ![Texto descriptivo](./evidencias/03-cedula-duplicada-409.png) |
-| 4 | Contraseña débil | Contraseña que no cumple reglas | `400 Bad Request`, no se guarda nada | ![Texto descriptivo](./evidencias/04-password-debil-400.png) |
-| 5 | Tablero Kanban | Captura del tablero | T01–T05 de HU-01 en *Done* | *![Texto descriptivo](./05-tablero-Kanban.png) |
+| 1 | Registro exitoso | `POST /api/v1/auth/register` con `nombre`, `ubicacion_valle`, `cedula`, correo y contraseña válidos | `201 Created` + mensaje "Agricultor registrado exitosamente" | ![Texto descriptivo](../../evidencias/01-registro-201.png) |
+| 2 | Correo duplicado | Mismo JSON por segunda vez | `409 Conflict` | ![Texto descriptivo](../../evidencias/02-correo-duplicado-409.png) |
+| 3 | Cédula duplicada | Otro correo con la misma cédula | `409 Conflict` | ![Texto descriptivo](../../evidencias/03-cedula-duplicada-409.png) |
+| 4 | Contraseña débil | Contraseña que no cumple reglas | `400 Bad Request`, no se guarda nada | ![Texto descriptivo](../../evidencias/04-password-debil-400.png) |
+| 5 | Tablero Kanban | Captura del tablero | T01–T05 de HU-01 en *Done* | *![Texto descriptivo](../../05-tablero-Kanban.png) |
 
 ---
 

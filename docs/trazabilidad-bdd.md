@@ -1,7 +1,7 @@
 # Trazabilidad BDD → JUnit 5 — AgroValle Connect
 
 Cada escenario Given/When/Then del backlog se verifica con al menos una prueba automatizada.
-Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con las pruebas reales. La matriz de HU-14 está en [la planificación del Sprint 2](sprint-2-planning.md#3-matriz-de-trazabilidad-bdd--junit-5--hu-14).
+Los nombres propuestos en `sprint-1-planning.md` (sección 7) se relacionan con las pruebas reales. La matriz de HU-14 está en [la planificación del Sprint 2](sprints/sprint-2/planning.md#3-matriz-de-trazabilidad-bdd--junit-5--hu-14).
 
 ## HU-01 — Registro de Agricultores
 
@@ -98,7 +98,7 @@ T07-HU12 (#205) verifica los escenarios de `PedidoControllerIntegrationTest` con
 | PED-06 | Producto inexistente | `404` "Producto no encontrado", sin reservas ni pedido | `PedidoControllerIntegrationTest#ped06_crearPedidoConProductoInexistente_retorna404` | Verificado: T07-HU12 (#205) |
 | PED-07 | Producto `INACTIVO` con stock positivo | `400` "Producto no disponible", sin reservas ni pedido | `PedidoControllerIntegrationTest#ped07_crearPedidoConProductoInactivo_retorna400` | Verificado: T07-HU12 (#205) |
 | PED-08 | Reserva exacta | `201` con `AGOTADO` al llegar a cero | `PedidoServiceIntegrationTest#crear_confirmaPedidoDetallesStockYActivaListener` (servicio) | Verificado a nivel de servicio |
-| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, validación de todas las líneas antes de reservar; ninguna reserva si una falla | — | Planificado (T04-HU08, #211) |
+| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, validación de todas las líneas antes de reservar; ninguna reserva si una falla | `StockPedidoIntegrationTest#stk01_cantidadSuperiorAlStock`, `StockPedidoIntegrationTest#stk07_pedidoMixtoSinReservasParciales`, `StockPedidoIntegrationTest#stk08_variasLineasRechazadas` | Verificado: T04-HU08 (#211) |
 | PED-11 | Evento de creación | Evento único tras guardar | `PedidoServiceIntegrationTest#crear_confirmaPedidoDetallesStockYActivaListener` (servicio) | Verificado a nivel de servicio |
 | PED-12 | JSON y campos inválidos | `400` sin reserva | `PedidoControllerWebTest#camposInvalidos_retorna400SinServicio`, `PedidoControllerWebTest#jsonMalFormado_retorna400SinServicio` | Verificado a nivel web |
 
@@ -138,7 +138,7 @@ Contrato y decisiones en [contrato-registro-hu17.md](contrato-registro-hu17.md).
 | Login real del comprador | `200 OK`, token con rol y perfil del comprador | `AuthLoginIntegrationTest.login_compradorRegistrado_retornaTokenConRolYPerfilDelComprador` |
 | Compatibilidad HU-01 (JSON sin `rol`) | `201 Created` como AGRICULTOR | `AuthControllerIntegrationTest.registroExitoso_persisteYGuardaHashNoTextoPlano`, `AuthControllerIntegrationTest.registrarAgricultor_conRolExplicito_persistePerfilDeAgricultor` |
 
-Los nombres de estas pruebas también están agrupados por clase en la [planificación del Sprint 3](sprint-3-planning.md#hu-17-lo-ejecutado-y-lo-pendiente), junto con el estado de las tareas de HU-17.
+Los nombres de estas pruebas también están agrupados por clase en la [planificación del Sprint 3](sprints/sprint-3/planning.md#hu-17-lo-ejecutado-y-lo-pendiente), junto con el estado de las tareas de HU-17.
 
 ## Cómo verificar
 
