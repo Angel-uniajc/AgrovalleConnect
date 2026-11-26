@@ -15,6 +15,8 @@ import com.agrovalleconnect.agrovalle_connect.event.PedidoCreadoEvent;
 import com.agrovalleconnect.agrovalle_connect.exception.AccesoDenegadoException;
 import com.agrovalleconnect.agrovalle_connect.exception.MunicipioSinTarifaException;
 import com.agrovalleconnect.agrovalle_connect.exception.ProductoNoDisponibleException;
+import com.agrovalleconnect.agrovalle_connect.exception.ProductoAgotadoException;
+import com.agrovalleconnect.agrovalle_connect.exception.StockInsuficienteException;
 import com.agrovalleconnect.agrovalle_connect.exception.RecursoNoEncontradoException;
 import com.agrovalleconnect.agrovalle_connect.model.Agricultor;
 import com.agrovalleconnect.agrovalle_connect.model.Comprador;
@@ -209,7 +211,7 @@ class PedidoServiceTest {
         Producto primero = producto(12L, "10", "Palmira");
         Producto segundo = producto(18L, "3", "Palmira");
         assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"), item(18L, "5"))))
-                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Stock insuficiente");
+                .isInstanceOf(StockInsuficienteException.class).hasMessage("Stock insuficiente");
         assertThat(primero.getCantidadDisponible()).isEqualByComparingTo("10");
         assertThat(segundo.getCantidadDisponible()).isEqualByComparingTo("3");
         verifyNoInteractions(pedidos, flete, eventos);
@@ -220,7 +222,7 @@ class PedidoServiceTest {
         comprador();
         Producto producto = producto(12L, "10", "Palmira");
         assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "6"), item(12L, "6"))))
-                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Stock insuficiente");
+                .isInstanceOf(StockInsuficienteException.class).hasMessage("Stock insuficiente");
         assertThat(producto.getCantidadDisponible()).isEqualByComparingTo("10");
         verifyNoInteractions(pedidos, flete, eventos);
     }
@@ -231,7 +233,7 @@ class PedidoServiceTest {
         Producto producto = producto(12L, "10", "Palmira");
         producto.setEstado(Producto.Estado.AGOTADO);
         assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"))))
-                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Producto agotado");
+                .isInstanceOf(ProductoAgotadoException.class).hasMessage("Producto agotado");
         assertThat(producto.getCantidadDisponible()).isEqualByComparingTo("10");
         verifyNoInteractions(pedidos, flete, eventos);
     }
@@ -241,7 +243,7 @@ class PedidoServiceTest {
         comprador();
         producto(12L, "0", "Palmira");
         assertThatThrownBy(() -> servicio.crear("comprador@test.co", request(item(12L, "2"))))
-                .isInstanceOf(ProductoNoDisponibleException.class).hasMessage("Producto agotado");
+                .isInstanceOf(ProductoAgotadoException.class).hasMessage("Producto agotado");
         verifyNoInteractions(pedidos, flete, eventos);
     }
 }

@@ -6,6 +6,8 @@ import com.agrovalleconnect.agrovalle_connect.dto.ItemPedidoResponse;
 import com.agrovalleconnect.agrovalle_connect.event.PedidoCreadoEvent;
 import com.agrovalleconnect.agrovalle_connect.exception.AccesoDenegadoException;
 import com.agrovalleconnect.agrovalle_connect.exception.ProductoNoDisponibleException;
+import com.agrovalleconnect.agrovalle_connect.exception.ProductoAgotadoException;
+import com.agrovalleconnect.agrovalle_connect.exception.StockInsuficienteException;
 import com.agrovalleconnect.agrovalle_connect.exception.RecursoNoEncontradoException;
 import com.agrovalleconnect.agrovalle_connect.model.Pedido;
 import com.agrovalleconnect.agrovalle_connect.model.Producto;
@@ -77,15 +79,15 @@ public class PedidoService {
         for (var entrada : cantidades.entrySet()) {
             Producto producto = productos.findById(entrada.getKey())
                     .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
-            // Guardas de integridad. T03-HU08 incorporará las excepciones con datos de T02-HU08.
             if (producto.getEstado() == Producto.Estado.AGOTADO || producto.getCantidadDisponible().signum() == 0) {
-                throw new ProductoNoDisponibleException("Producto agotado");
+                throw new ProductoAgotadoException(producto.getId());
             }
             if (producto.getEstado() != Producto.Estado.ACTIVO) {
                 throw new ProductoNoDisponibleException("Producto no disponible");
             }
             if (entrada.getValue().compareTo(producto.getCantidadDisponible()) > 0) {
-                throw new ProductoNoDisponibleException("Stock insuficiente");
+                throw new StockInsuficienteException(producto.getId(), entrada.getValue(),
+                        producto.getCantidadDisponible());
             }
             seleccion.add(producto);
         }
