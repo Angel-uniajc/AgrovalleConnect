@@ -74,18 +74,27 @@ El contrato completo está en [contrato-stock-hu08.md](contrato-stock-hu08.md) y
 | STK-09–STK-10 | Producto repetido en varias líneas | Se valida la suma: `400` si la supera, `201` si la alcanza | Planificado |
 | STK-11 | Frontera decimal (10.01 con 10.00 disponibles) | `400` "Stock insuficiente" | Planificado |
 
-## HU-12 — Realizar pedido (planificado)
+## HU-12 — Realizar pedido
 
-El contrato completo está en [contrato-pedido-hu12.md](contrato-pedido-hu12.md) y corresponde a T01-HU12 (#199). Los escenarios PED-01 a PED-12 quedan planificados para las tareas de implementación de Sprint 4; todavía no se afirma cobertura automatizada. La decisión del sprint es enviar la lista `items` directamente, sin tabla de carrito persistente, guardar `costo_flete` en `pedido`, reservar stock dentro de la transacción y publicar `PedidoCreadoEvent` después del guardado.
+El contrato completo está en [contrato-pedido-hu12.md](contrato-pedido-hu12.md) y corresponde a T01-HU12 (#199). La decisión del sprint es enviar la lista `items` directamente, sin tabla de carrito persistente, guardar `costo_flete` en `pedido`, reservar stock dentro de la transacción y publicar `PedidoCreadoEvent` después del guardado.
 
-| ID BDD | Condición | Resultado esperado | Estado |
-|---|---|---|---|
-| PED-01 | Comprador con items válidos | `201`, pedido `PENDIENTE_PAGO`, detalles, subtotal, flete, total y reserva | Planificado |
-| PED-02–PED-04 | Token ausente, rol agricultor o comprador sin perfil | `401`/`403`, sin cambios | Planificado |
-| PED-05 | Lista `items` vacía | `400`, sin pedido | Planificado |
-| PED-06–PED-08 | Producto inexistente, no disponible o reserva exacta | `404`/`400` o `201` con `AGOTADO` al llegar a cero | Planificado |
-| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, validación de todas las líneas antes de reservar; ninguna reserva si una falla | Planificado |
-| PED-11–PED-12 | Evento de creación y campos inválidos | Evento único tras guardar o `400` sin reserva | Planificado |
+T07-HU12 (#205) verifica los escenarios de `PedidoControllerIntegrationTest` con MockMvc y H2. Cada prueba crea su agricultor, finca en Palmira, cosecha y comprador con los endpoints reales (el comprador con el flujo de HU-17), y en cada rechazo comprueba que no se crea el pedido y que el stock no cambia.
+
+| ID BDD | Condición | Resultado esperado | Prueba real | Estado |
+|---|---|---|---|---|
+| PED-01 | Comprador con items válidos | `201`, pedido `PENDIENTE_PAGO`, detalles, subtotal, flete de Palmira (10 000.00), total y stock descontado | `PedidoControllerIntegrationTest#ped01_crearPedidoValido_retorna201ConFleteYDescuentaStock` | Verificado: T07-HU12 (#205) |
+| PED-02 | Petición sin token | `401`, sin pedido ni cambio de stock | `PedidoControllerIntegrationTest#ped02_crearPedidoSinToken_retorna401` | Verificado: T07-HU12 (#205) |
+| PED-03 | Token de agricultor | `403`, sin pedido ni cambio de stock | `PedidoControllerIntegrationTest#ped03_crearPedidoConTokenDeAgricultor_retorna403` | Verificado: T07-HU12 (#205) |
+| PED-04 | Comprador sin perfil | `403`, sin cambios | `PedidoControllerWebTest#compradorSinPerfil_retorna403` (servicio simulado) | Verificado a nivel web |
+| PED-05 | Lista `items` vacía | `400` "El pedido debe incluir al menos un producto", sin pedido | `PedidoControllerIntegrationTest#ped05_crearPedidoConListaVacia_retorna400` | Verificado: T07-HU12 (#205) |
+| PED-06 | Producto inexistente | `404` "Producto no encontrado", sin reservas ni pedido | `PedidoControllerIntegrationTest#ped06_crearPedidoConProductoInexistente_retorna404` | Verificado: T07-HU12 (#205) |
+| PED-07 | Producto `INACTIVO` con stock positivo | `400` "Producto no disponible", sin reservas ni pedido | `PedidoControllerIntegrationTest#ped07_crearPedidoConProductoInactivo_retorna400` | Verificado: T07-HU12 (#205) |
+| PED-08 | Reserva exacta | `201` con `AGOTADO` al llegar a cero | `PedidoServiceIntegrationTest#crear_confirmaPedidoDetallesStockYActivaListener` (servicio) | Verificado a nivel de servicio |
+| PED-09–PED-10 | Stock insuficiente en una o varias líneas | `400`, validación de todas las líneas antes de reservar; ninguna reserva si una falla | — | Planificado (T04-HU08, #211) |
+| PED-11 | Evento de creación | Evento único tras guardar | `PedidoServiceIntegrationTest#crear_confirmaPedidoDetallesStockYActivaListener` (servicio) | Verificado a nivel de servicio |
+| PED-12 | JSON y campos inválidos | `400` sin reserva | `PedidoControllerWebTest#camposInvalidos_retorna400SinServicio`, `PedidoControllerWebTest#jsonMalFormado_retorna400SinServicio` | Verificado a nivel web |
+
+`./mvnw test -Dtest=PedidoControllerIntegrationTest` ejecuta los escenarios verificados de esta tabla.
 
 ## HU-16 — Inicio de Sesión
 
