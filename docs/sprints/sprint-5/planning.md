@@ -56,7 +56,9 @@ HU-07 suma **25 h** y HU-15 **10 h**. Por persona: Ángel 8 h, Juan 9 h, Sebasti
 
 ## 5. Flujo de trabajo y Definition of Done
 
-El equipo toma las tareas en orden de dependencias desde **Ready**. Se mantienen los límites del tablero: máximo tres tareas en **In progress** y dos en **In review**. Cada PR se dirige a `develop`, se enlaza con su tarjeta en *Development*, pasa CI (Maven, Checkstyle, pruebas y JaCoCo), recibe aprobación de una persona distinta de la autora y se integra antes de mover la tarjeta a **Done**. La historia se cierra cuando todas sus subtareas y criterios de aceptación están verificados. Las horas reales y cambios de responsable se anotan en las tarjetas y en la Sprint Review.
+El equipo toma las tareas en orden de dependencias desde **Ready**. Se mantienen los límites del tablero: máximo tres tareas en **In progress** y dos en **In review**. Cada PR se dirige a `develop`, se enlaza con su tarjeta en *Development*, pasa compilación y pruebas con Maven Wrapper, Checkstyle sin errores y la regla actual de JaCoCo del POM (**60 % en instrucciones y ramas**), recibe aprobación de una persona distinta de la autora y se integra antes de mover la tarjeta a **Done**. La historia se cierra cuando todas sus subtareas y criterios de aceptación están verificados. Las horas reales y cambios de responsable se anotan en las tarjetas y en la Sprint Review.
+
+La guía de auditoría de la sesión 15 pide además verificar **60 % en líneas e instrucciones** en `target/site/jacoco/index.html`. El POM no bloquea por cobertura de líneas, de modo que esta cifra debe revisarse en el reporte; una regla adicional para líneas requeriría otra tarea. En la revisión de código se comprueban responsabilidades separadas entre controlador, servicio y repositorio; DTOs en las respuestas; dependencias inyectadas; excepciones con respuesta pública explícita; nombres claros, métodos concisos y ausencia de duplicación o bloques `catch` vacíos. El reporte JaCoCo, Checkstyle y la aprobación del PR son evidencias verificables, no casillas dadas por cumplidas en la planificación.
 
 ## 6. Verificación y demostración previstas
 
@@ -78,5 +80,7 @@ Las respuestas HTTP, las consultas SQL y los resultados de las pruebas se guarda
 | Mantenibilidad | Interfaz de pasarela separada del servicio y secuencias actualizadas con el comportamiento fusionado. |
 
 Quedan fuera HU-06 (asignación de ruta), HU-11 (PDF descargable), frontend y pagos reales. Las pruebas de carga o despliegue a producción requieren planificación aparte.
+
+El material de la sesión 15 también pide auditoría cruzada, backend activo en la PaaS, conexión a PostgreSQL de producción, migraciones con Flyway, documentación consolidada y ensayo de una sustentación de 15 minutos. Son **actividades de cierre del producto**, distintas de los criterios funcionales de HU-07 y HU-15. No se deben marcar como realizadas por terminar estas dos historias. El [ADR-002](../../architecture-decisions/ADR-002-estrategia-despliegue-produccion.md) aún señala como pendientes el perfil de producción, la migración inicial de Flyway, el healthcheck y el despliegue; deben planificarse y verificarse por separado antes de afirmar que producción está lista.
 
 [Sprint 4](../sprint-4/planning.md) · [Contrato de pedido HU-12](../../contrato-pedido-hu12.md) · [Definition of Done](../../dod.md)
