@@ -1,6 +1,6 @@
 #  Planificación del Sprint 1 — AgroValle Connect
 
-**Ubicación en el repo:** `docs/sprint-1-planning.md`
+**Ubicación en el repo:** `docs/sprints/sprint-1/planning.md`
 **Metodología:** Scrum · Planning Poker con Escala Fibonacci (1, 2, 3, 5, 8, 13) · Priorización MoSCoW
 **Stack Tecnológico:** Java 17 / Spring Boot, Spring Data JPA, PostgreSQL, Spring Security + JJWT, JUnit 5 + MockMvc
 **Calidad:** Norma ISO/IEC 25010 · Checkstyle (Google Java Style) · Husky
@@ -141,7 +141,7 @@
 
 ## 10.  Definition of Done Aplicable al Sprint
 
-Checklist obligatorio definido en [`docs/dod.md`](./dod.md):
+Checklist obligatorio definido en [`docs/dod.md`](../../dod.md):
 
 | Criterio | Descripción | Cumple |
 | :--- | :--- | :---: |

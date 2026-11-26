@@ -1,6 +1,6 @@
 # Diagramas UML de AgroValle Connect
 
-Consolidado de la sesión 13. Las secuencias de las secciones 1 a 3 describen la versión de `develop` en `62f037a`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprint-2-planning.md) recoge las de cosechas y fincas. La secuencia del registro y el login del comprador (HU-17) está en su propio archivo: [secuencia-registro-comprador-hu17.md](secuencia-registro-comprador-hu17.md).
+Consolidado de la sesión 13. Las secuencias de las secciones 1 a 3 describen la versión de `develop` en `62f037a`. Los escenarios proceden del [backlog](../../BACKLOG.md). La [matriz de trazabilidad BDD](../trazabilidad-bdd.md) recoge las pruebas de login y la [planificación del Sprint 2](../sprints/sprint-2/planning.md) recoge las de cosechas y fincas. La secuencia del registro y el login del comprador (HU-17) está en su propio archivo: [secuencia-registro-comprador-hu17.md](secuencia-registro-comprador-hu17.md).
 
 ## 1. Secuencia de inicio de sesión · HU-16
 
@@ -89,7 +89,7 @@ sequenceDiagram
     end
 ```
 
-El servicio verifica la finca y la categoría antes de guardar el producto. El listener se ejecuta dentro de la transacción. [Pruebas de HU-02 en la sección 7 del Sprint 2](../sprint-2-planning.md) · [Alternativas y orden del Observer](../diseno/diagrama-secuencia.md) · [Colaboración de cosechas](../diseno/diagrama-colaboracion.md)
+El servicio verifica la finca y la categoría antes de guardar el producto. El listener se ejecuta dentro de la transacción. [Pruebas de HU-02 en la sección 7 del Sprint 2](../sprints/sprint-2/planning.md) · [Alternativas y orden del Observer](../diseno/diagrama-secuencia.md) · [Colaboración de cosechas](../diseno/diagrama-colaboracion.md)
 
 ## 3. Secuencia de registro de finca · HU-14
 
@@ -124,7 +124,7 @@ sequenceDiagram
     end
 ```
 
-[Pruebas de HU-14 en la sección 3 del Sprint 2](../sprint-2-planning.md)
+[Pruebas de HU-14 en la sección 3 del Sprint 2](../sprints/sprint-2/planning.md)
 
 ## 4. Componentes del backend
 
