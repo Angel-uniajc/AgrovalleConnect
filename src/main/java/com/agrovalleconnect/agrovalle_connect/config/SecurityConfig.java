@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/fincas").hasRole("AGRICULTOR")
                         .requestMatchers(HttpMethod.POST, "/api/v1/productos").hasRole("AGRICULTOR")
                         .requestMatchers(HttpMethod.POST, "/api/v1/contacto/mensaje").hasRole("COMPRADOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/pedidos").hasRole("COMPRADOR")
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil),
                         UsernamePasswordAuthenticationFilter.class);
