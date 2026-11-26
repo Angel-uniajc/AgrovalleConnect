@@ -159,13 +159,14 @@ En `develop` (`0233ff4`), compradores y agricultores autenticados consultan el c
 
 ## 5. Colaboración para confirmar un pedido · HU-12
 
-Actualizada por [T08-HU12 #206](https://github.com/Angel-uniajc/AgrovalleConnect/issues/206), sobre `develop` en `021d81e`. Sustituye la propuesta de T14-DIS: el servicio recibe `items`, sin carrito persistente ni pago. [Contrato de pedidos](../contrato-pedido-hu12.md) · [Secuencia detallada](secuencia-pedido-hu12.md)
+Actualizada por [T08-HU12 #206](https://github.com/Angel-uniajc/AgrovalleConnect/issues/206), sobre `develop` en `dbb9498`. Sustituye la propuesta de T14-DIS: el servicio recibe `items`, sin carrito persistente ni pago. [Contrato de pedidos](../contrato-pedido-hu12.md) · [Secuencia detallada](secuencia-pedido-hu12.md)
 
-**Dado** un comprador con perfil y una lista válida de productos disponibles, **cuando** se ejecuta `PedidoService.crear(correo, request)`, **entonces** se guarda el pedido `PENDIENTE_PAGO`, se reserva el stock y se publica `PedidoCreadoEvent`. La capa HTTP y su respuesta 201 pertenecen a T06-HU12 (#204), pendiente de integración en esta línea base.
+**Dado** un comprador autenticado con perfil y una lista válida de productos disponibles, **cuando** envía `POST /api/v1/pedidos`, **entonces** se guarda el pedido `PENDIENTE_PAGO`, se reserva el stock y se publica `PedidoCreadoEvent`. `PedidoController`, incorporado en T06-HU12 (#204), devuelve 201 con `PedidoResponse` tras el commit. La seguridad exige COMPRADOR y Spring MVC valida el cuerpo antes de ejecutar el controlador.
 
 ```mermaid
 flowchart TB
-    E["Invocador del servicio"]
+    B["Comprador autenticado"]
+    E["controlador : PedidoController"]
     S["servicio : PedidoService"]
     C["compradores : CompradorRepository"]
     R["productos : ProductoRepository"]
@@ -174,7 +175,8 @@ flowchart TB
     P["pedidos : PedidoRepository"]
     EV["eventos : ApplicationEventPublisher"]
     L["listener : PedidoCreadoListener"]
-    E -->|"1. crear(correo, request validado)"| S
+    B -->|"0. POST /api/v1/pedidos, JWT e items"| E
+    E -->|"1. crear(authentication.getName(), request validado)"| S
     S -->|"1.1 findByUsuarioCorreo(correo)"| C
     S -->|"1.2 agruparCantidades: sumar repetidos"| S
     S -->|"1.3 findById por producto y validar todos"| R
@@ -186,7 +188,10 @@ flowchart TB
     EV -->|"1.7.1 registrarPedido(evento), síncrono"| L
     L -->|"1.7.1.1 aviso en log por agricultor distinto"| L
     S -.->|"2. PedidoResponse tras confirmar la transacción"| E
+    E -.->|"3. 201 Created con JSON"| B
 ```
+
+La entrada HTTP resume la cadena de filtros y Spring MVC: JWT ausente o inválido → 401, rol distinto → 403 y JSON o DTO inválido → 400, sin ejecutar el servicio. La [secuencia detallada](secuencia-pedido-hu12.md#2-secuencia-http-y-servicio-implementados) muestra estos rechazos y el manejador de errores, incluido 400 para municipio sin tarifa.
 
 El flete usa Strategy y suma una tarifa por municipio distinto: Dagua 12000.00, Palmira 10000.00 y Buga 15000.00 COP. Los detalles copian el precio vigente y consolidan los productos repetidos. JPA persiste los cambios de stock mediante seguimiento de entidades gestionadas; no se llama a `ProductoRepository.save` para reservar.
 
