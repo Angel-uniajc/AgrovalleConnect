@@ -68,6 +68,24 @@ public class ManejadorErrores {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(StockInsuficienteException.class)
+    public ResponseEntity<Map<String, Object>> stockInsuficiente(StockInsuficienteException ex) {
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("error", ex.getMessage());
+        cuerpo.put("id_producto", ex.getIdProducto());
+        cuerpo.put("cantidad_solicitada", ex.getCantidadSolicitada());
+        cuerpo.put("stock_disponible", ex.getStockDisponible());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cuerpo);
+    }
+
+    @ExceptionHandler(ProductoAgotadoException.class)
+    public ResponseEntity<Map<String, Object>> productoAgotado(ProductoAgotadoException ex) {
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("error", ex.getMessage());
+        cuerpo.put("id_producto", ex.getIdProducto());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(cuerpo);
+    }
+
     /**
      * Datos de entrada que no cumplen las validaciones del DTO (@Valid) -> 400.
      * Devuelve cada campo con su mensaje, por ejemplo {"email": "must not be blank"}.
