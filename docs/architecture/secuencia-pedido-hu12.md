@@ -131,7 +131,7 @@ El diagrama representa las operaciones lógicas, no un orden fijo de sentencias 
 
 Una excepción del guardado o de un listener síncrono se propaga y revierte la transacción. Un mensaje ya escrito en el log no se revierte ni demuestra que el commit se haya confirmado. Los efectos externos futuros deben ejecutarse después del commit, por ejemplo con `@TransactionalEventListener(phase = AFTER_COMMIT)`.
 
-En la línea base, un producto inexistente lanza `RecursoNoEncontradoException`; un producto inactivo, agotado o con stock insuficiente lanza `ProductoNoDisponibleException` con el mensaje correspondiente. Las excepciones con los datos de HU-08 ya existen, pero su uso en el servicio corresponde a [T03-HU08 #210](https://github.com/Angel-uniajc/AgrovalleConnect/issues/210). Los caminos detallados de rechazo se documentarán en [T05-HU08 #212](https://github.com/Angel-uniajc/AgrovalleConnect/issues/212), enlazando esta secuencia para evitar duplicarla.
+Desde T03-HU08 (#210, PR #225), un producto inexistente lanza `RecursoNoEncontradoException` (404); uno con estado `AGOTADO` o stock en cero, `ProductoAgotadoException`; uno `INACTIVO` con stock positivo, `ProductoNoDisponibleException`, y una cantidad que supera el stock, `StockInsuficienteException`. Los caminos de rechazo, con sus respuestas, están en la [secuencia del rechazo por stock](secuencia-rechazo-stock-hu08.md) de [T05-HU08 #212](https://github.com/Angel-uniajc/AgrovalleConnect/issues/212), que parte de esta secuencia sin duplicarla.
 
 `ManejadorErrores.municipioSinTarifa` ya traduce `MunicipioSinTarifaException` a 400 con `{"error":"Municipio sin tarifa de flete"}`, conforme al contrato y a T06-HU12 (#204).
 
