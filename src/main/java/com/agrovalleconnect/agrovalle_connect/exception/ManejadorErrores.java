@@ -68,6 +68,12 @@ public class ManejadorErrores {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    /** HU-12: municipio sin estrategia de flete -> 400 con el JSON del contrato. */
+    @ExceptionHandler(MunicipioSinTarifaException.class)
+    public ResponseEntity<Map<String, String>> municipioSinTarifa(MunicipioSinTarifaException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(StockInsuficienteException.class)
     public ResponseEntity<Map<String, Object>> stockInsuficiente(StockInsuficienteException ex) {
         Map<String, Object> cuerpo = new LinkedHashMap<>();
