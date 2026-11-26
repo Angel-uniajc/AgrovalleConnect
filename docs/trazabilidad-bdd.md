@@ -80,7 +80,7 @@ Contrato: [contrato-stock-hu08.md](contrato-stock-hu08.md). T04-HU08 (#211) veri
 
 En todos los rechazos se verifica el cuerpo JSON exacto (claves, mensaje, producto y cantidades cuando corresponden), que no haya pedidos ni detalles, que cada producto conserve stock y estado y que no se publique `PedidoCreadoEvent`. En los tres éxitos se comprueban 201, el detalle consolidado persistido, el estado del pedido, el stock final, ACTIVO/AGOTADO y un único evento del pedido creado.
 
-Ejecución: `./mvnw test -Dtest=StockPedidoIntegrationTest`; validación completa: `./mvnw verify`. La primera ejecución contra `develop` (`77fc2c4`) detectó ocho fallos por respuestas en texto plano. Esta entrega conecta en `PedidoService` las excepciones de stock que ya tenían manejadores JSON, conservando el rechazo de INACTIVO con stock positivo.
+Ejecución: `./mvnw test -Dtest=StockPedidoIntegrationTest`; validación completa: `./mvnw verify`. T04-HU08 depende de T03-HU08 (#210), que conecta en `PedidoService` las excepciones de stock con los manejadores JSON existentes; por eso las pruebas deben integrarse después de esa rama.
 
 ## HU-12 — Realizar pedido (planificado)
 
