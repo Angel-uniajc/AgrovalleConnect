@@ -61,7 +61,7 @@ sequenceDiagram
                 F-->>S: Suma de tarifas
                 S->>S: Crear Pedido PENDIENTE_PAGO
                 S->>S: reservar(pedido, seleccion, cantidades)
-                Note over S,P: agregarDetalle copia el precio vigente; descuenta stock y marca AGOTADO si llega a cero
+                Note over S,P: agregarDetalle copia el precio vigente, descuenta stock y marca AGOTADO si llega a cero
                 S->>P: save(pedido)
                 P->>DB: Persistir pedido y detalles en cascada
                 DB-->>P: Identificador
