@@ -102,4 +102,4 @@ Los dos cuerpos JSON los arma `ManejadorErrores` con los datos de la excepción 
 | [PedidoServiceTest](../../src/test/java/com/agrovalleconnect/agrovalle_connect/service/PedidoServiceTest.java) | Pedido mixto, repetido, agotado y stock en cero sin guardar, sin flete y sin evento |
 | [ManejadorErroresTest](../../src/test/java/com/agrovalleconnect/agrovalle_connect/exception/ManejadorErroresTest.java) | Cuerpos de error de stock insuficiente y producto agotado |
 
-Las pruebas de integración de STK-01 a STK-11 son de [T04-HU08 #211](https://github.com/Angel-uniajc/AgrovalleConnect/issues/211) y se enlazan en la [trazabilidad BDD](../trazabilidad-bdd.md) cuando se fusionen.
+Las pruebas de integración de STK-01 a STK-11 son de [T04-HU08 #211](https://github.com/Angel-uniajc/AgrovalleConnect/issues/211) y están enlazadas en la [trazabilidad BDD](../trazabilidad-bdd.md#hu-08--validación-de-stock) a [StockPedidoIntegrationTest](../../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/StockPedidoIntegrationTest.java).

@@ -3,7 +3,7 @@
 **Fecha de elaboración:** 4 de noviembre de 2026.
 **Corte funcional analizado:** cierre de HU-02 del 3 de noviembre de 2026.
 **Tarea:** [DOC #135](https://github.com/Angel-uniajc/AgrovalleConnect/issues/135).
-**Base de análisis:** [planificación](sprint-2-planning.md), [Sprint Review](sprint-2-review.md), [bitácora](bitacora-daily-scrum.md) y revisiones de código.
+**Base de análisis:** [planificación](planning.md), [Sprint Review](review.md), [bitácora](../../bitacora-daily-scrum.md) y revisiones de código.
 
 ## Contexto y alcance
 
@@ -15,11 +15,11 @@ Esta retrospectiva analiza las entregas y los comentarios de los PR. El plan de 
 
 | Práctica | Resultado observado | Evidencia |
 |---|---|---|
-| Separar entidades, DTO, servicio, endpoint y pruebas en tareas con dependencias. | La revisión pudo contrastar cada entrega con su tarjeta y comprobar el flujo completo. | [Planificación](sprint-2-planning.md), [endpoint de fincas #120](https://github.com/Angel-uniajc/AgrovalleConnect/pull/120), [endpoint de cosechas #131](https://github.com/Angel-uniajc/AgrovalleConnect/pull/131) |
+| Separar entidades, DTO, servicio, endpoint y pruebas en tareas con dependencias. | La revisión pudo contrastar cada entrega con su tarjeta y comprobar el flujo completo. | [Planificación](planning.md), [endpoint de fincas #120](https://github.com/Angel-uniajc/AgrovalleConnect/pull/120), [endpoint de cosechas #131](https://github.com/Angel-uniajc/AgrovalleConnect/pull/131) |
 | Revisar persistencia y autorización además del estado HTTP. | Los rechazos comprueban que la operación conserva la cantidad de productos. | [Integración de fincas #121](https://github.com/Angel-uniajc/AgrovalleConnect/pull/121), [integración de cosechas #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) |
 | Atender los comentarios antes de integrar. | La suite de cosechas incorporó el caso COMPRADOR, una fecha compartida por prueba y municipio propio. | [Revisión y respuesta #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) |
 | Documentar los límites de las decisiones de diseño. | El documento de Observer explica la ejecución síncrona, el rollback y el tratamiento futuro de efectos externos. | [Observer #130](https://github.com/Angel-uniajc/AgrovalleConnect/pull/130) |
-| Mantener Checkstyle, pruebas y cobertura en la verificación. | La comprobación del 4 de noviembre terminó con 113 pruebas sin fallos. | [Evidencia de verificación](evidencias/sprint2-verificacion.txt) |
+| Mantener Checkstyle, pruebas y cobertura en la verificación. | La comprobación del 4 de noviembre terminó con 113 pruebas sin fallos. | [Evidencia de verificación](../../evidencias/sprint2-verificacion.txt) |
 
 ## STOP — Situaciones que deben corregirse
 
@@ -28,7 +28,7 @@ Esta retrospectiva analiza las entregas y los comentarios de los PR. El plan de 
 | Acumular integración y pruebas del flujo de cosechas cerca del cierre. | Queda menos margen para resolver incidencias de extremo a extremo. El servicio se integró el 30 de octubre y el endpoint y la suite se integraron el 3 de noviembre. | [Servicio #122](https://github.com/Angel-uniajc/AgrovalleConnect/pull/122), [endpoint #131](https://github.com/Angel-uniajc/AgrovalleConnect/pull/131), [suite #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) |
 | Tratar la integración funcional como cierre de toda la entrega académica. | IEEE 29148 y la Sprint Review requirieron su integración documental el 4 de noviembre. | [IEEE 29148 #137](https://github.com/Angel-uniajc/AgrovalleConnect/pull/137), [Sprint Review #138](https://github.com/Angel-uniajc/AgrovalleConnect/pull/138) |
 | Preparar pruebas dependientes de datos iniciales. | El cargador queda acoplado a escenarios que pueden preparar sus propios datos. | [Revisiones #130](https://github.com/Angel-uniajc/AgrovalleConnect/pull/130) y [#132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) |
-| Equiparar la duración de un PR con esfuerzo efectivo. | Las esperas y revisiones distorsionan la estimación. | [Cronología de la bitácora](bitacora-daily-scrum.md) |
+| Equiparar la duración de un PR con esfuerzo efectivo. | Las esperas y revisiones distorsionan la estimación. | [Cronología de la bitácora](../../bitacora-daily-scrum.md) |
 
 ## START — Plan de mejora propuesto
 

@@ -1,10 +1,14 @@
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
+[![CI Pipeline](https://github.com/Angel-uniajc/AgrovalleConnect/actions/workflows/ci.yml/badge.svg)](https://github.com/Angel-uniajc/AgrovalleConnect/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-25-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.x-brightgreen)
 
 # AgroValle Connect
 
 Plataforma web que conecta directamente a los productores agrícolas del Valle del Cauca con la demanda comercial urbana, eliminando la intermediación innecesaria en la cadena de comercialización.
+
+**Ingeniería de Software II** · Institución Universitaria Antonio José Camacho · Docente: Paola Andrea Bedoya Toro · Periodo 2-2026
+
+**Versión actual en `main`:** `0.3.0` (sprints 1 a 4). El despliegue continuo a staging está en diseño ([ADR-001](docs/architecture-decisions/ADR-001-despliegue-staging-paas.md)) y todavía no está en servicio.
 
 ## Declaración de Visión del Producto
 
@@ -154,22 +158,25 @@ gitGraph
 ## Stack Tecnológico
 
 - **Lenguaje:** Java 25
-- **Framework:** Spring Boot
-- **Gestor de dependencias:** Maven
-- **Base de datos:** PostgreSQL
-- **Calidad de código:** Checkstyle (Google Java Style)
+- **Framework:** Spring Boot 4.1.1 (Spring Web, Spring Data JPA, Bean Validation)
+- **Seguridad:** Spring Security con JWT (HS256) y contraseñas con BCrypt
+- **Gestor de dependencias:** Maven (Maven Wrapper)
+- **Base de datos:** PostgreSQL; H2 en memoria para las pruebas
+- **Calidad de código:** Checkstyle con reglas basadas en Google Java Style ([`checkstyle.xml`](checkstyle.xml))
 - **Automatización de commits:** Husky (pre-commit hooks)
-- **Pruebas:** JUnit 5 + MockMvc (cobertura mínima del 60 % verificada con JaCoCo)
+- **Pruebas:** JUnit 5, Mockito, AssertJ y MockMvc (cobertura mínima del 60 % en instrucciones y ramas, verificada con JaCoCo)
+- **Integración continua:** GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)): Checkstyle, pruebas y JaCoCo en cada PR y en cada push a `main`
 
 ## Cómo levantar el proyecto localmente
 
 ```bash
-git clone git@github.com:usuario-o-organizacion/agrovalle-connect.git
-cd agrovalle-connect
-./mvnw spring-boot:run
+git clone https://github.com/Angel-uniajc/AgrovalleConnect.git
+cd AgrovalleConnect
+./mvnw clean verify        # Checkstyle, pruebas y JaCoCo (en Windows: .\mvnw.cmd clean verify)
+./mvnw spring-boot:run     # levanta el backend en http://localhost:8080
 ```
 
-Configura tu conexión local a PostgreSQL en `src/main/resources/application.properties` antes de ejecutar.
+Requiere Java 25. Antes de `spring-boot:run`, configura la conexión a PostgreSQL (`spring.datasource.url`, `spring.datasource.username` y `spring.datasource.password`) en `src/main/resources/application.properties` o como variables de entorno, y define `JWT_SECRET` con una clave propia. `clean verify` no necesita PostgreSQL porque las pruebas usan H2.
 
 ## Ejemplo: registro e inicio de sesión de un comprador (HU-17)
 
@@ -227,7 +234,7 @@ Cada filtro es opcional. Juntos deben coincidir con la misma oferta. La consulta
 [{"id":12,"tipo":"Mango","cantidad_disponible":25.50,"precio_unitario":3200,"fecha_cosecha":"2026-11-24","categoria":"Frutas","finca_id":4,"municipio":"Dagua"}]
 ```
 
-Sin coincidencias devuelve `200` con `[]`. Una petición sin token válido recibe `401`. [Contrato del catálogo](docs/contrato-catalogo-hu04.md) · [Recorrido de demostración del Sprint 3](docs/sprint-3-planning.md)
+Sin coincidencias devuelve `200` con `[]`. Una petición sin token válido recibe `401`. [Contrato del catálogo](docs/contrato-catalogo-hu04.md) · [Recorrido de demostración del Sprint 3](docs/sprints/sprint-3/planning.md)
 
 ## Enviar contacto sobre una oferta (HU-05)
 
@@ -253,18 +260,26 @@ Este repositorio sigue el estándar de **Conventional Commits**:
 - `chore:` mantenimiento/configuración
 - `refactor:` reorganización de código sin cambio de comportamiento
 
-## Documentación relacionada
+## Sprints y backlog
 
-- [`BACKLOG.md`](./BACKLOG.md) — Product Backlog: 17 Historias de Usuario priorizadas con MoSCoW, especificadas en BDD y estimadas con Story Points (Fibonacci).
-- [`docs/dod.md`](./docs/dod.md) — Definition of Done, firmado por el equipo.
-- [`docs/sprint-1-planning.md`](./docs/sprint-1-planning.md) — Planificación del Sprint 1: Sprint Goal, desglose técnico e ISO/IEC 25010.
-- [`docs/sprint-2-planning.md`](./docs/sprint-2-planning.md) — Dependencias de HU-14 y matriz de trazabilidad BDD hacia las pruebas de integración de fincas.
-- [`docs/sprint-3-planning.md`](./docs/sprint-3-planning.md) — Planificación y demostración del catálogo en el Sprint 3.
-- [`docs/contrato-catalogo-hu04.md`](./docs/contrato-catalogo-hu04.md) — Filtros, respuestas y escenarios del catálogo.
-- [`docs/contrato-registro-hu17.md`](./docs/contrato-registro-hu17.md) — Contrato del registro de comprador (HU-17).
-- [`docs/contrato-contacto-hu05.md`](./docs/contrato-contacto-hu05.md) — Contrato del contacto directo del comprador (HU-05).
-- [`docs/bitacora-daily-scrum.md`](./docs/bitacora-daily-scrum.md) — Bitácora de Daily Scrums del Sprint 1.
-- [`docs/sprint-1-review.md`](./docs/sprint-1-review.md) — Sprint Review: incremento, evidencias de demo e historial GitFlow.
-- [`docs/sprint-1-retrospective.md`](./docs/sprint-1-retrospective.md) — Retrospectiva del Sprint 1 (Start-Stop-Continue).
-- [`docs/trazabilidad-bdd.md`](./docs/trazabilidad-bdd.md) — Escenarios BDD y referencias a pruebas verificadas de HU-01, HU-04, HU-05, HU-16 y HU-17. La matriz de HU-14 está en [la planificación del Sprint 2](./docs/sprint-2-planning.md).
+| Sprint | Historias | SP completados | Documentos |
+|---|---|---:|---|
+| Sprint 0 · Configuración | — | — | [Planning](docs/sprints/sprint-0/planning.md) · [Review](docs/sprints/sprint-0/review.md) · [Retro](docs/sprints/sprint-0/retrospective.md) |
+| Sprint 1 · Registro y login | HU-01, HU-16 | 5 de 8 | [Planning](docs/sprints/sprint-1/planning.md) · [Review](docs/sprints/sprint-1/review.md) · [Retro](docs/sprints/sprint-1/retrospective.md) |
+| Sprint 2 · Fincas y cosechas | HU-14, HU-02 | 10 de 10 | [Planning](docs/sprints/sprint-2/planning.md) · [Review](docs/sprints/sprint-2/review.md) · [Retro](docs/sprints/sprint-2/retrospective.md) |
+| Sprint 3 · Comprador, catálogo y contacto | HU-17, HU-04, HU-05 | 11 de 11 | [Planning](docs/sprints/sprint-3/planning.md) · [Review](docs/sprints/sprint-3/review.md) · [Retro](docs/sprints/sprint-3/retrospective.md) |
+| Sprint 4 · Pedidos y stock | HU-12, HU-08 | 8 de 8 | [Planning](docs/sprints/sprint-4/planning.md) · [Review](docs/sprints/sprint-4/review.md) · [Retro](docs/sprints/sprint-4/retrospective.md) |
 
+El backlog completo tiene 17 historias y 72 SP ([`BACKLOG.md`](BACKLOG.md)). Van terminadas 10 historias (37 SP). Quedan HU-03, HU-06, HU-07, HU-09, HU-10, HU-11, HU-13 y HU-15 (35 SP). La velocidad, el burndown, el CFD y los tiempos de flujo están en el [reporte de métricas](docs/metrics/sprint-metrics-corte3.md).
+
+## Mapa de la documentación
+
+| Tema | Documentos |
+|---|---|
+| Producto y requisitos | [`BACKLOG.md`](BACKLOG.md) (17 HU con MoSCoW, BDD y Story Points) · [IEEE 29148 de HU-01](docs/ieee29148-req01.md) · [Trazabilidad BDD → JUnit](docs/trazabilidad-bdd.md) |
+| Contratos de la API | [Registro de comprador HU-17](docs/contrato-registro-hu17.md) · [Catálogo HU-04](docs/contrato-catalogo-hu04.md) · [Contacto HU-05](docs/contrato-contacto-hu05.md) · [Pedido HU-12](docs/contrato-pedido-hu12.md) · [Stock HU-08](docs/contrato-stock-hu08.md) |
+| Diseño y arquitectura | [`docs/diseno/`](docs/diseno/) (MER, DER, `schema.sql`, MVC y patrones GoF, componentes, despliegue, secuencias, colaboración, mockups) · [`docs/architecture/`](docs/architecture/) (UML de la sesión 13 y secuencias de HU-17, HU-12 y HU-08) |
+| Decisiones de arquitectura | [ADR-001 · Staging en un PaaS](docs/architecture-decisions/ADR-001-despliegue-staging-paas.md) · [ADR-002 · Estrategia de despliegue a producción](docs/architecture-decisions/ADR-002-estrategia-despliegue-produccion.md) |
+| Gestión ágil | [Sprints](docs/sprints/README.md) · [Bitácora de Daily Scrums](docs/bitacora-daily-scrum.md) · [Métricas del tercer corte](docs/metrics/sprint-metrics-corte3.md) |
+| Calidad | [Definition of Done](docs/dod.md) · [Lista de chequeo de Clean Code](docs/clean-code-checklist.md) · Plantillas de issues para [errores](.github/ISSUE_TEMPLATE/bug_report.md) y [cambios de alcance](.github/ISSUE_TEMPLATE/feature_request.md) |
+| Evidencias | [`docs/evidencias/`](docs/evidencias/) |

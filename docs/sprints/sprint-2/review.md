@@ -20,27 +20,27 @@ HU-02 se cerró el 3 de noviembre de 2026 a las 03:21, hora de Colombia, despué
 2. El agricultor crea una finca con `POST /api/v1/fincas` y recibe su identificador.
 3. El agricultor publica una cosecha en esa finca con `POST /api/v1/productos` y recibe `201` con el ID. El servicio emite el evento de publicación.
 4. Los intentos de publicar en una finca ajena o con rol COMPRADOR reciben `403`. La suite comprueba que los rechazos conservan el número de productos.
-5. La [matriz de planificación y trazabilidad](sprint-2-planning.md) relaciona estos resultados con los métodos JUnit. El [PR #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) conserva la evidencia de revisión e integración.
+5. La [matriz de planificación y trazabilidad](planning.md) relaciona estos resultados con los métodos JUnit. El [PR #132](https://github.com/Angel-uniajc/AgrovalleConnect/pull/132) conserva la evidencia de revisión e integración.
 
-La verificación complementaria del 4 de noviembre ejecutó `clean verify` con Java 25 y H2 sobre la línea base funcional indicada, incluido el caso COMPRADOR. Terminó con 113 pruebas, cero fallos, cero errores y cero omisiones. Checkstyle y la regla de cobertura configurada terminaron satisfactoriamente. El [extracto de verificación](evidencias/sprint2-verificacion.txt) conserva el resultado y las métricas del reporte JaCoCo.
+La verificación complementaria del 4 de noviembre ejecutó `clean verify` con Java 25 y H2 sobre la línea base funcional indicada, incluido el caso COMPRADOR. Terminó con 113 pruebas, cero fallos, cero errores y cero omisiones. Checkstyle y la regla de cobertura configurada terminaron satisfactoriamente. El [extracto de verificación](../../evidencias/sprint2-verificacion.txt) conserva el resultado y las métricas del reporte JaCoCo.
 
 ## Evidencias de ejecución HTTP
 
-La aplicación se ejecutó con Spring Boot en `127.0.0.1:18082`, Java 25 y una base H2 temporal. Un cliente HTTP registró las respuestas reales del 4 de noviembre. Las imágenes son representaciones del registro HTTP, con contraseñas y JWT ocultos. El [registro JSON](evidencias/sprint2-registro-http.json) conserva las peticiones y respuestas sanitizadas.
+La aplicación se ejecutó con Spring Boot en `127.0.0.1:18082`, Java 25 y una base H2 temporal. Un cliente HTTP registró las respuestas reales del 4 de noviembre. Las imágenes son representaciones del registro HTTP, con contraseñas y JWT ocultos. El [registro JSON](../../evidencias/sprint2-registro-http.json) conserva las peticiones y respuestas sanitizadas.
 
 | Comprobación | Resultado observado | Evidencia |
 |---|---|---|
-| Login real | `200` con token JWT y tipo `Bearer`. | [Login](evidencias/sprint2-01-login.png) |
-| Registro de finca con token | `201` con ID de finca. | [Finca creada](evidencias/sprint2-02-finca-201.png) |
-| Publicación en finca propia | `201` con ID de producto. | [Cosecha publicada](evidencias/sprint2-03-cosecha-201.png) |
-| Publicación sin token | `401`. | [Rechazo sin autenticación](evidencias/sprint2-04-sin-token-401.png) |
-| Publicación en finca ajena | `403` con mensaje de propiedad. | [Rechazo por finca ajena](evidencias/sprint2-05-finca-ajena-403.png) |
+| Login real | `200` con token JWT y tipo `Bearer`. | [Login](../../evidencias/sprint2-01-login.png) |
+| Registro de finca con token | `201` con ID de finca. | [Finca creada](../../evidencias/sprint2-02-finca-201.png) |
+| Publicación en finca propia | `201` con ID de producto. | [Cosecha publicada](../../evidencias/sprint2-03-cosecha-201.png) |
+| Publicación sin token | `401`. | [Rechazo sin autenticación](../../evidencias/sprint2-04-sin-token-401.png) |
+| Publicación en finca ajena | `403` con mensaje de propiedad. | [Rechazo por finca ajena](../../evidencias/sprint2-05-finca-ajena-403.png) |
 
 La publicación válida también produjo el registro del listener con producto `1`, finca `1`, tipo `Tomate demo` y municipio `Palmira`.
 
 ## Resultados técnicos y límites de la evidencia
 
-El caso válido de publicación verifica cantidad, precio, fecha, estado `ACTIVO`, finca y categoría después de vaciar el contexto JPA. Los siete rechazos, incluido el rol COMPRADOR adicional, comprueban que la cantidad de productos permanece igual. La prueba de finca ajena comprueba el mensaje de propiedad además del código `403`. La [matriz BDD del Sprint 2](sprint-2-planning.md) enlaza los escenarios con sus métodos JUnit.
+El caso válido de publicación verifica cantidad, precio, fecha, estado `ACTIVO`, finca y categoría después de vaciar el contexto JPA. Los siete rechazos, incluido el rol COMPRADOR adicional, comprueban que la cantidad de productos permanece igual. La prueba de finca ajena comprueba el mensaje de propiedad además del código `403`. La [matriz BDD del Sprint 2](planning.md) enlaza los escenarios con sus métodos JUnit.
 
 La verificación local se ejecutó con `clean verify`, que incluye Checkstyle, pruebas y JaCoCo. El CI del PR #132 terminó satisfactoriamente. El ensayo local usa H2. La compatibilidad específica de PostgreSQL requiere evidencia en ese motor.
 
@@ -48,7 +48,7 @@ El Observer se ejecuta de forma síncrona dentro de la transacción. Una excepci
 
 ## Seguimiento del cierre
 
-El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se integraron el 3 de noviembre. La revisión conserva esta secuencia como evidencia de integración. La [bitácora](bitacora-daily-scrum.md) reúne el seguimiento de las jornadas.
+El servicio de cosechas se integró el 30 de octubre y las últimas pruebas se integraron el 3 de noviembre. La revisión conserva esta secuencia como evidencia de integración. La [bitácora](../../bitacora-daily-scrum.md) reúne el seguimiento de las jornadas.
 
 ### Cobertura medida y estado de la rama de entrega
 

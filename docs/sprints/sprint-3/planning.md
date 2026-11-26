@@ -46,13 +46,13 @@ Corte del 24 de noviembre de 2026, sobre `develop` en `62f037a`. Las horas son l
 | T08-HU17 (#159) | Juanito | Este PR | En revisión | 2 |
 | **Total** | | | **Ejecutado: 7 de 8 tareas (19 h) · Pendiente: 1 tarea (2 h)** | **21** |
 
-**Qué quedó funcionando:** `POST /api/v1/auth/register` registra compradores con `rol` igual a `COMPRADOR` (y sigue registrando agricultores sin `rol`), guarda `Usuario` y `Comprador` en una sola transacción y responde 201, 400 o 409 según el [contrato](contrato-registro-hu17.md). `POST /api/v1/auth/login` entrega al comprador un JWT con su rol y su `perfil_id`. La secuencia está en [secuencia-registro-comprador-hu17.md](architecture/secuencia-registro-comprador-hu17.md), y los pasos 5 y 6 del recorrido de demostración muestran el registro y el login de un comprador.
+**Qué quedó funcionando:** `POST /api/v1/auth/register` registra compradores con `rol` igual a `COMPRADOR` (y sigue registrando agricultores sin `rol`), guarda `Usuario` y `Comprador` en una sola transacción y responde 201, 400 o 409 según el [contrato](../../contrato-registro-hu17.md). `POST /api/v1/auth/login` entrega al comprador un JWT con su rol y su `perfil_id`. La secuencia está en [secuencia-registro-comprador-hu17.md](../../architecture/secuencia-registro-comprador-hu17.md), y los pasos 5 y 6 del recorrido de demostración muestran el registro y el login de un comprador.
 
 **Qué no incluye:** pantallas de frontend ni edición o eliminación de la cuenta del comprador.
 
 ### Pruebas que verifican HU-17
 
-Cada escenario BDD y su prueba están en la [matriz de trazabilidad](trazabilidad-bdd.md#hu-17--registro-de-comprador). Agrupadas por clase:
+Cada escenario BDD y su prueba están en la [matriz de trazabilidad](../../trazabilidad-bdd.md#hu-17--registro-de-comprador). Agrupadas por clase:
 
 | Clase | Tipo | Pruebas |
 |---|---|---|
@@ -63,7 +63,7 @@ Cada escenario BDD y su prueba están en la [matriz de trazabilidad](trazabilida
 
 ## Recorrido de demostración del catálogo
 
-Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 2026. [Registro de las nueve respuestas](evidencias/sprint3-catalogo-http.json). Iniciar el backend con una base de prueba inicializada. En Postman usar cuerpos JSON y, para fincas, publicación y consulta, seleccionar **Bearer Token** con el token del rol indicado. Los datos siguientes son ficticios.
+Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 2026. [Registro de las nueve respuestas](../../evidencias/sprint3-catalogo-http.json). Iniciar el backend con una base de prueba inicializada. En Postman usar cuerpos JSON y, para fincas, publicación y consulta, seleccionar **Bearer Token** con el token del rol indicado. Los datos siguientes son ficticios.
 
 1. Registrar al agricultor con `POST /api/v1/auth/register` y `{"nombre":"Ana Demo","ubicacion_valle":"Dagua","cedula":"12345678","correo":"ana@example.org","password":"Demo@1234"}`. Esperar `201`.
 2. Iniciar sesión con `POST /api/v1/auth/login` y `{"email":"ana@example.org","password":"Demo@1234"}`. Esperar `200` y guardar el campo `token`.
@@ -73,9 +73,9 @@ Recorrido verificado por HTTP con Java 25 y H2 en memoria el 24 de noviembre de 
 6. Enviar `POST /api/v1/auth/login` con `{"email":"luis@example.org","password":"Demo@1234"}`. Esperar `200` y usar el nuevo `token`. El registro recibe `correo` y el login recibe `email`.
 7. Consultar `GET /api/v1/productos?municipio=Dagua&categoria=Frutas` con el token del comprador. Esperar `200` y localizar el ID del producto del paso 4. Con un municipio inexistente se espera `200` y `[]`. Al quitar el token se espera `401`.
 
-[Ejemplos de consulta](../README.md) · [Contrato HU-04](contrato-catalogo-hu04.md) · [Matriz BDD](trazabilidad-bdd.md)
+[Ejemplos de consulta](../../../README.md) · [Contrato HU-04](../../contrato-catalogo-hu04.md) · [Matriz BDD](../../trazabilidad-bdd.md)
 
 ## Recorrido de demostración de HU-05: contacto directo
 
-El recorrido reproducible con Postman y la consulta SQL para verificar la persistencia en PostgreSQL/staging están centralizados en [`docs/evidencias/sprint3-contacto.md`](evidencias/sprint3-contacto.md). La prueba automatizada equivalente es [`ContactoControllerIntegrationTest`](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ContactoControllerIntegrationTest.java), que cubre CON-01 a CON-15 con H2 aislada.
+El recorrido reproducible con Postman y la consulta SQL para verificar la persistencia en PostgreSQL/staging están centralizados en [`docs/evidencias/sprint3-contacto.md`](../../evidencias/sprint3-contacto.md). La prueba automatizada equivalente es [`ContactoControllerIntegrationTest`](../../../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/ContactoControllerIntegrationTest.java), que cubre CON-01 a CON-15 con H2 aislada.
 

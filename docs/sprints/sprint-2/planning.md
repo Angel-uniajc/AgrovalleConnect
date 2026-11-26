@@ -63,7 +63,7 @@ En Windows se usa `mvnw.cmd` en lugar de `./mvnw`. Se requiere JDK 25.
 
 ## 5. Calidad y cierre
 
-T05-HU14 aporta evidencia del atributo de fiabilidad de ISO/IEC 25010: valida el camino exitoso, los rechazos de entrada y los límites de acceso. Para cerrar la tarea se requiere CI en verde y revisión por un compañero, conforme a [Definition of Done](dod.md).
+T05-HU14 aporta evidencia del atributo de fiabilidad de ISO/IEC 25010: valida el camino exitoso, los rechazos de entrada y los límites de acceso. Para cerrar la tarea se requiere CI en verde y revisión por un compañero, conforme a [Definition of Done](../../dod.md).
 
 ## 6. Desglose técnico y dependencias de HU-02
 
