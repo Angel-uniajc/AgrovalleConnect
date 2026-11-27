@@ -12,6 +12,7 @@ import com.agrovalleconnect.agrovalle_connect.model.Usuario;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -161,5 +162,24 @@ class ProductoRepositoryTest {
 
         assertThatThrownBy(() -> productoRepository.saveAndFlush(producto))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void buscarParaActualizar_devuelveLosProductosOrdenadosPorIdEIgnoraLosInexistentes() {
+        Producto mango = productoRepository.saveAndFlush(productoValido());
+        Producto tomate = productoRepository.saveAndFlush(Producto.builder()
+                .tipo("Tomate")
+                .cantidadDisponible(new BigDecimal("8.00"))
+                .precioUnitario(new BigDecimal("2500.00"))
+                .fechaCosecha(LocalDate.of(2026, 11, 2))
+                .finca(mango.getFinca())
+                .categoria(mango.getCategoria())
+                .build());
+        entityManager.clear();
+
+        assertThat(productoRepository.buscarParaActualizar(
+                List.of(tomate.getId(), 999_999L, mango.getId())))
+                .extracting(Producto::getId)
+                .containsExactly(mango.getId(), tomate.getId());
     }
 }

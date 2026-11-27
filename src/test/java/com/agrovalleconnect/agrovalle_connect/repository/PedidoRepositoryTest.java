@@ -200,6 +200,24 @@ class PedidoRepositoryTest {
                 .isEqualTo(Pedido.Estado.PAGADO);
     }
 
+    // ---------- Bloqueo para transiciones de pago (HU-07) ----------
+
+    @Test
+    void buscarParaActualizar_devuelveElPedidoConSusDetalles() {
+        Pedido guardado = pedidoRepository.saveAndFlush(pedidoConDosLineas());
+        entityManager.clear();
+
+        Pedido bloqueado = pedidoRepository.buscarParaActualizar(guardado.getId()).orElseThrow();
+
+        assertThat(bloqueado.getEstado()).isEqualTo(Pedido.Estado.PENDIENTE_PAGO);
+        assertThat(bloqueado.getDetalles()).hasSize(2);
+    }
+
+    @Test
+    void buscarParaActualizar_pedidoInexistente_devuelveVacio() {
+        assertThat(pedidoRepository.buscarParaActualizar(999_999L)).isEmpty();
+    }
+
     // ---------- Borrado ----------
 
     @Test
