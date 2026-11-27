@@ -277,7 +277,7 @@ El backlog completo tiene 17 historias y 72 SP ([`BACKLOG.md`](BACKLOG.md)). Van
 | Tema | Documentos |
 |---|---|
 | Producto y requisitos | [`BACKLOG.md`](BACKLOG.md) (17 HU con MoSCoW, BDD y Story Points) · [IEEE 29148 de HU-01](docs/ieee29148-req01.md) · [Trazabilidad BDD → JUnit](docs/trazabilidad-bdd.md) |
-| Contratos de la API | [Registro de comprador HU-17](docs/contrato-registro-hu17.md) · [Catálogo HU-04](docs/contrato-catalogo-hu04.md) · [Contacto HU-05](docs/contrato-contacto-hu05.md) · [Pedido HU-12](docs/contrato-pedido-hu12.md) · [Stock HU-08](docs/contrato-stock-hu08.md) |
+| Contratos de la API | [Registro de comprador HU-17](docs/contrato-registro-hu17.md) · [Catálogo HU-04](docs/contrato-catalogo-hu04.md) · [Contacto HU-05](docs/contrato-contacto-hu05.md) · [Pedido HU-12](docs/contrato-pedido-hu12.md) · [Stock HU-08](docs/contrato-stock-hu08.md) · [Pago HU-07 (planificado)](docs/contrato-pago-hu07.md) |
 | Diseño y arquitectura | [`docs/diseno/`](docs/diseno/) (MER, DER, `schema.sql`, MVC y patrones GoF, componentes, despliegue, secuencias, colaboración, mockups) · [`docs/architecture/`](docs/architecture/) (UML de la sesión 13 y secuencias de HU-17, HU-12 y HU-08) |
 | Decisiones de arquitectura | [ADR-001 · Staging en un PaaS](docs/architecture-decisions/ADR-001-despliegue-staging-paas.md) · [ADR-002 · Estrategia de despliegue a producción](docs/architecture-decisions/ADR-002-estrategia-despliegue-produccion.md) |
 | Gestión ágil | [Sprints](docs/sprints/README.md) · [Bitácora de Daily Scrums](docs/bitacora-daily-scrum.md) · [Métricas del tercer corte](docs/metrics/sprint-metrics-corte3.md) |
