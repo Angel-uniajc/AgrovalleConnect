@@ -60,6 +60,26 @@ Contrato definido en [contrato-contacto-hu05.md](contrato-contacto-hu05.md#5-esc
 | CON-14 | Mismo mensaje enviado dos veces | Dos `200` y dos registros distintos | `ContactoControllerIntegrationTest#enviarContacto_conMensajeRepetido_guardaDosRegistros` | Verificado: T05-HU05 (#170) |
 | CON-15 | JSON mal formado o `id_producto` no numérico | `400` con el mapa `{"json": ...}`; no se guarda nada | `ContactoControllerIntegrationTest#enviarContacto_conJsonMalFormado_retorna400` | Verificado: T05-HU05 (#170) |
 
+## HU-07 — Pago de un pedido (planificado)
+
+El [contrato de pago](contrato-pago-hu07.md) de T01-HU07 (#232) define PAG-01 a PAG-13 sobre un pedido que HU-12 ya creó y cuyo stock ya reservó. Ningún endpoint ni prueba de HU-07 existe todavía en `develop`; esta tabla es un plan de verificación, no evidencia de ejecución. T07-HU07 (#238) registrará aquí las clases y métodos reales después de integrarlos.
+
+| ID BDD | Condición | Resultado que deberá verificarse | Estado |
+|---|---|---|---|
+| PAG-01 | Aprobación de pedido propio | `200`, `PAGADO`, misma reserva, referencia y un aviso por agricultor tras commit | Planificado |
+| PAG-02 | Rechazo definitivo | `400`, `CANCELADO`, stock restituido una vez, sin aviso | Planificado |
+| PAG-03 | Vencimiento sin aprobación | `CANCELADO`, reserva liberada una vez, intento posterior `409` | Planificado |
+| PAG-04 | Respuesta incierta | `503`, pedido y stock pendientes; consulta antes de reintentar | Planificado |
+| PAG-05 | Repetición de aprobación con la misma clave | Mismo `200` y referencia; sin doble cobro, descuento ni aviso | Planificado |
+| PAG-06 | Repetición de rechazo con la misma clave | Mismo `400`; sin segunda restitución | Planificado |
+| PAG-07 | Clave distinta o estado que no admite pago | `409`; sin operación nueva | Planificado |
+| PAG-08 | POST o GET sin JWT válido | `401`; sin cambios | Planificado |
+| PAG-09 | Agricultor, comprador sin perfil o pedido ajeno | `403`; sin exponer el pago | Planificado |
+| PAG-10 | Pedido inexistente | `404`; sin cambios | Planificado |
+| PAG-11 | JSON, método o clave inválidos | `400`; sin crear intento | Planificado |
+| PAG-12 | Consulta de confirmación propia | `200` con la misma referencia, importe y fecha | Planificado |
+| PAG-13 | Aprobación tardía tras cancelación | Sin cambio a `PAGADO` ni segundo descuento; queda para conciliación | Planificado |
+
 ## HU-08 — Validación de stock
 
 Contrato: [contrato-stock-hu08.md](contrato-stock-hu08.md). T04-HU08 (#211) verifica STK-01 a STK-11 mediante [StockPedidoIntegrationTest](../src/test/java/com/agrovalleconnect/agrovalle_connect/controller/StockPedidoIntegrationTest.java): MockMvc y H2 exclusivos, seguridad y servicio reales, comprador registrado y autenticado por la API. Cada prueba limpia la base y crea sus catálogos y productos, sin depender de los cargadores. No hay mocks ni transacción envolvente de prueba: las lecturas posteriores comprueban datos confirmados.
